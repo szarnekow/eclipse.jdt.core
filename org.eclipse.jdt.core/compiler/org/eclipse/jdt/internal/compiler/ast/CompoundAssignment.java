@@ -23,7 +23,6 @@ public CompoundAssignment(Expression lhs, Expression expression,int operator, in
 
 	super(lhs, expression, sourceEnd);
 	this.operator = operator ;
-	
 }
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	// record setting a variable: various scenarii are possible, setting an array reference, 

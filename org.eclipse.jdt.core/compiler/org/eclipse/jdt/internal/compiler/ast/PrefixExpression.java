@@ -15,10 +15,10 @@ public class PrefixExpression extends CompoundAssignment {
  * @param r org.eclipse.jdt.internal.compiler.ast.Expression
  * @param op int
  */
-public PrefixExpression(Expression l, Expression e, int op, int pos, int sourceEnd) {
-	super(l, e, op,  sourceEnd);
+public PrefixExpression(Expression l, Expression e, int op, int pos) {
+	super(l, e, op, l.sourceEnd);
 	this.sourceStart = pos;
-	this.sourceEnd = sourceEnd;
+	this.sourceEnd = l.sourceEnd;
 }
 public String operatorToString() {
 	switch (operator) {

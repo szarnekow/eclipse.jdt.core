@@ -22,7 +22,6 @@ public Assignment(Expression lhs, Expression expression, int sourceEnd) {
 
 	this.sourceStart = lhs.sourceStart;
 	this.sourceEnd = sourceEnd;
-
 }
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
 	// record setting a variable: various scenarii are possible, setting an array reference, 
