@@ -15,6 +15,7 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GE2LO2: ITPJCORE:WIN2000 - SourceStart and SourceEnd of synchronized statement
 1GIUTIZ: ITPJCORE:WIN2000 - AST: case statement doesn't cover case keyword
 1GITCCY: ITPJCORE:WIN2000 - AST: strange LocalDeclaration.declarationSourceEnd 
 1GIRQFW: ITPJCORE:WIN2000 - AST: wrong source end if subnode is of type AnnonymousTypeDeclaration
