@@ -14,9 +14,11 @@ What's new in this drop (since 0.9)
   * Evaluation in binaries is functional
   * Search for references now finds results in binaries. Indexes in old workspaces are recomputed when restarted 
      which may result in longer startup times.
- 
+
+
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GIT66X: ITPJCORE:WINNT - ClassCastException when calling CodeAssist
 1GJA0WG: ITPJCORE:WINNT - AbortCompilationUnit when doing a Search
 1GH49HW: ITPJUI:WINNT - Search functionality is misleading when viewing source from jar
 1GFXPE5: ITPJUI:ALL - Search for method references broken
