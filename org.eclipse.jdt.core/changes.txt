@@ -15,6 +15,14 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GI3R1I: ITPJCORE:WIN2000 - Compilation error evaluating super expression in debugger
+1GII07V: ITPJCORE:WIN2000 - CompilationUnitDeclaration.traverse doesn't call visitor.endVisit
+1GIR345: ITPJCORE:ALL - Indexer: NegativeArraySizeException
+1GIRC23: ITPJCORE:ALL - CodeFormatter brace on new line problem
+1GIT8SA: ITPJCORE:WIN2000 - AST: wrong sourceEnd if action is Block
+1GIUQVL: ITPJCORE:WINNT - IClassPathEntry: java doc incorrect
+1GIVGMH: ITPJUI:ALL - EC: Javadoc hoverhelp incorrectly uses first of multiple comments
+1GIYKSR: ITPJCORE:WIN2000 - Ast: FieldDeclaration.traverse implemeted differently
 1GI3ND5: ITPJCORE:WINNT - Potential optimization during IB problem generation
 1GFBVZH: ITPUI:WIN2000 - ArrayIndexOutOfBoundsException: Java editor
 1GI509E: ITPJCORE:WINNT - IJavaProject.getNonJavaResources returns java and class files
