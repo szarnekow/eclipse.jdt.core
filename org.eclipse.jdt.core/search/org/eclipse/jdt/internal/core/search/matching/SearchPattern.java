@@ -486,7 +486,7 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo) {
 	switch (element.getElementType()) {
 		case IJavaElement.FIELD :
 			IField field = (IField) element; 
-			String fullDeclaringName = field.getDeclaringType().getFullyQualifiedName().replace('$', '.');;
+			String fullDeclaringName = field.getDeclaringType().getFullyQualifiedName().replace('$', '.');
 			lastDot = fullDeclaringName.lastIndexOf('.');
 			char[] declaringSimpleName = (lastDot != -1 ? fullDeclaringName.substring(lastDot + 1) : fullDeclaringName).toCharArray();
 			char[] declaringQualification = lastDot != -1 ? fullDeclaringName.substring(0, lastDot).toCharArray() : NO_CHAR;
@@ -589,7 +589,9 @@ public static SearchPattern createPattern(IJavaElement element, int limitTo) {
 			break;
 		case IJavaElement.TYPE :
 			IType type = (IType) element;
-			searchPattern = createTypePattern(type.getFullyQualifiedName(), limitTo);
+			String packageName = type.getPackageFragment().getElementName();
+			String fullyQualifiedName = packageName + "." + type.getTypeQualifiedName(); // NB: if default package, the fully qualified name as to be ".X" so that createTypePattern(String) creates a pattern with the NO_CHAR qualification
+			searchPattern = createTypePattern(fullyQualifiedName, limitTo);
 			break;
 		case IJavaElement.PACKAGE_DECLARATION :
 		case IJavaElement.PACKAGE_FRAGMENT :
@@ -1018,12 +1020,17 @@ protected int matchLevelForType(char[][][] declaringTypes, ReferenceBinding rece
  */
 protected int matchLevelForType(char[] simpleNamePattern, char[] qualificationPattern, TypeBinding type) {
 	if (type == null) return INACCURATE_MATCH;
+	char[] qualifiedPackageName = type.qualifiedPackageName();
+	char[] qualifiedSourceName = 
+		type instanceof LocalTypeBinding ?
+			CharOperation.concat("1".toCharArray(), type.qualifiedSourceName(), '.') :
+			type.qualifiedSourceName();
 	if (this.matchesType(
 			simpleNamePattern, 
 			qualificationPattern, 
-			type.qualifiedPackageName().length == 0 ? 
-				type.qualifiedSourceName() : 
-				CharOperation.concat(type.qualifiedPackageName(), type.qualifiedSourceName(), '.'))) {
+			qualifiedPackageName.length == 0 ? 
+				qualifiedSourceName : 
+				CharOperation.concat(qualifiedPackageName, qualifiedSourceName, '.'))) {
 		return ACCURATE_MATCH;
 	} else {
 		return IMPOSSIBLE_MATCH;
