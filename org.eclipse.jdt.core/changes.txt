@@ -15,6 +15,10 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GIUTIZ: ITPJCORE:WIN2000 - AST: case statement doesn't cover case keyword
+1GITCCY: ITPJCORE:WIN2000 - AST: strange LocalDeclaration.declarationSourceEnd 
+1GIRQFW: ITPJCORE:WIN2000 - AST: wrong source end if subnode is of type AnnonymousTypeDeclaration
+1GIRHRP: ITPJCORE:WIN2000 - AST: wrong sourceStart and sourceEnd in SynchronizedStatement
 1GHUAUO: ITPJCORE:ALL - Renaming an element in a working copy corrupts the working copy
 1GHUAM1: ITPJCORE:ALL - NPE when renaming an element in a working copy
 1GHDA2V: ITPJCORE:WINNT - ClassCastException when doing a search
