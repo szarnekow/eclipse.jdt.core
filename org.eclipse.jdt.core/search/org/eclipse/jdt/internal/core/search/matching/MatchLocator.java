@@ -357,7 +357,11 @@ public class MatchLocator implements ITypeRequestor {
 
 		// last project
 		if (previousJavaProject != null) {
-			this.locateMatches();
+			try {
+				this.locateMatches();
+			} catch (JavaModelException e) {
+				// last file doesn't exist -> skip it
+			}
 			this.potentialMatchesLength = 0;
 		}
 
@@ -792,7 +796,14 @@ public class MatchLocator implements ITypeRequestor {
 	 */
 	private void locateMatches() throws JavaModelException {
 		// binding resolution
-		this.lookupEnvironment.completeTypeBindings();
+		try {
+			this.lookupEnvironment.completeTypeBindings();
+		} catch (AbortCompilation e) {
+			// problem with class path: it could not find base classes
+			throw new JavaModelException(
+				e,
+				IJavaModelStatusConstants.BUILDER_INITIALIZATION_ERROR);
+		}
 
 		// potential match resolution
 		for (this.potentialMatchesIndex = 0;
