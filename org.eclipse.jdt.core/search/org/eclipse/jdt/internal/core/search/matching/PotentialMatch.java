@@ -10,6 +10,7 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.search.IJavaSearchResultCollector;
 import org.eclipse.jdt.internal.compiler.*;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.compiler.env.*;
 import org.eclipse.jdt.internal.compiler.lookup.*;
@@ -21,6 +22,7 @@ import java.io.*;
 import java.util.zip.ZipFile;
 
 public class PotentialMatch {
+	private static char[] EMPTY_FILE_NAME = new char[0];
 	private MatchLocator locator;
 	public IResource resource;
 	public Openable openable;
@@ -37,20 +39,31 @@ public PotentialMatch(MatchLocator locator, IResource resource, Openable openabl
 			String source = ((org.eclipse.jdt.internal.core.ClassFile)openable).getSource();
 			if (source != null) {
 				this.buildTypeBindings(source.toCharArray());
+				
+				// try to use the main type's class file as the openable
+				TypeDeclaration[] types = this.parsedUnit.types;
+				if (types != null && types.length > 0) {
+					String simpleTypeName = new String(types[0].name);
+					IPackageFragment parent = (IPackageFragment)openable.getParent();
+					org.eclipse.jdt.core.IClassFile classFile = 
+						parent.getClassFile(simpleTypeName + ".class");
+					if (classFile.exists()) {
+						this.openable = (Openable)classFile;
+					} 
+				}
 			}
 		} catch (JavaModelException e) {
 		}
 	}
 }
 private void buildTypeBindings(final char[] source) {
-	// get main type name
-	String fileName = this.resource.getFullPath().lastSegment();
-	// remove extension ".java"
-	final char[] mainTypeName = fileName.substring(0, fileName.length()-5).toCharArray(); 
-
 	// get qualified name
 	char[] qualifiedName;
 	if (this.openable instanceof CompilationUnit) {
+		// get file name
+		String fileName = this.resource.getFullPath().lastSegment();
+		// get main type name
+		char[] mainTypeName = fileName.substring(0, fileName.length()-5).toCharArray(); 
 		CompilationUnit cu = (CompilationUnit)this.openable;
 		qualifiedName = cu.getType(new String(mainTypeName)).getFullyQualifiedName().toCharArray();
 	} else {
@@ -74,10 +87,10 @@ private void buildTypeBindings(final char[] source) {
 				return source;
 			}
 			public char[] getFileName() {
-				return PotentialMatch.this.resource.getName().toCharArray();
+				return EMPTY_FILE_NAME; // not used
 			}
 			public char[] getMainTypeName() {
-				return mainTypeName;
+				return null; // don't need to check if main type name == compilation unit name
 			}
 		};
 		
@@ -92,45 +105,17 @@ private void buildTypeBindings(final char[] source) {
 		this.locator.parsedUnits.put(qualifiedName, null);
 	}
 }
-public static char[] getContents(IFile file) {
-	BufferedInputStream input = null;
-	try {
-		input = new BufferedInputStream(file.getContents(true));
-		StringBuffer buffer= new StringBuffer();
-		int nextChar = input.read();
-		while (nextChar != -1) {
-			buffer.append( (char)nextChar );
-			nextChar = input.read();
-		}
-		int length = buffer.length();
-		char[] result = new char[length];
-		buffer.getChars(0, length, result, 0);
-		return result;
-	} catch (IOException e) {
-		return null;
-	} catch (CoreException e) {
-		return null;
-	} finally {
-		if (input != null) {
-			try {
-				input.close();
-			} catch (IOException e) {
-				// nothing can be done if the file cannot be closed
-			}
-		}
-	}
-}
 public char[] getSource() {
-	if (this.openable instanceof CompilationUnit) {
-		return getContents((IFile)this.resource);
-	} else if (this.openable instanceof org.eclipse.jdt.internal.core.ClassFile) {
-		org.eclipse.jdt.internal.core.ClassFile classFile = (org.eclipse.jdt.internal.core.ClassFile)this.openable;
-		try {
+	try {
+		if (this.openable instanceof CompilationUnit) {
+			return Util.getResourceContentsAsCharArray((IFile)this.resource);
+		} else if (this.openable instanceof org.eclipse.jdt.internal.core.ClassFile) {
+			org.eclipse.jdt.internal.core.ClassFile classFile = (org.eclipse.jdt.internal.core.ClassFile)this.openable;
 			return classFile.getSource().toCharArray();
-		} catch (JavaModelException e) {
+		} else {
 			return null;
 		}
-	} else {
+	} catch (JavaModelException e) {
 		return null;
 	}
 }
