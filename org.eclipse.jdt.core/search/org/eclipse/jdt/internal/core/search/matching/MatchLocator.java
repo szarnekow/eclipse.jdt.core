@@ -156,7 +156,17 @@ public class MatchLocator implements ITypeRequestor {
 		FieldDeclaration field,
 		char[][] definingTypeNames) {
 		IType type = this.createTypeHandle(definingTypeNames);
-		return type.getField(new String(field.name));
+		if (type == null) return null;
+		if (type.isBinary()) {
+			IField fieldHandle = type.getField(new String(field.name));
+			if (fieldHandle.exists()) {
+				return fieldHandle;
+			} else {
+				return null;
+			}
+		} else {
+			return type.getField(new String(field.name));
+		}
 	}
 
 	/**
@@ -179,6 +189,7 @@ public class MatchLocator implements ITypeRequestor {
 		FieldDeclaration initializer,
 		char[][] definingTypeNames) {
 		IType type = this.createTypeHandle(definingTypeNames);
+		if (type == null) return null;
 
 		// find occurence count of the given initializer in its type declaration
 		int occurrenceCount = 0;
@@ -203,34 +214,75 @@ public class MatchLocator implements ITypeRequestor {
 		AbstractMethodDeclaration method,
 		char[][] definingTypeNames) {
 		IType type = this.createTypeHandle(definingTypeNames);
+		if (type == null) return null;
 		Argument[] arguments = method.arguments;
 		int length = arguments == null ? 0 : arguments.length;
-		String[] parameterTypeSignatures = new String[length];
-		for (int i = 0; i < length; i++) {
-			TypeReference parameterType = arguments[i].type;
-			char[] typeName = CharOperation.concatWith(parameterType.getTypeName(), '.');
-			for (int j = 0; j < parameterType.dimensions(); j++) {
-				typeName = CharOperation.concat(typeName, "[]" .toCharArray()); //$NON-NLS-1$
+		if (type.isBinary()) {
+			String selector = new String(method.selector);
+			IMethod[] methods;
+			try {
+				methods = type.getMethods();
+			} catch (JavaModelException e) {
+				return null;
 			}
-			parameterTypeSignatures[i] = Signature.createTypeSignature(typeName, false);
+			for (int i = 0; i < methods.length; i++) {
+				IMethod methodHandle = methods[i];
+				if (methodHandle.getElementName().equals(selector) && length == methodHandle.getNumberOfParameters()) {
+					boolean sameParameters = true;
+					String[] parameterTypes = methodHandle.getParameterTypes();
+					for (int j = 0; j < length; j++) {
+						TypeReference parameterType = arguments[j].type;
+						char[] typeName = CharOperation.concatWith(parameterType.getTypeName(), '.');
+						for (int k = 0; k < parameterType.dimensions(); k++) {
+							typeName = CharOperation.concat(typeName, "[]" .toCharArray()); //$NON-NLS-1$
+						}
+						String parameterTypeName = parameterTypes[j];
+						if (!Signature.toString(parameterTypeName).endsWith(new String(typeName))) {
+							sameParameters = false;
+							break;
+						}
+					}
+					if (sameParameters) return methodHandle;
+				}
+			}
+			return null;
+		} else {
+			String[] parameterTypeSignatures = new String[length];
+			for (int i = 0; i < length; i++) {
+				TypeReference parameterType = arguments[i].type;
+				char[] typeName = CharOperation.concatWith(parameterType.getTypeName(), '.');
+				for (int j = 0; j < parameterType.dimensions(); j++) {
+					typeName = CharOperation.concat(typeName, "[]" .toCharArray()); //$NON-NLS-1$
+				}
+				parameterTypeSignatures[i] = Signature.createTypeSignature(typeName, false);
+			}
+			return type.getMethod(new String(method.selector), parameterTypeSignatures);
 		}
-		return type.getMethod(new String(method.selector), parameterTypeSignatures);
 	}
 
 	/**
 	 * Creates an IType from the given simple type names. 
 	 */
 	private IType createTypeHandle(char[][] simpleTypeNames) {
-		// creates compilation unit
-		CompilationUnit unit = (CompilationUnit) this.getCurrentOpenable();
-
-		// create type
-		int length = simpleTypeNames.length;
-		IType type = unit.getType(new String(simpleTypeNames[0]));
-		for (int i = 1; i < length; i++) {
-			type = type.getType(new String(simpleTypeNames[i]));
+		Openable currentOpenable = this.getCurrentOpenable();
+		if (currentOpenable instanceof CompilationUnit) {
+			// creates compilation unit
+			CompilationUnit unit = (CompilationUnit)currentOpenable;
+	
+			// create type
+			int length = simpleTypeNames.length;
+			IType type = unit.getType(new String(simpleTypeNames[0]));
+			for (int i = 1; i < length; i++) {
+				type = type.getType(new String(simpleTypeNames[i]));
+			}
+			return type;
+		} else {
+			try {
+				return ((org.eclipse.jdt.internal.core.ClassFile)currentOpenable).getType();
+			} catch (JavaModelException e) {
+				return null;
+			}
 		}
-		return type;
 	}
 	protected IResource getCurrentResource() {
 		return this.potentialMatches[this.potentialMatchesIndex].resource;
@@ -419,7 +471,9 @@ public class MatchLocator implements ITypeRequestor {
 
 		// create field handle
 		IType type = this.createTypeHandle(definingTypeNames);
+		if (type == null) return;
 		IField field = type.getField(new String(fieldDeclaration.name));
+		if (field == null) return;
 
 		// accept field declaration
 		this.report(
@@ -454,6 +508,7 @@ public class MatchLocator implements ITypeRequestor {
 
 		// create method handle
 		IMethod method = this.createMethodHandle(methodDeclaration, definingTypeNames);
+		if (method == null) return;
 
 		// compute source positions of the selector 
 		Scanner scanner = parser.scanner;
@@ -562,6 +617,7 @@ public class MatchLocator implements ITypeRequestor {
 
 		// create defining method handle
 		IMethod method = this.createMethodHandle(methodDeclaration, definingTypeNames);
+		if (method == null) return; // case of a match found in a type other than the current class file
 
 		// accept reference
 		if (reference instanceof QualifiedNameReference
@@ -596,6 +652,7 @@ public class MatchLocator implements ITypeRequestor {
 		if (fieldDeclaration.isField()) {
 			// create defining field handle
 			IField field = this.createFieldHandle(fieldDeclaration, definingTypeNames);
+			if (field == null) return;
 
 			// accept reference
 			if (reference instanceof QualifiedNameReference
@@ -619,6 +676,7 @@ public class MatchLocator implements ITypeRequestor {
 					typeDeclaration,
 					fieldDeclaration,
 					definingTypeNames);
+			if (initializer == null) return;
 
 			// accept reference
 			if (reference instanceof QualifiedNameReference
@@ -654,6 +712,7 @@ public class MatchLocator implements ITypeRequestor {
 
 		// create defining type handle
 		IType type = this.createTypeHandle(definingTypeNames);
+		if (type == null) return;
 
 		// accept type reference
 		this.pattern.matchReportReference(typeRef, type, accuracy, this);
@@ -671,6 +730,7 @@ public class MatchLocator implements ITypeRequestor {
 
 		// create type handle
 		IType type = this.createTypeHandle(simpleTypeNames);
+		if (type == null) return;
 
 		// accept class or interface declaration
 		this.report(
