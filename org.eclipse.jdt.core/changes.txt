@@ -12,8 +12,8 @@ What's new in this drop (since 0.9)
   * More options are surfaced on JavaCore. See JavaCore.getDefaultOptions() for description.
          - ...internal...ConfigurableOption has disappeared.
   * Evaluation in binaries is functional
-  * Search for references now finds results in binaries. Indexes in workspaces must be deleted before starting the workbench.
- 	These indexes are located in [workspace]\.metadata\.plugins\org.eclipse.jdt.core 
+  * Search for references now finds results in binaries. Indexes in old workspaces are recomputed when restarted 
+     which may result in longer startup times.
  
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
