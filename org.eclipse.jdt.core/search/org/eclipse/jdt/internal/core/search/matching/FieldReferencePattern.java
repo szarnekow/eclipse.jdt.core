@@ -146,7 +146,7 @@ protected void matchReportReference(AstNode reference, IJavaElement element, int
 	locator.reportQualifiedReference(reference.sourceStart, reference.sourceEnd, qualifiedName, element, accuracy);
 }
 /**
- * Returns whether a method declaration or message send will need to be resolved to 
+ * Returns whether a field reference or name reference will need to be resolved to 
  * find out if this method pattern matches it.
  */
 private boolean needsResolve() {
