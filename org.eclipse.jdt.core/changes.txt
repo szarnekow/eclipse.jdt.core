@@ -15,6 +15,12 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GI509E: ITPJCORE:WINNT - IJavaProject.getNonJavaResources returns java and class files
+1GI2WAW: ITPJCORE:WINNT - Too many results for default package
+1GHQZ9H: ITPJUI:ALL - Walkback doing a search
+1GGYT3S: ITPJCORE:WINNT - javaconventions::validatePackageName and default package
+1GF9856: ITPJCORE:WINNT - JM - JavaConventions::validateCompilationUnitName
+1GF822P: ITPJCORE:WIN2000 - NegativeArraySizeException in Parser
 1GI6T4Y: ITPJCORE:WINNT - NPE in JavaModeManager retrieving workspace options
 1GE4ILR: ITPJCORE:ALL - Eval - Evaluation in Binary Project fails
 1GI3LLC: ITPJCORE:ALL - Incorrect formatting for the new keyword
@@ -76,6 +82,8 @@ PRs Fixed in 1.0NL stream (since 0.9)
 
 PRs Closed in this Release
 ==================================================================================
+1GIF18T: ITPJCORE:WIN2000 - ArrayIndexOutOfBounds deleting text
+1GF2C3C: ITPJUI:Linux - New class wizard allows illegal character
 1GGRCGZ: ITPJUI:WIN2000 - Can't rename/copy/move/delete default package
 1GDRXHP: ITPDUI:WINNT - NPE inspecting local var
 1G7RAO5: ITPJCORE:ALL - Java Model Core Tests: JavaProjectTests>>testProjectClose() has been removed
