@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.CoreException;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.compiler.util.CharOperation;
 import org.eclipse.jdt.internal.core.util.CharArrayBuffer;
@@ -165,7 +166,7 @@ public static int compare(char[] v1, char[] v2) {
 }
 	/**
 	 * Concatenate two strings with a char in between.
-	 * @see concat(String, String)
+	 * @see #concat(String, String)
 	 */
 	public static String concat(String s1, char c, String s2) {
 		if (s1 == null) s1 = "null"; //$NON-NLS-1$
@@ -201,7 +202,7 @@ public static int compare(char[] v1, char[] v2) {
 
 	/**
 	 * Concatenate three strings.
-	 * @see concat(String, String)
+	 * @see #concat(String, String)
 	 */
 	public static String concat(String s1, String s2, String s3) {
 		if (s1 == null) s1 = "null"; //$NON-NLS-1$
@@ -259,7 +260,11 @@ public static boolean equalArraysOrNull(int[] a, int[] b) {
 		int len = a.length;
 		if (len != b.length) return false;
 		for (int i = 0; i < len; ++i) {
-			if (!a[i].equals(b[i])) return false;
+			if (a[i] == null) {
+				if (b[i] != null) return false;
+			} else {
+				if (!a[i].equals(b[i])) return false;
+			}
 		}
 		return true;
 	}
@@ -530,21 +535,19 @@ public static char[] getResourceContentsAsCharArray(IFile file) throws JavaModel
 		return JavaConventions.validateIdentifier(folderName).getSeverity() != IStatus.ERROR;
 	}	
 
-/**
- * Add entry into the workspace log file
- */
-public static void log(String message){
-	JavaCore.getPlugin().getLog().log(
-		new JavaModelStatus(IStatus.ERROR, message));
-}	
-
-/**
- * Add entry into the workspace log file
- */
-public static void log(Throwable e){
-	JavaCore.getPlugin().getLog().log(
-		new JavaModelStatus(IStatus.ERROR, e));
-}
+	/*
+	 * Add a log entry
+	 */
+	public static void log(Throwable e, String message) {
+		IStatus status= new Status(
+			IStatus.ERROR, 
+			JavaCore.getPlugin().getDescriptor().getUniqueIdentifier(), 
+			IStatus.ERROR, 
+			message, 
+			e); 
+		JavaCore.getPlugin().getLog().log(status);
+	}	
+	
 /**
  * Normalizes the cariage returns in the given text.
  * They are all changed  to use the given buffer's line sepatator.
@@ -1045,10 +1048,9 @@ public static String bind(String id, String binding1, String binding2) {
 		int suffixLength = SUFFIX_CLASS.length;
 		if (nameLength < suffixLength) return false;
 
-		for (int i = 0; i < suffixLength; i++) {
-			char c = name.charAt(nameLength - i - 1);
-			int suffixIndex = suffixLength - i - 1;
-			if (c != SUFFIX_class[suffixIndex] && c != SUFFIX_CLASS[suffixIndex]) return false;
+		for (int i = 0, offset = nameLength - suffixLength; i < suffixLength; i++) {
+			char c = name.charAt(offset + i);
+			if (c != SUFFIX_class[i] && c != SUFFIX_CLASS[i]) return false;
 		}
 		return true;		
 	}
@@ -1098,10 +1100,9 @@ public static String bind(String id, String binding1, String binding2) {
 		int suffixLength = SUFFIX_JAVA.length;
 		if (nameLength < suffixLength) return false;
 
-		for (int i = 0; i < suffixLength; i++) {
-			char c = name.charAt(nameLength - i - 1);
-			int suffixIndex = suffixLength - i - 1;
-			if (c != SUFFIX_java[suffixIndex] && c != SUFFIX_JAVA[suffixIndex]) return false;
+		for (int i = 0, offset = nameLength - suffixLength; i < suffixLength; i++) {
+			char c = name.charAt(offset + i);
+			if (c != SUFFIX_java[i] && c != SUFFIX_JAVA[i]) return false;
 		}
 		return true;		
 	}

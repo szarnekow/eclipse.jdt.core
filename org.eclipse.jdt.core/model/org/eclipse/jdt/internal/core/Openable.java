@@ -27,7 +27,8 @@ import java.util.Map;
 /**
  * Abstract class for implementations of java elements which are IOpenable.
  *
- * @see IJavaElement, IOpenable
+ * @see IJavaElement
+ * @see IOpenable
  */
 public abstract class Openable extends JavaElement implements IOpenable, IBufferChangedListener {
 
@@ -185,6 +186,14 @@ public IBuffer getBuffer() throws JavaModelException {
 		return null;
 	}
 }
+
+/**
+ * Answers the buffer factory to use for creating new buffers
+ */
+public IBufferFactory getBufferFactory(){
+	return getBufferManager().getDefaultBufferFactory();
+}
+
 /**
  * Returns the buffer manager for this element.
  */
@@ -320,16 +329,11 @@ public void makeConsistent(IProgressMonitor pm) throws JavaModelException {
  * @see IOpenable
  */
 public void open(IProgressMonitor pm) throws JavaModelException {
-	this.open(pm, null);
-}
-/**
- * Opens this openable using the given buffer (or null if one should be created)
- */
-protected void open(IProgressMonitor pm, IBuffer buffer) throws JavaModelException {
 	if (!isOpen()) {
-		this.openWhenClosed(pm, buffer);
+		this.openWhenClosed(pm);
 	}
 }
+
 /**
  * Opens a buffer on the contents of this element, and returns
  * the buffer, or returns <code>null</code> if opening fails.
@@ -350,16 +354,15 @@ protected void openParent(IProgressMonitor pm) throws JavaModelException {
 	if (openableParent != null) {
 		OpenableElementInfo openableParentInfo = (OpenableElementInfo) fgJavaModelManager.getInfo((IJavaElement) openableParent);
 		if (openableParentInfo == null) {
-			openableParent.openWhenClosed(pm, null);
+			openableParent.openWhenClosed(pm);
 		}
 	}
 }
 
 /**
  * Open an <code>Openable</code> that is known to be closed (no check for <code>isOpen()</code>).
- * Use the given buffer to get the source, or open a new one if null.
  */
-protected void openWhenClosed(IProgressMonitor pm, IBuffer buffer) throws JavaModelException {
+protected void openWhenClosed(IProgressMonitor pm) throws JavaModelException {
 	try {
 		
 		if (JavaModelManager.VERBOSE){
@@ -368,27 +371,13 @@ protected void openWhenClosed(IProgressMonitor pm, IBuffer buffer) throws JavaMo
 		
 		// 1) Parent must be open - open the parent if necessary
 		openParent(pm);
-		
-		// 1.5) Ensure my resource is local
-		IResource resource = getCorrespondingResource();
-		if (resource != null) {
-			try {
-				JavaModelManager.getJavaModelManager().ensureLocal(resource);
-			} catch (CoreException e) {
-				throw new JavaModelException(e);
-			}
-		}
 
 		// 2) create the new element info and open a buffer if needed
 		OpenableElementInfo info = createElementInfo();
-		if (buffer == null) {
-			if (resource != null && isSourceElement()) {
-				this.openBuffer(pm);
-			} 
-		} else {
-			this.getBufferManager().addBuffer(buffer);
-			buffer.addBufferChangedListener(this);
-		}
+		IResource resource = getCorrespondingResource();
+		if (resource != null && isSourceElement()) {
+			this.openBuffer(pm);
+		} 
 
 		// 3) build the structure of the openable
 		buildStructure(info, pm);
@@ -433,7 +422,7 @@ protected boolean resourceExists() {
  * @see IOpenable
  */
 public void save(IProgressMonitor pm, boolean force) throws JavaModelException {
-	if (isReadOnly()) {
+	if (isReadOnly() || this.getResource().isReadOnly()) {
 		throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.READ_ONLY, this));
 	}
 	IBuffer buf = getBuffer();
@@ -525,5 +514,4 @@ protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUn
 			}
 		});
 }
-
 }

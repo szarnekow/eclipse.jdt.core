@@ -7,7 +7,6 @@ package org.eclipse.jdt.internal.core.index.impl;
 import java.io.*;
 import java.util.*;
 
-import org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
 import org.eclipse.jdt.internal.core.index.*;
 
 /**
@@ -20,35 +19,26 @@ public class InMemoryIndex {
 	/**
 	 * hashtable of WordEntrys = words+numbers of the files they appear in.
 	 */
-	protected HashtableOfObject words= new HashtableOfObject(1023);
+	protected WordEntryHashedArray words;
 
 	/**
-	 * Vector of IndexedFiles = file name + a unique number.
+	 * List of IndexedFiles = file name + a unique number.
 	 */
-	protected ObjectVector files= new ObjectVector();
-
-	/**
-	 * Number of references in the index (not the number of actual words).
-	 */
-	protected int wordCount= 0;
+	protected IndexedFileHashedArray files;
 
 	/**
 	 * Size of the index.
 	 */
-	protected long footprint= 0;
+	protected long footprint;
 
-	protected long indexFileSize;
 	private WordEntry[] sortedWordEntries;
 	private IndexedFile[] sortedFiles;
 	public InMemoryIndex() {
-		super();
+		init();
 	}
-	/**
-	 * @see IIndex#addFile
-	 */
+
 	public IndexedFile addDocument(IDocument document) {
-		IndexedFile indexedFile= new IndexedFile(document, this.files.size + 1);
-		this.files.add(indexedFile);
+		IndexedFile indexedFile= this.files.add(document);
 		this.footprint += indexedFile.footprint() + 4;
 		this.sortedFiles = null;
 		return indexedFile;
@@ -75,66 +65,58 @@ public class InMemoryIndex {
 		if (entry == null) {
 			entry= new WordEntry(word);
 			entry.addRef(fileNum);
-			this.words.put(word, entry);
+			this.words.add(entry);
 			this.sortedWordEntries= null;
 			this.footprint += entry.footprint();
 		} else {
 			this.footprint += entry.addRef(fileNum);
 		}
-		++this.wordCount;
 	}
-	/**
-	 * @see IIndex#addRef
-	 */
+
 	public void addRef(IndexedFile indexedFile, char[] word) {
 		addRef(word, indexedFile.getFileNumber());
 	}
-	/**
-	 * @see IIndex#addRef
-	 */
+
 	public void addRef(IndexedFile indexedFile, String word) {
 		addRef(word.toCharArray(), indexedFile.getFileNumber());
 	}
+
 	/**
 	 * Returns the footprint of the index.
 	 */
-
 	public long getFootprint() {
 		return this.footprint;
 	}
+
 	/**
 	 * Returns the indexed file with the given path, or null if such file does not exist.
 	 */
 	public IndexedFile getIndexedFile(String path) {
-		for (int i= files.size; i > 0; i--) {
-			IndexedFile file= (IndexedFile) files.elementAt(i - 1);
-			if (file.getPath().equals(path))
-				return file;
-		}
-		return null;
+		return files.get(path);
 	}
+
 	/**
-	 * @see IIndex#getNumFiles
+	 * @see IIndex#getNumDocuments()
 	 */
 	public int getNumFiles() {
-		return files.size;
+		return files.size();
 	}
+
 	/**
-	 * @see IIndex#getNumWords
+	 * @see IIndex#getNumWords()
 	 */
 	public int getNumWords() {
 		return words.elementSize;
 	}
+	
 	/**
 	 * Returns the words contained in the hashtable of words, sorted by alphabetical order.
 	 */
 	protected IndexedFile[] getSortedFiles() {
 		if (this.sortedFiles == null) {
-			IndexedFile[] indexedfiles= new IndexedFile[files.size];
-			for (int i= 0; i < indexedfiles.length; i++)
-				indexedfiles[i]= (IndexedFile) files.elementAt(i);
-			Util.sort(indexedfiles);
-			this.sortedFiles= indexedfiles;
+			IndexedFile[] indexedFiles= files.asArray();
+			Util.sort(indexedFiles);
+			this.sortedFiles= indexedFiles;
 		}
 		return this.sortedFiles;
 	}
@@ -143,12 +125,7 @@ public class InMemoryIndex {
 	 */
 	protected WordEntry[] getSortedWordEntries() {
 		if (this.sortedWordEntries == null) {
-			WordEntry[] words= new WordEntry[this.words.size()];
-			int numWords= 0;
-			Object[] entries= this.words.valueTable;
-			for (int i= entries.length; i-- > 0;)
-				if (entries[i] != null)
-					words[numWords++]= (WordEntry) entries[i];
+			WordEntry[] words= this.words.asArray();
 			Util.sort(words);
 			this.sortedWordEntries= words;
 		}
@@ -164,9 +141,8 @@ public class InMemoryIndex {
 	 * Initialises the fields of the index
 	 */
 	public void init() {
-		words= new HashtableOfObject(1023);
-		files= new ObjectVector(); // want to change this to a lookup table
-		wordCount= 0;
+		words= new WordEntryHashedArray(501);
+		files= new IndexedFileHashedArray(101);
 		footprint= 0;
 		sortedWordEntries= null;
 		sortedFiles= null;
@@ -211,14 +187,12 @@ public class InMemoryIndex {
 
 	protected void save(IndexOutput output) throws IOException {
 		boolean ok= false;
-		getSortedWordEntries(); // init the slot
 		try {
 			output.open();
-			int numFiles= this.files.size;
-			for (int i= 0; i < numFiles; ++i) {
-				IndexedFile indexedFile= (IndexedFile) this.files.elementAt(i);
-				output.addFile(indexedFile); // written out in order BUT not alphabetical
-			}
+			IndexedFile[] indexedFiles= files.asArray();
+			for (int i= 0, length = indexedFiles.length; i < length; ++i)
+				output.addFile(indexedFiles[i]); // written out in order BUT not alphabetical
+			getSortedWordEntries(); // init the slot
 			for (int i= 0, numWords= sortedWordEntries.length; i < numWords; ++i)
 				output.addWord(sortedWordEntries[i]);
 			output.flush();

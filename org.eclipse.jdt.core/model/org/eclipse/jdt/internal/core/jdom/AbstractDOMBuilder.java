@@ -76,7 +76,7 @@ public AbstractDOMBuilder() {
  *
  * <p>A line separator might corresponds to several characters in the source.
  *
- * @see IDocumentElementRequestor#acceptLineSeparatorPositions
+ * @see IDocumentElementRequestor#acceptLineSeparatorPositions(int[])
  */
 public void acceptLineSeparatorPositions(int[] positions) {
 	if (positions != null) {
@@ -128,13 +128,13 @@ protected void addChild(IDOMNode child) {
 	}
 }
 /**
- * @see IDOMFactory#createCompilationUnit(String)
+ * @see IDOMFactory#createCompilationUnit(String, String)
  */
 public IDOMCompilationUnit createCompilationUnit(char[] contents, char[] name) {
 	return createCompilationUnit(new CompilationUnit(contents, name));
 }
 /**
- * @see IDOMFactory#createCompilationUnit(String)
+ * @see IDOMFactory#createCompilationUnit(String, String)
  */
 public IDOMCompilationUnit createCompilationUnit(ICompilationUnit compilationUnit) {
 	if (fAbort) {
@@ -144,7 +144,7 @@ public IDOMCompilationUnit createCompilationUnit(ICompilationUnit compilationUni
 	return (IDOMCompilationUnit)fNode;
 }
 /**
- * @see IDocumentElementRequestor#enterClass
+ * @see IDocumentElementRequestor#enterClass(int, int[], int, int, int, char[], int, int, char[], int, int, char[][], int[], int[], int)
  */
 public void enterCompilationUnit() {
  	if (fBuildingCU) {
@@ -156,7 +156,7 @@ public void enterCompilationUnit() {
  * Finishes the configuration of the compilation unit DOM object which
  * was created by a previous enterCompilationUnit call.
  *
- * @see IDocumentElementRequestor#exitCompilationUnit
+ * @see IDocumentElementRequestor#exitCompilationUnit(int)
  */
 public void exitCompilationUnit(int declarationEnd) {
 	DOMCompilationUnit cu = (DOMCompilationUnit) fStack.pop();
@@ -178,7 +178,7 @@ protected void exitType(int bodyEnd, int declarationEnd) {
 	fNode = type;
 }
 /**
- * @see ILineSeparatorFinder
+ * @see ILineStartFinder#getLineStart(int)
  */
 public int getLineStart(int position) {
 	int lineSeparatorCount = fLineStartPositions.length;

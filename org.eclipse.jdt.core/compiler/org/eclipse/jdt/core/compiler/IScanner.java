@@ -21,7 +21,7 @@ package org.eclipse.jdt.core.compiler;
   * 
   * When encountering lexical errors, an <code>InvalidInputException</code> is thrown.
   * 
-  * @see ToolFactory
+  * @see org.eclipse.jdt.core.ToolFactory
   * @see ITerminalSymbols
   * @since 2.0
   */
@@ -73,6 +73,12 @@ public interface IScanner {
 	 * line separators).
 	 */
 	int[] getLineEnds();
+
+	/**
+	 * Answers a 1-based line number using the lines which have been encountered so far. If the position
+	 * is located beyond the current scanned line, then the last line number will be answered.
+	 */
+	int getLineNumber(int charPosition);
 
 	/**
 	 * Read the next token in the source, and answers its ID as specified by <code>ITerminalSymbols</code>.

@@ -2155,10 +2155,22 @@ class ASTConverter {
 							return;
 						}
 						break;
-					case Scanner.TokenNameLBRACE://110
+					case Scanner.TokenNameLBRACE :
 						count++;
 						break;
-					case Scanner.TokenNameRBRACE://95
+					case Scanner.TokenNameRBRACE :
+						count--;
+						break;
+					case Scanner.TokenNameLPAREN :
+						count++;
+						break;
+					case Scanner.TokenNameRPAREN :
+						count--;
+						break;
+					case Scanner.TokenNameLBRACKET :
+						count++;
+						break;
+					case Scanner.TokenNameRBRACKET :
 						count--;
 				}
 			}
@@ -2402,6 +2414,18 @@ class ASTConverter {
 					case Scanner.TokenNameRBRACE :
 						braceCounter--;
 						break;
+					case Scanner.TokenNameLPAREN :
+						braceCounter++;
+						break;
+					case Scanner.TokenNameRPAREN :
+						braceCounter--;
+						break;
+					case Scanner.TokenNameLBRACKET :
+						braceCounter++;
+						break;
+					case Scanner.TokenNameRBRACKET :
+						braceCounter--;
+						break;
 					case Scanner.TokenNameCOMMA :
 					case Scanner.TokenNameSEMICOLON :
 						if (braceCounter == 0) {
@@ -2431,6 +2455,7 @@ class ASTConverter {
 		}
 		variableDeclarationFragment.setExtraDimensions(retrieveExtraDimension(fieldDeclaration.sourceEnd + 1, fieldDeclaration.declarationSourceEnd ));
 		if (this.resolveBindings) {
+			recordNodes(name, fieldDeclaration);
 			recordNodes(variableDeclarationFragment, fieldDeclaration);
 			variableDeclarationFragment.resolveBinding();
 		}

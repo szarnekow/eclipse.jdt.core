@@ -974,9 +974,9 @@ public abstract class ASTNode {
 	 * @param cycleCheck <code>true</code> if cycles are possible and need to
 	 *   be checked, <code>false</code> if cycles are impossible and do not
 	 *   need to be checked
-	 * @exception $precondition-violation:different-ast$
-	 * @exception $precondition-violation:not-unparented$
-	 * @exception $postcondition-violation:ast-cycle$
+	 * @exception IllegalArgumentException if the node belongs to a different AST
+	 * @exception IllegalArgumentException if the node already has a parent
+	 * @exception IllegalArgumentException if a cycle in would be created
 	 */ 
 	void replaceChild(ASTNode oldChild, ASTNode newChild, boolean cycleCheck) {
 		if (newChild != null) {
@@ -995,9 +995,9 @@ public abstract class ASTNode {
 	/**
 	 * Checks whether the given new child node is a node 
 	 * in a different AST from its parent-to-be, whether it is
-	 * already has a parent, and whether adding it to its
-	 * parent-to-be would create a cycle. The parent-to-be
-	 * is the enclosing instance.
+	 * already has a parent, whether adding it to its
+	 * parent-to-be would create a cycle, and whether the child is of
+	 * the right type. The parent-to-be is the enclosing instance.
 	 * 
 	 * @param node the parent-to-be node
 	 * @param newChild the new child of the parent, or <code>null</code> 
@@ -1007,11 +1007,11 @@ public abstract class ASTNode {
 	 *   not need to be checked
 	 * @param nodeType a type constraint on child nodes, or <code>null</code>
 	 *   if no special check is required
-	 * @exception $precondition-violation:null-child$
-	 * @exception $precondition-violation:different-ast$
-	 * @exception $precondition-violation:incorrect-child-type$
-	 * @exception $precondition-violation:not-unparented$
-	 * @exception $postcondition-violation:ast-cycle$
+	 * @exception IllegalArgumentException if the child is null
+	 * @exception IllegalArgumentException if the node belongs to a different AST
+	 * @exception IllegalArgumentException if the child has the incorrect node type
+	 * @exception IllegalArgumentException if the node already has a parent
+	 * @exception IllegalArgumentException if a cycle in would be created
 	 */ 
 	static void checkNewChild(ASTNode node, ASTNode newChild,
 			boolean cycleCheck, Class nodeType) {
@@ -1020,19 +1020,18 @@ public abstract class ASTNode {
 			// new child is from a different AST
 			throw new IllegalArgumentException();
 		}
-		Class childClass = newChild.getClass();
 		
-//		// FIXME - test is erratic
-//		if (nodeType != null && childClass.isAssignableFrom(nodeType)) {
-//			// new child is not of the right type
-//			throw new IllegalArgumentException();
-//		}
 		if (newChild.getParent() != null) {
 			// new child currently has a different parent
 			throw new IllegalArgumentException();
 		}
 		if (cycleCheck && newChild == node.getRoot()) {
 			// inserting new child would create a cycle
+			throw new IllegalArgumentException();
+		}
+		Class childClass = newChild.getClass();
+		if (nodeType != null && !nodeType.isAssignableFrom(childClass)) {
+			// new child is not of the right type
 			throw new IllegalArgumentException();
 		}
 	}
@@ -1231,10 +1230,10 @@ public abstract class ASTNode {
 	
 	/**
 	 * The <code>ASTNode</code> implementation of this <code>Object</code>
-	 * method uses object identity (==). Use <code>subtreeEquals</code> to
+	 * method uses object identity (==). Use <code>subtreeMatch</code> to
 	 * compare two subtrees for equality.
 	 * 
-	 * @see #subtreeEquals
+	 * @see #subtreeMatch(ASTMatcher matcher, Object other)
 	 */
 	public final boolean equals(Object obj) {
 		return this == obj; // equivalent to Object.equals
@@ -1317,10 +1316,9 @@ public abstract class ASTNode {
 
 	/**
 	 * Accepts the given visitor on a visit of the current node.
-	 * This method much be implemented in all concrete AST node types.
 	 * 
 	 * @param visitor the visitor object
-	 * @exception $precondition-violation:illegal-argument$
+	 * @exception IllegalArgumentException if the visitor is null
 	 */
 	public final void accept(ASTVisitor visitor) {
 		if (visitor == null) {
@@ -1351,9 +1349,8 @@ public abstract class ASTNode {
 	 * visitor.endVisit(this);
 	 * </code>
 	 * </pre>
-	 * Note that <code>accept</code>, <code>acceptChild</code>,
-	 * and <code>acceptChildren</code> take care of invoking
-	 * <code>visitor.preVisit</code> and <code>visitor.postVisit</code>.
+	 * Note that the caller (<code>accept</code>) take cares of invoking
+	 * <code>visitor.preVisit(this)</code> and <code>visitor.postVisit(this)</code>.
 	 * </p>
 	 * 
 	 * @param visitor the visitor object
@@ -1365,7 +1362,7 @@ public abstract class ASTNode {
 	 * <p>
 	 * This method should be used by the concrete implementations of
 	 * <code>accept0</code> to traverse optional properties. Equivalent
-	 * to <code>child.accept0(visitor)</code> if <code>child</code>
+	 * to <code>child.accept(visitor)</code> if <code>child</code>
 	 * is not <code>null</code>.
 	 * </p>
 	 * 
@@ -1377,12 +1374,7 @@ public abstract class ASTNode {
 		if (child == null) {
 			return;
 		}
-		// begin with the generic pre-visit
-		visitor.preVisit(this);
-		// dynamic dispatch to internal method for type-specific visit/endVisit
-		child.accept0(visitor);
-		// end with the generic post-visit
-		visitor.postVisit(this);
+		child.accept(visitor);
 	}
 
 	/**
@@ -1390,7 +1382,7 @@ public abstract class ASTNode {
 	 * child nodes. 
 	 * <p>
 	 * This method must be used by the concrete implementations of
-	 * <code>accept0</code> to traverse list-values properties; it
+	 * <code>accept</code> to traverse list-values properties; it
 	 * encapsulates the proper handling of on-the-fly changes to the list.
 	 * </p>
 	 * 
@@ -1405,13 +1397,7 @@ public abstract class ASTNode {
 		try {
 			while (cursor.hasNext()) {
 				ASTNode child = (ASTNode) cursor.next();
-				// dynamic dispatch to internal method
-				// begin with the generic pre-visit
-				visitor.preVisit(this);
-				// dynamic dispatch to internal method for type-specific visit/endVisit
-				child.accept0(visitor);
-				// end with the generic post-visit
-				visitor.postVisit(this);
+				child.accept(visitor);
 			}
 		} finally {
 			children.releaseCursor(cursor);
@@ -1436,7 +1422,7 @@ public abstract class ASTNode {
 	 * 
 	 * @return a (possibly 0) length, or <code>0</code>
 	 *    if no source position information is recorded for this node
-	 * @see #getStartPositions
+	 * @see #getStartPosition()
 	 */
 	public int getLength() {
 		return length;

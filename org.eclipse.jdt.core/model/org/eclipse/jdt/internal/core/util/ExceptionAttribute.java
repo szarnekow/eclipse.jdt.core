@@ -70,14 +70,14 @@ public class ExceptionAttribute extends ClassFileAttribute implements IException
 	}
 
 	/**
-	 * @see IExceptionAttribute#getExceptionNumber()
+	 * @see IExceptionAttribute#getExceptionsNumber()
 	 */
 	public int getExceptionsNumber() {
 		return this.exceptionsNumber;
 	}
 
 	/**
-	 * @see IClassFileAttribute#getAttributeName()
+	 * @see org.eclipse.jdt.core.util.IClassFileAttribute#getAttributeName()
 	 */
 	public char[] getAttributeName() {
 		return IAttributeNamesConstants.EXCEPTIONS;

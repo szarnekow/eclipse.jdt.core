@@ -165,8 +165,8 @@ public class CompilationUnit extends ASTNode {
 	 * @param pkgDecl the new package declaration node, or 
 	 *   <code>null</code> if this compilation unit is not have no package
 	 *   declaration (that is, is to be in the default package)
-	 * @exception $precondition-violation:different-ast$
-	 * @exception $precondition-violation:not-unparented$
+	 * @exception IllegalArgumentException if the node belongs to a different AST
+	 * @exception IllegalArgumentException if the node already has a parent
 	 */ 
 	public void setPackage(PackageDeclaration pkgDecl) {
 		replaceChild(this.optionalPackageDeclaration, pkgDecl, false);
@@ -306,7 +306,8 @@ public class CompilationUnit extends ASTNode {
 
 	/**
 	 * Returns the list of messages reported by the compiler during the parsing 
-	 * or name resolution of this compilation unit.
+	 * or the type checking of this compilation unit. This list might be a subset of 
+	 * errors detected and reported by a Java compiler.
 	 * 
 	 * @return the list of messages, possibly empty
 	 * @see AST#parseCompilationUnit

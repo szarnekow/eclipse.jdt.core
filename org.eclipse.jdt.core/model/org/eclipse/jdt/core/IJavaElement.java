@@ -1,10 +1,15 @@
+/**********************************************************************
+Copyright (c) 2000, 2001, 2002 IBM Corp. and others.
+All rights reserved.   This program and the accompanying materials
+are made available under the terms of the Common Public License v0.5
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/cpl-v05.html
+ 
+Contributors:
+     IBM Corporation - initial API and implementation
+**********************************************************************/
 package org.eclipse.jdt.core;
 
-/*
- * (c) Copyright IBM Corp. 2000, 2001.
- * All Rights Reserved.
- */
- 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -213,10 +218,11 @@ IJavaElement getParent();
 IPath getPath();
 /**
  * Returns the innermost resource enclosing this element. 
- * If this element is not included in an external archive, 
- * this is the underlying resource, corresponding to the archive. 
+ * If this element is included in an archive and this archive is not external, 
+ * this is the underlying resource corresponding to the archive. 
  * If this element is included in an external archive, <code>null</code>
  * is returned.
+ * If this element is a working copy, <code>null</code> is returned.
  * This is a handle-only method.
  * 
  * @since 2.0

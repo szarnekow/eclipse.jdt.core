@@ -36,7 +36,6 @@ class AddJarFileToIndex extends IndexRequest {
 		this.path = resource.getFullPath();
 		this.manager = manager;
 		this.projectName = projectName;
-		this.timeStamp = resource.getModificationStamp();
 	}
 	public boolean belongsTo(String jobFamily) {
 		return jobFamily.equals(projectName);
@@ -64,23 +63,27 @@ public int hashCode() {
 		
 		if (progressMonitor != null && progressMonitor.isCanceled()) return COMPLETE;
 		try {
-			if (this.resource != null) {
-				if (!this.resource.isLocal(IResource.DEPTH_ZERO)) {
-					return FAILED;
-				}
-			}
 			IPath indexedPath = this.path;
 			// if index already cached, then do not perform any check
 			IIndex index = (IIndex) manager.getIndex(indexedPath, false);
-			if (index != null)
+			if (index != null) {
+				if (JobManager.VERBOSE) 
+					JobManager.log("-> no indexing required (index already exists) for " + this.path); //$NON-NLS-1$
 				return COMPLETE;
+			}
 
 			index = manager.getIndex(indexedPath);
-			if (index == null)
+			if (index == null) {
+				if (JobManager.VERBOSE) 
+					JobManager.log("-> index could not be created for " + this.path); //$NON-NLS-1$
 				return COMPLETE;
+			}
 			ReadWriteMonitor monitor = manager.getMonitorFor(index);
-			if (monitor == null)
+			if (monitor == null) {
+				if (JobManager.VERBOSE) 
+					JobManager.log("-> index for " + this.path + " just got deleted"); //$NON-NLS-1$//$NON-NLS-2$
 				return COMPLETE; // index got deleted since acquired
+			}
 			ZipFile zip = null;
 			try {
 				// this path will be a relative path to the workspace in case the zipfile in the workspace otherwise it will be a path in the
@@ -102,7 +105,7 @@ public int hashCode() {
 				}
 
 				if (JobManager.VERBOSE)
-					System.out.println("INDEX ("+ Thread.currentThread()+"): " + zip.getName()); //$NON-NLS-1$//$NON-NLS-2$
+					JobManager.log("-> indexing " + zip.getName()); //$NON-NLS-1$
 				long initialTime = System.currentTimeMillis();
 
 				final HashSet indexedFileNames = new HashSet(100);
@@ -132,6 +135,11 @@ public int hashCode() {
 						}
 					}
 					if (!needToReindex && indexedFileNames.size() == 0) {
+						if (JobManager.VERBOSE)
+							JobManager.log(
+								"-> no indexing required (index is consistent with library) for " //$NON-NLS-1$
+								+ zip.getName() + " (" //$NON-NLS-1$
+								+ (System.currentTimeMillis() - initialTime) + "ms)"); //$NON-NLS-1$
 						return COMPLETE;
 					}
 				}
@@ -146,8 +154,10 @@ public int hashCode() {
 				for (Enumeration e = zip.entries(); e.hasMoreElements();) {
 					if (this.isCancelled) {
 						if (JobManager.VERBOSE) {
-							System.out.println("INDEX : " //$NON-NLS-1$
-							+zip.getName() + " CANCELLED"); //$NON-NLS-1$
+							JobManager.log(
+								"-> indexing of " //$NON-NLS-1$
+								+ zip.getName() 
+								+ " has been cancelled"); //$NON-NLS-1$
 						}
 						return FAILED;
 					}
@@ -164,9 +174,10 @@ public int hashCode() {
 					}
 				}
 				if (JobManager.VERBOSE)
-					System.out.println("INDEX : " //$NON-NLS-1$
-					+zip.getName() + " COMPLETE in " //$NON-NLS-1$
-					+ (System.currentTimeMillis() - initialTime) + " ms"); //$NON-NLS-1$
+					JobManager.log(
+						"-> done indexing of " //$NON-NLS-1$
+						+ zip.getName() + " (" //$NON-NLS-1$
+						+ (System.currentTimeMillis() - initialTime) + "ms)"); //$NON-NLS-1$
 			} finally {
 				if (zip != null)
 					zip.close();
@@ -206,7 +217,5 @@ public int hashCode() {
 		this.path = path;
 		this.manager = manager;
 		this.projectName = projectName;
-		
-		this.timeStamp = new File(path.toOSString()).lastModified();
 	}
 }

@@ -12,7 +12,7 @@ import org.eclipse.jdt.internal.compiler.lookup.*;
 
 /**
  * A single name reference inside a code snippet can denote a field of a remote
- * receiver object (i.e. the one of the context in the stack frame)
+ * receiver object (i.e.&nbsp;the one of the context in the stack frame).
  */
 public class CodeSnippetSingleNameReference extends SingleNameReference implements EvaluationConstants, InvocationSite, ProblemReasons {
 
@@ -322,7 +322,10 @@ public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeS
 					codeStream.store(localBinding, false);
 					return;
 				case T_int :
-					if (((assignConstant = expression.constant) != NotAConstant) && ((increment = assignConstant.intValue()) == (short) increment)) { // 16 bits value
+					if (((assignConstant = expression.constant) != NotAConstant) 
+						&& (assignConstant.typeID() != T_float) // only for integral types
+						&& (assignConstant.typeID() != T_double)		
+						&& ((increment = assignConstant.intValue()) == (short) increment)) { // 16 bits value
 						switch (operator) {
 							case PLUS :
 								codeStream.iinc(localBinding.resolvedPosition, increment);

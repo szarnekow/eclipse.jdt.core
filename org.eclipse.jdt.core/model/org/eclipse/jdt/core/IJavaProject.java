@@ -1,9 +1,14 @@
+/**********************************************************************
+Copyright (c) 2000, 2001, 2002 IBM Corp. and others.
+All rights reserved.   This program and the accompanying materials
+are made available under the terms of the Common Public License v0.5
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/cpl-v05.html
+ 
+Contributors:
+     IBM Corporation - initial API and implementation
+**********************************************************************/
 package org.eclipse.jdt.core;
-
-/*
- * (c) Copyright IBM Corp. 2000, 2001.
- * All Rights Reserved.
- */
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -180,9 +185,14 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * have more than one root (if that project has more than on root
 	 * containing source), and classpath entries within the current
 	 * project identify a single root.
-	 *
-	 * If the classpath entry denotes a variable, it will be resolved and returning
+	 * <p>
+	 * If the classpath entry denotes a variable, it will be resolved and return
 	 * the roots of the target entry (empty if not resolvable).
+	 * <p>
+	 * If the classpath entry denotes a container, it will be resolved and return
+	 * the roots corresponding to the set of container entries (empty if not resolvable).
+	 * 
+	 * @see IClasspathContainer
 	 */
 	IPackageFragmentRoot[] getPackageFragmentRoots(IClasspathEntry entry);
 

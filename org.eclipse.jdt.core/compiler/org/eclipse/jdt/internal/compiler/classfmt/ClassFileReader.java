@@ -42,7 +42,6 @@ public class ClassFileReader extends ClassFileStruct implements AttributeNamesCo
  * 
  * @param fullyInitialize boolean
  * 		Flag to fully initialize the new object
- * @return org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader
  * @exception ClassFormatException
  */
 public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInitialize) throws ClassFormatException {
@@ -210,13 +209,9 @@ public ClassFileReader(byte[] classFileBytes, char[] fileName, boolean fullyInit
 }
 
 /**
- * @param classFileBytes byte[]
- * 		Actual bytes of a .class file
+ * @param classFileBytes Actual bytes of a .class file
+ * @param fileName	Actual name of the file that contains the bytes, can be null
  * 
- * @param fileName char[]
- * 		Actual name of the file that contains the bytes, can be null
- * 
- * @return org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader
  * @exception ClassFormatException
  */
 public ClassFileReader(byte classFileBytes[], char[] fileName) throws ClassFormatException {
@@ -334,7 +329,14 @@ public IBinaryNestedType[] getMemberTypes() {
 		for (int i = startingIndex; i < length; i++) {
 			InnerClassInfo currentInnerInfo = this.innerInfos[i];
 			int outerClassNameIdx = currentInnerInfo.outerClassNameIndex;
-			if (outerClassNameIdx != 0 && outerClassNameIdx == this.classNameIndex) {
+			int innerNameIndex = currentInnerInfo.innerNameIndex;
+			/*
+			 * Checking that outerClassNameIDx is different from 0 should be enough to determine if an inner class
+			 * attribute entry is a member class, but due to the bug:
+			 * http://dev.eclipse.org/bugs/show_bug.cgi?id=14592
+			 * we needed to add an extra check. So we check that innerNameIndex is different from 0 as well.
+			 */
+			if (outerClassNameIdx != 0 && innerNameIndex != 0 && outerClassNameIdx == this.classNameIndex) {
 				memberTypes[memberTypeIndex++] = currentInnerInfo;
 			}
 		}

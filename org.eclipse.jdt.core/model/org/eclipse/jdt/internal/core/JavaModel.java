@@ -23,10 +23,7 @@ import java.util.*;
  * @see IJavaModel
  */
 public class JavaModel extends Openable implements IJavaModel {
-	/**
-	 * The workspace this Java Model represents
-	 */
-	protected IWorkspace workspace = null;
+
 	
 	/**
 	 * A set of java.io.Files used as a cache of external jars that 
@@ -40,9 +37,8 @@ public class JavaModel extends Openable implements IJavaModel {
  *
  * @exception Error if called more than once
  */
-protected JavaModel(IWorkspace workspace) throws Error {
+protected JavaModel() throws Error {
 	super(JAVA_MODEL, null, "" /*workspace has empty name*/); //$NON-NLS-1$
-	this.workspace = workspace;
 }
 
 
@@ -61,44 +57,7 @@ public void copy(IJavaElement[] elements, IJavaElement[] containers, IJavaElemen
  * Returns a new element info for this element.
  */
 protected OpenableElementInfo createElementInfo() {
-	return new JavaModelInfo(this, this.workspace);
-}
-/**
- * Computes the depth of the given java project following its classpath.
- * Only projects are taken into consideration. Store the depth in the given table.
- * Returns the depth.
- * Note that a project with no prerequisites has a depth of 0.
- * Returns -1 if a cycle is detected
- */
-protected int computeDepth(String projectName, StringHashtableOfInt depthTable) throws JavaModelException {
-	int depth = depthTable.get(projectName);
-	switch (depth) {
-		case -2: // project already visited -> it's a cycle
-			throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.NAME_COLLISION));
-		case -1:
-			depthTable.put(projectName, -2); // mark we're visiting the project
-			int prereqDepth = -1;
-			JavaProject project = (JavaProject)this.getJavaProject(projectName);
-			String[] prerequisites = null;
-			try {
-				prerequisites = project.getRequiredProjectNames();
-			} catch (JavaModelException e) {
-				prerequisites = JavaProject.NO_PREREQUISITES;
-			}
-			for (int i = 0, length = prerequisites.length; i < length; i++) {
-				String prerequisite = prerequisites[i];
-				prereqDepth = 
-					Math.max(
-						prereqDepth, 
-						this.computeDepth(prerequisite, depthTable)
-					);
-			}
-			depth = 1 + prereqDepth;
-			depthTable.put(projectName, depth);
-			return depth;
-		default:
-			return depth;
-	}
+	return new JavaModelInfo(this);
 }
 
 /**
@@ -112,19 +71,23 @@ public void delete(IJavaElement[] elements, boolean force, IProgressMonitor moni
 	}
 }
 /**
- * Java Models are equal if their workspaces are equal
- *
- * @see Object#equals
+ * Finds the given project in the list of the java model's children.
+ * Returns null if not found.
  */
-public boolean equals(Object o) {
-	if (this == o)
-		return true;
-	if (o instanceof JavaModel) {
-		JavaModel other = (JavaModel) o;
-		return this.workspace.equals(other.workspace);
+public IJavaProject findJavaProject(IProject project) {
+	try {
+		IJavaProject[] projects = this.getJavaProjects();
+		for (int i = 0, length = projects.length; i < length; i++) {
+			IJavaProject javaProject = projects[i];
+			if (project.equals(javaProject.getProject())) {
+				return javaProject;
+			}
+		}
+	} catch (JavaModelException e) {
 	}
-	return false;
+	return null;
 }
+
 /**
  */
 protected boolean generateInfos(
@@ -136,7 +99,7 @@ protected boolean generateInfos(
 	fgJavaModelManager.putInfo(((JavaModelInfo) info).getJavaModel(), info);
 	// determine my children
 	try {
-		IProject[] projects = workspace.getRoot().getProjects();
+		IProject[] projects = this.getWorkspace().getRoot().getProjects();
 		for (int i = 0, max = projects.length; i < max; i++) {
 			IProject project = projects[i];
 			if (project.isOpen() && project.hasNature(JavaCore.NATURE_ID)) {
@@ -338,7 +301,7 @@ public IJavaProject getJavaProject() {
  * @see IJavaModel
  */
 public IJavaProject getJavaProject(String name) {
-	return new JavaProject(this.workspace.getRoot().getProject(name), this);
+	return new JavaProject(this.getWorkspace().getRoot().getProject(name), this);
 }
 /**
  * Returns the active Java project associated with the specified
@@ -391,14 +354,9 @@ public IResource getUnderlyingResource() throws JavaModelException {
  * Returns the workbench associated with this object.
  */
 public IWorkspace getWorkspace() {
-	return this.workspace;
+	return ResourcesPlugin.getWorkspace();
 }
-/**
- * The hashcode of a Java Model is that of its workspace.
- */
-public int hashCode() {
-	return this.workspace.hashCode();
-}
+
 /**
  * @see IJavaModel
  */

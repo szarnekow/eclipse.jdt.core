@@ -110,11 +110,6 @@ public class InfixExpression extends Expression {
 		public static final Operator LESS_EQUALS = new Operator("<=");//$NON-NLS-1$
 		/** Greater than or equals "&gt=;" operator. */
 		public static final Operator GREATER_EQUALS = new Operator(">=");//$NON-NLS-1$
-		/**
-		 * "instanceof" operator.
-		 * @deprecated Replaced by InstanceofExpression node to allow Type for right operand
-		 * */
-		public static final Operator INSTANCEOF = new Operator("instanceof");//$NON-NLS-1$
 		/** Equals "==" operator. */
 		public static final Operator EQUALS = new Operator("==");//$NON-NLS-1$
 		/** Not equals "!=" operator. */
@@ -150,7 +145,6 @@ public class InfixExpression extends Expression {
 					GREATER,
 					LESS_EQUALS,
 					GREATER_EQUALS,
-					INSTANCEOF,
 					EQUALS,
 					NOT_EQUALS,
 					XOR,
@@ -277,7 +271,7 @@ public class InfixExpression extends Expression {
 	 * Sets the operator of this infix expression.
 	 * 
 	 * @param operator the infix operator
-	 * @exception $precondition-violation:invalid-argument$
+	 * @exception IllegalArgumentException if the argument is incorrect
 	 */ 
 	public void setOperator(InfixExpression.Operator operator) {
 		if (operator == null) {
@@ -304,9 +298,9 @@ public class InfixExpression extends Expression {
 	 * Sets the left operand of this infix expression.
 	 * 
 	 * @param expression the left operand node
-	 * @exception $precondition-violation:different-ast$
-	 * @exception $precondition-violation:not-unparented$
-	 * @exception $postcondition-violation:ast-cycle$
+	 * @exception IllegalArgumentException if the node belongs to a different AST
+	 * @exception IllegalArgumentException if the node already has a parent
+	 * @exception IllegalArgumentException if a cycle in would be created
 	 */ 
 	public void setLeftOperand(Expression expression) {
 		if (expression == null) {
@@ -334,9 +328,9 @@ public class InfixExpression extends Expression {
 	 * Sets the right operand of this infix expression.
 	 * 
 	 * @param expression the right operand node
-	 * @exception $precondition-violation:different-ast$
-	 * @exception $precondition-violation:not-unparented$
-	 * @exception $postcondition-violation:ast-cycle$
+	 * @exception IllegalArgumentException if the node belongs to a different AST
+	 * @exception IllegalArgumentException if the node already has a parent
+	 * @exception IllegalArgumentException if a cycle in would be created
 	 */ 
 	public void setRightOperand(Expression expression) {
 		if (expression == null) {

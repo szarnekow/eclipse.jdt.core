@@ -197,7 +197,7 @@ public class JavaProject
 			return IClasspathEntry.CPE_PROJECT;
 		if (kindStr.equalsIgnoreCase("var")) //$NON-NLS-1$
 			return IClasspathEntry.CPE_VARIABLE;
-		if (kindStr.equalsIgnoreCase("container")) //$NON-NLS-1$
+		if (kindStr.equalsIgnoreCase("con")) //$NON-NLS-1$
 			return IClasspathEntry.CPE_CONTAINER;
 		if (kindStr.equalsIgnoreCase("src")) //$NON-NLS-1$
 			return IClasspathEntry.CPE_SOURCE;
@@ -223,7 +223,7 @@ public class JavaProject
 			case IClasspathEntry.CPE_VARIABLE :
 				return "var"; //$NON-NLS-1$
 			case IClasspathEntry.CPE_CONTAINER :
-				return "container"; //$NON-NLS-1$
+				return "con"; //$NON-NLS-1$
 			case ClasspathEntry.K_OUTPUT :
 				return "output"; //$NON-NLS-1$
 			default :
@@ -296,6 +296,7 @@ public class JavaProject
 		IClasspathEntry[] immediateClasspath = 
 			getResolvedClasspath(ignoreUnresolvedVariable, generateMarkerOnError);
 			
+		IWorkspaceRoot workspaceRoot = this.getWorkspace().getRoot();
 		for (int i = 0, length = immediateClasspath.length; i < length; i++){
 			IClasspathEntry entry = immediateClasspath[i];
 
@@ -306,7 +307,7 @@ public class JavaProject
 				
 				// recurse in project to get all its indirect exports (only consider exported entries from there on)				
 				if (entry.getEntryKind() == ClasspathEntry.CPE_PROJECT) {
-					IProject projRsc = (IProject) getWorkspace().getRoot().findMember(entry.getPath());
+					IProject projRsc = (IProject) workspaceRoot.findMember(entry.getPath());
 					if (projRsc != null && projRsc.isOpen()) {				
 						JavaProject project = (JavaProject) JavaCore.create(projRsc);
 						project.computeExpandedClasspath(
@@ -326,10 +327,10 @@ public class JavaProject
 	 * Note: this follows project classpath references to find required project contributions,
 	 * eliminating duplicates silently.
 	 */
-	public IPackageFragmentRoot[] computePackageFragmentRoots(boolean retrieveExportedRoots) {
+	public IPackageFragmentRoot[] computePackageFragmentRoots(IClasspathEntry[] classpath, boolean retrieveExportedRoots) throws JavaModelException {
 
 		ObjectVector accumulatedRoots = new ObjectVector();
-		computePackageFragmentRoots(accumulatedRoots, new HashSet(5), true, true, retrieveExportedRoots);
+		computePackageFragmentRoots(classpath, accumulatedRoots, new HashSet(5), true, true, retrieveExportedRoots);
 		IPackageFragmentRoot[] rootArray = new IPackageFragmentRoot[accumulatedRoots.size()];
 		accumulatedRoots.copyInto(rootArray);
 		return rootArray;
@@ -345,7 +346,7 @@ public class JavaProject
 		HashSet rootIDs, 
 		boolean insideOriginalProject,
 		boolean checkExistency,
-		boolean retrieveExportedRoots) {
+		boolean retrieveExportedRoots) throws JavaModelException {
 			
 		String rootID = ((ClasspathEntry)entry).rootID();
 		if (rootIDs.contains(rootID)) return;
@@ -422,7 +423,13 @@ public class JavaProject
 				IProject requiredProjectRsc = requiredProject.getProject();
 				if (requiredProjectRsc.exists() && requiredProjectRsc.isOpen()){ // special builder binary output
 					rootIDs.add(rootID);
-					requiredProject.computePackageFragmentRoots(accumulatedRoots, rootIDs, false, checkExistency, retrieveExportedRoots);
+					requiredProject.computePackageFragmentRoots(
+						requiredProject.getResolvedClasspath(true), 
+						accumulatedRoots, 
+						rootIDs, 
+						false, 
+						checkExistency, 
+						retrieveExportedRoots);
 				}
 				break;
 			}
@@ -434,29 +441,25 @@ public class JavaProject
 	 * eliminating duplicates silently.
 	 */
 	public void computePackageFragmentRoots(
+		IClasspathEntry[] classpath,
 		ObjectVector accumulatedRoots, 
 		HashSet rootIDs, 
 		boolean insideOriginalProject,
 		boolean checkExistency,
-		boolean retrieveExportedRoots) {
+		boolean retrieveExportedRoots) throws JavaModelException {
 
 		if (insideOriginalProject){
 			rootIDs.add(rootID());
 		}	
-		try {
-			IClasspathEntry[] classpath = getResolvedClasspath(true);
-	
-			for (int i = 0, length = classpath.length; i < length; i++){
-				computePackageFragmentRoots(
-					classpath[i],
-					accumulatedRoots,
-					rootIDs,
-					insideOriginalProject,
-					checkExistency,
-					retrieveExportedRoots);
-			}
-		} catch(JavaModelException e){
-		}			
+		for (int i = 0, length = classpath.length; i < length; i++){
+			computePackageFragmentRoots(
+				classpath[i],
+				accumulatedRoots,
+				rootIDs,
+				insideOriginalProject,
+				checkExistency,
+				retrieveExportedRoots);
+		}
 	}
 
 	/**
@@ -474,22 +477,6 @@ public class JavaProject
 
 		// register Java builder
 		addToBuildSpec(JavaCore.BUILDER_ID);
-
-		// add project as child of java model
-		JavaModel model = (JavaModel) getJavaModel();
-		JavaElementInfo jmi = model.getElementInfo();
-		jmi.addChild(this);
-
-		// notify Java delta (Java project added) 
-		JavaModelManager manager =
-			(JavaModelManager) JavaModelManager.getJavaModelManager();
-		if (!manager.isBeingDeleted(this.getProject())) { 
-			JavaElementDelta projectDelta = new JavaElementDelta(model);
-			projectDelta.added(this);
-			manager.registerJavaModelDelta(projectDelta);
-		} // else project is removed then added 
-		  // -> it will be a changed delta reported by delta processor
-
 	}
 
 	/**
@@ -498,7 +485,7 @@ public class JavaProject
 	void createClasspathProblemMarker(
 		String message,
 		int severity,
-		boolean cycleDetected) {
+		boolean isCycleProblem) {
 		try {
 			IMarker marker = getProject().createMarker(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER);
 			marker.setAttributes(
@@ -511,7 +498,7 @@ public class JavaProject
 					message,
 					new Integer(severity), 
 					Util.bind("classpath.buildPath"),//$NON-NLS-1$
-					cycleDetected ? "true" : "false"});//$NON-NLS-1$ //$NON-NLS-2$
+					isCycleProblem ? "true" : "false"});//$NON-NLS-1$ //$NON-NLS-2$
 		} catch (CoreException e) {
 		}
 	}
@@ -525,22 +512,13 @@ public class JavaProject
 	}
 
 	/**
+	/**
 	 * Removes the Java nature from the project.
 	 */
 	public void deconfigure() throws CoreException {
 
 		// deregister Java builder
 		removeFromBuildSpec(JavaCore.BUILDER_ID);
-		
-		// notify Java delta (Java project removed) 
-		JavaModelManager manager =
-			(JavaModelManager) JavaModelManager.getJavaModelManager();
-		JavaModel model = (JavaModel) getJavaModel();
-		JavaElementDelta projectDelta = new JavaElementDelta(model);
-		projectDelta.removed(this);
-		JavaElementInfo jmi = model.getElementInfo();
-		jmi.removeChild(this);
-		manager.registerJavaModelDelta(projectDelta);
 	}
 
 	/**
@@ -727,8 +705,8 @@ public class JavaProject
 	public IType findType(String packageName, String typeQualifiedName) throws JavaModelException {
 		return 
 			this.getNameLookup().findType(
-				packageName,
 				typeQualifiedName, 
+				packageName,
 				false,
 				NameLookup.ACCEPT_CLASSES | NameLookup.ACCEPT_INTERFACES);
 	}	
@@ -820,7 +798,7 @@ public class JavaProject
 	public IPackageFragmentRoot[] getAllPackageFragmentRoots()
 		throws JavaModelException {
 
-		return computePackageFragmentRoots(true);
+		return computePackageFragmentRoots(getResolvedClasspath(true), true);
 	}
 
 	/**
@@ -1026,13 +1004,11 @@ public class JavaProject
 	}
 
 	/**
-	 * Returns a handle to the package fragment root identified by the given path.
+	 * @return A handle to the package fragment root identified by the given path.
 	 * This method is handle-only and the element may or may not exist. Returns
 	 * <code>null</code> if unable to generate a handle from the path (for example,
 	 * an absolute path that has less than 2 segments. The path may be relative or
 	 * absolute.
-	 *
-	 * @private
 	 */
 	public IPackageFragmentRoot getPackageFragmentRoot(IPath path) {
 		Object target = JavaModel.getTarget(getProject().getWorkspace().getRoot(), path, false);
@@ -1120,101 +1096,16 @@ public class JavaProject
 
 	/**
 	 * Returns the package fragment roots identified by the given entry.
-	 * @deprecated - use findPackageFragmentRoot(IPath)
 	 */
 	public IPackageFragmentRoot[] getPackageFragmentRoots(IClasspathEntry entry) {
+		
+		try {
 
-		entry = JavaCore.getResolvedClasspathEntry(entry);
-		if (entry == null) {
-			return new IPackageFragmentRoot[] {
-			}; // variable not found			
-		}
-		IPath path = entry.getPath();
-		IWorkspaceRoot workspaceRoot = getWorkspace().getRoot();
+			IClasspathEntry[] correspondingEntries = this.getResolvedClasspath(new IClasspathEntry[]{entry}, true, false);
+			return computePackageFragmentRoots(correspondingEntries, false);
 
-		String ext = path.getFileExtension();
-		if (ext != null && entry.getContentKind() == IPackageFragmentRoot.K_BINARY) {
-			IPackageFragmentRoot root = null;
-			if (ext.equalsIgnoreCase("zip") //$NON-NLS-1$
-				|| ext.equalsIgnoreCase("jar")) {  //$NON-NLS-1$
-				// jar
-				Object target = JavaModel.getTarget(workspaceRoot, path, false);
-				if (target == null) {
-					return new IPackageFragmentRoot[0];
-				} else {
-					if (target instanceof java.io.File) {
-						// file system jar
-						if (((java.io.File)target).isDirectory()) {
-							return new IPackageFragmentRoot[0]; // directory not supported as external library
-						} else {
-							root = new JarPackageFragmentRoot(path.toOSString(), this);
-						}
-					} else {
-						// resource jar
-						IResource resource = workspaceRoot.getFile(path);
-						if (resource.getType() == IResource.FOLDER) {
-							root = new PackageFragmentRoot(resource, this); 
-						} else {
-							root = new JarPackageFragmentRoot(resource, this);
-						}
-					}
-					return new IPackageFragmentRoot[] { root };
-				}
-			}
-		}
-		IPath projectPath = getProject().getFullPath();
-		if (projectPath.isPrefixOf(path)) {
-			// local to this project
-			IResource resource = null;
-			if (path.segmentCount() > 1) {
-				resource = workspaceRoot.getFolder(path);
-			} else {
-				resource = workspaceRoot.findMember(path);
-			}
-			if (resource == null)
-				return new IPackageFragmentRoot[] {
-			};
-			IPackageFragmentRoot root = new PackageFragmentRoot(resource, this);
-			return new IPackageFragmentRoot[] { root };
-		} else {
-			// another project
-			if (path.segmentCount() != 1) {
-				if (entry.getContentKind() == IPackageFragmentRoot.K_BINARY) {
-					// binary folder in another project
-					IResource resource = workspaceRoot.getFolder(path);
-					if (resource == null) {
-						return new IPackageFragmentRoot[] {};
-					} else {
-						IPackageFragmentRoot root = new PackageFragmentRoot(resource, this);
-						return new IPackageFragmentRoot[] { root };
-					}
-				} else {
-					// invalid path for a project
-					return new IPackageFragmentRoot[] {};
-				}
-			} else {
-				String project = path.segment(0);
-				IJavaProject javaProject = getJavaModel().getJavaProject(project);
-				ArrayList sourceRoots = new ArrayList();
-				IPackageFragmentRoot[] roots = null;
-				try {
-					roots = javaProject.getPackageFragmentRoots();
-				} catch (JavaModelException e) {
-					return new IPackageFragmentRoot[] {};
-				}
-				for (int i = 0; i < roots.length; i++) {
-					try {
-						if (roots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
-							sourceRoots.add(roots[i]);
-						}
-					} catch (JavaModelException e) {
-						// do nothing if the root does not exist
-					}
-				}
-				IPackageFragmentRoot[] copy = new IPackageFragmentRoot[sourceRoots.size()];
-				sourceRoots.toArray(copy);
-				return copy;
-			}
+		} catch (JavaModelException e) {
+			return new IPackageFragmentRoot[] {};
 		}
 	}
 
@@ -1337,7 +1228,10 @@ public class JavaProject
 	public IClasspathEntry[] getResolvedClasspath(boolean ignoreUnresolvedVariable)
 		throws JavaModelException {
 
-		return this.getResolvedClasspath(ignoreUnresolvedVariable, false);
+		return 
+			this.getResolvedClasspath(
+				ignoreUnresolvedVariable, 
+				false); // generateMarkerOnError
 	}
 
 	/**
@@ -1422,8 +1316,8 @@ public class JavaProject
 
 				case IClasspathEntry.CPE_CONTAINER :
 				
-					IClasspathEntry[] containerEntries = JavaCore.getResolvedClasspathContainer(rawEntry.getPath(), this);
-					if (containerEntries == null){
+					IClasspathContainer container = JavaCore.getClasspathContainer(rawEntry.getPath(), this);
+					if (container == null){
 						// unbound container
 						if (!ignoreUnresolvedEntry) {
 							throw new JavaModelException(
@@ -1431,37 +1325,41 @@ public class JavaProject
 									IJavaModelStatusConstants.CP_CONTAINER_PATH_UNBOUND,
 									rawEntry.getPath().toString()));
 						}
-					} else {
-						// container was bound, container entries could be variables
-						for (int j = 0, containerLength = containerEntries.length; j < containerLength; j++){
-							IClasspathEntry containerRawEntry = containerEntries[j];
-							
-							if (generateMarkerOnError) {
-								IJavaModelStatus status =
-									JavaConventions.validateClasspathEntry(this, containerRawEntry, false);
-								if (!status.isOK())
-									createClasspathProblemMarker(
-										status.getMessage(), 
-										IMarker.SEVERITY_ERROR,
-										false);
-							}
-							
-							// container entry is variable ?
-							if (containerRawEntry.getEntryKind() == IClasspathEntry.CPE_VARIABLE){
-								resolvedEntry = JavaCore.getResolvedClasspathEntry(containerRawEntry);
-								if (resolvedEntry == null) {
-									if (!ignoreUnresolvedEntry) {
-										throw new JavaModelException(
-											new JavaModelStatus(
-												IJavaModelStatusConstants.CP_VARIABLE_PATH_UNBOUND,
-												containerRawEntry.getPath().toString()));
-									}
-								} else {
-									resolvedEntries.add(resolvedEntry);
+						break;
+					}
+
+					IClasspathEntry[] containerEntries = container.getClasspathEntries();
+					if (containerEntries == null) break;
+
+					// container was bound, container entries could be variables
+					for (int j = 0, containerLength = containerEntries.length; j < containerLength; j++){
+						IClasspathEntry containerRawEntry = containerEntries[j];
+						
+						if (generateMarkerOnError) {
+							IJavaModelStatus status =
+								JavaConventions.validateClasspathEntry(this, containerRawEntry, false);
+							if (!status.isOK())
+								createClasspathProblemMarker(
+									status.getMessage(), 
+									IMarker.SEVERITY_ERROR,
+									false);
+						}
+						
+						// container entry is variable ?
+						if (containerRawEntry.getEntryKind() == IClasspathEntry.CPE_VARIABLE){
+							resolvedEntry = JavaCore.getResolvedClasspathEntry(containerRawEntry);
+							if (resolvedEntry == null) {
+								if (!ignoreUnresolvedEntry) {
+									throw new JavaModelException(
+										new JavaModelStatus(
+											IJavaModelStatusConstants.CP_VARIABLE_PATH_UNBOUND,
+											containerRawEntry.getPath().toString()));
 								}
 							} else {
-								resolvedEntries.add(containerRawEntry);
+								resolvedEntries.add(resolvedEntry);
 							}
+						} else {
+							resolvedEntries.add(containerRawEntry);
 						}
 					}
 					break;
@@ -1505,7 +1403,7 @@ public class JavaProject
 	 * which form of storage to use appropriately. Shared properties produce real resource files which
 	 * can be shared through a VCM onto a server. Persistent properties are not shareable.
 	 *
-	 * @see JavaProject.setSharedProperty(...)
+	 * @see JavaProject#setSharedProperty(QualifiedName, String)
 	 */
 	public String getSharedProperty(QualifiedName key) throws CoreException {
 
@@ -1546,19 +1444,27 @@ public class JavaProject
 	 * @see IJavaProject
 	 */
 	public boolean hasClasspathCycle(IClasspathEntry[] entries) {
-
-		StringHashtableOfInt depthTable = new StringHashtableOfInt();
+		
+		HashSet cycleParticipants = new HashSet();
+		updateCycleParticipants(entries, new ArrayList(), cycleParticipants, getWorkspace().getRoot());
+		return !cycleParticipants.isEmpty();
+	}
+	
+	public boolean hasCycleMarker(){
+	
 		try {
-			String projectName = this.getElementName();
-			depthTable.put(projectName, -2); // mark this project as being visited
-			String[] prerequisites = this.projectPrerequisites(entries);
-			for (int i = 0, length = prerequisites.length; i < length; i++) {
-				((JavaModel) this.getJavaModel()).computeDepth(
-					prerequisites[i],
-					depthTable);
+			IProject project = getProject();
+			if (project.exists()) {
+				IMarker[] markers = project.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, false, IResource.DEPTH_ONE);
+				for (int i = 0, length = markers.length; i < length; i++) {
+					IMarker marker = markers[i];
+					String cycleAttr = (String)marker.getAttribute(IJavaModelMarker.CYCLE_DETECTED);
+					if (cycleAttr != null && cycleAttr.equals("true")){ //$NON-NLS-1$
+						return true;
+					}
+				}
 			}
-		} catch (JavaModelException e) {
-			return e.getStatus().getCode() == IJavaModelStatusConstants.NAME_COLLISION;
+		} catch (CoreException e) {
 		}
 		return false;
 	}
@@ -1724,14 +1630,14 @@ public class JavaProject
 	 *
 	 * fix for 1FW67PA
 	 */
-	protected void openWhenClosed(IProgressMonitor pm, IBuffer buffer) throws JavaModelException {
+	protected void openWhenClosed(IProgressMonitor pm) throws JavaModelException {
 
 		JavaModelManager manager =
 			(JavaModelManager) JavaModelManager.getJavaModelManager();
 		if (manager.isBeingDeleted(fProject) || !this.fProject.isOpen()) {
 			throw newNotPresentException();
 		} else {
-			super.openWhenClosed(pm, buffer);
+			super.openWhenClosed(pm);
 		}
 	}
 
@@ -1801,7 +1707,7 @@ public class JavaProject
 					// ensure path is absolute
 					IPath path = new Path(pathStr);
 					int kind = kindFromString(cpeElementKind);
-					if (kind != IClasspathEntry.CPE_VARIABLE && !path.isAbsolute()) {
+					if (kind != IClasspathEntry.CPE_VARIABLE && kind != IClasspathEntry.CPE_CONTAINER && !path.isAbsolute()) {
 						path = projectPath.append(path);
 					}
 					// source attachment info (optional)
@@ -1920,7 +1826,7 @@ public class JavaProject
 	}
 	
 	/**
-	 * Saves the classpath in a shareable format (VCM-wise) if necessary (i.e. semantically different)
+	 * Saves the classpath in a shareable format (VCM-wise) if necessary (i.e.&nbsp;semantically different).
 	 * Will never write an identical one.
 	 * Returns whether the .classpath file was modified.
 	 */
@@ -2037,7 +1943,14 @@ public class JavaProject
 		IProgressMonitor monitor)
 		throws JavaModelException {
 
-		setRawClasspath(entries, outputLocation, monitor, true, true, getResolvedClasspath(true), true);
+		setRawClasspath(
+			entries, 
+			outputLocation, 
+			monitor, 
+			true, // canChangeResource
+			true, // forceSave
+			getResolvedClasspath(true), // ignoreUnresolvedVariable
+			true); // needCycleCheck
 	}
 
 	public void setRawClasspath(
@@ -2047,7 +1960,7 @@ public class JavaProject
 		boolean canChangeResource,
 		boolean forceSave,
 		IClasspathEntry[] oldResolvedPath,
-		boolean mayChangeProjectDependencies)
+		boolean needCycleCheck)
 		throws JavaModelException {
 
 		JavaModelManager manager =
@@ -2065,7 +1978,7 @@ public class JavaProject
 					newOutputLocation,
 					canChangeResource, 
 					forceSave,
-					mayChangeProjectDependencies);
+					needCycleCheck);
 			runOperation(op, monitor);
 			
 		} catch (JavaModelException e) {
@@ -2082,7 +1995,14 @@ public class JavaProject
 		IProgressMonitor monitor)
 		throws JavaModelException {
 
-		setRawClasspath(entries, SetClasspathOperation.ReuseOutputLocation, monitor, true, true, getResolvedClasspath(true), true);
+		setRawClasspath(
+			entries, 
+			SetClasspathOperation.ReuseOutputLocation, 
+			monitor, 
+			true, // canChangeResource
+			true, // forceSave
+			getResolvedClasspath(true), // ignoreUnresolvedVariable
+			true); // needCycleCheck
 	}
 
 	/**
@@ -2120,7 +2040,7 @@ public class JavaProject
 	 * shared properties end up in resource files, and thus cannot be modified during
 	 * delta notifications (a CoreException would then be thrown).
 	 * 
-	 * @see JavaProject.getSharedProperty(...)
+	 * @see JavaProject#getSharedProperty(QualifiedName key)
 	 */
 	public void setSharedProperty(QualifiedName key, String value)
 		throws CoreException {
@@ -2136,11 +2056,80 @@ public class JavaProject
 		}
 	}
 
-	public void updateClassPath(IProgressMonitor monitor, boolean canChangeResource, boolean mayChangeProjectDependencies) throws JavaModelException {
+	/**
+	 * Update cycle markers for all java projects
+	 */
+	public static void updateAllCycleMarkers() throws JavaModelException {
+		
+		JavaModelManager manager = JavaModelManager.getJavaModelManager();
+		IJavaProject[] projects = manager.getJavaModel().getJavaProjects();
+		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 
-		setRawClasspath(getRawClasspath(), SetClasspathOperation.ReuseOutputLocation, monitor, canChangeResource, false, getResolvedClasspath(true), mayChangeProjectDependencies);
+		HashSet cycleParticipants = new HashSet();
+		ArrayList visited = new ArrayList();
+		int length = projects.length;
+		for (int i = 0; i < length; i++){
+			JavaProject project = (JavaProject)projects[i];
+			if (!cycleParticipants.contains(project)){
+				visited.clear();
+				project.updateCycleParticipants(null, visited, cycleParticipants, workspaceRoot);
+			}
+		}
+
+		for (int i = 0; i < length; i++){
+			JavaProject project = (JavaProject)projects[i];
+			
+			if (cycleParticipants.contains(project)){
+				if (!project.hasCycleMarker()){
+					project.createClasspathProblemMarker(
+						Util.bind("classpath.cycle"), //$NON-NLS-1$
+						IMarker.SEVERITY_ERROR,
+						true); 
+				}
+			} else {
+				project.flushClasspathProblemMarkers(true);
+			}			
+		}
 	}
+	
+	/**
+	 * If a cycle is detected, then cycleParticipants contains all the project involved in this cycle (directly),
+	 * no cycle if the set is empty (and started empty)
+	 */
+	public void updateCycleParticipants(IClasspathEntry[] preferredClasspath, ArrayList visited, HashSet cycleParticipants, IWorkspaceRoot workspaceRoot){
 
+		int index = visited.indexOf(this);
+		if (index >= 0){
+			// only consider direct participants inside the cycle
+			for (int i = index, size = visited.size(); i < size; i++){
+				cycleParticipants.add(visited.get(i)); 
+			}
+			return;
+		} else {
+			visited.add(this);
+		}
+		
+		try {
+			IClasspathEntry[] classpath;
+			if (preferredClasspath == null) {
+				classpath = getResolvedClasspath(true);
+			} else {
+				classpath = preferredClasspath;
+			}
+			for (int i = 0, length = classpath.length; i < length; i++) {
+				IClasspathEntry entry = classpath[i];
+				
+				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT){
+					String projectName = entry.getPath().lastSegment();
+					JavaProject project = (JavaProject)JavaCore.create(workspaceRoot.getProject(projectName));
+					project.updateCycleParticipants(null, visited, cycleParticipants, workspaceRoot);
+				}
+			}
+		} catch(JavaModelException e){
+		}
+		visited.remove(this);
+	}
+	
 	/**
 	 * Reset the collection of package fragment roots (local ones) - only if opened.
 	 * Need to check *all* package fragment roots in order to reset NameLookup
@@ -2151,10 +2140,11 @@ public class JavaProject
 				try {
 					JavaProjectElementInfo info = getJavaProjectElementInfo();
 
+					IClasspathEntry[] classpath = getResolvedClasspath(true);
 					NameLookup lookup = info.getNameLookup();
 					if (lookup != null){
 						IPackageFragmentRoot[] oldRoots = lookup.fPackageFragmentRoots;
-						IPackageFragmentRoot[] newRoots = computePackageFragmentRoots(true);
+						IPackageFragmentRoot[] newRoots = computePackageFragmentRoots(classpath, true);
 						checkIdentical: { // compare all pkg fragment root lists
 							if (oldRoots.length == newRoots.length){
 								for (int i = 0, length = oldRoots.length; i < length; i++){
@@ -2169,7 +2159,7 @@ public class JavaProject
 					}				
 					info.setNonJavaResources(null);
 					info.setChildren(
-						computePackageFragmentRoots(false));		
+						computePackageFragmentRoots(classpath, false));		
 
 				} catch(JavaModelException e){
 					try {

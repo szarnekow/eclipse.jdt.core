@@ -7,6 +7,236 @@
    <title>JDT/Core Release Notes</title>
 </head>
 <body>
+
+<h1>
+Eclipse Platform Build Notes&nbsp;<br>
+Java Development Tooling Core</h1>
+Eclipse SDK Build 20020503 - 3rd May 2002 
+<br>Project org.eclipse.jdt.core v_244
+<h2>
+What's new in this drop</h2>
+<ul>
+	<li>JavaCore now persists its options (<code>JavaCore#getOptions</code>) using its plugin property store. Clients no longer need to save them. </li>
+	<li>JavaCore now provides constants for all supported option IDs and values.</li>
+	<li> JavaCore option added, to allow build to abort in presence of invalid classpath. 
+	<pre>
+	 * BUILDER / Abort if Invalid Classpath
+	 *    Allow to toggle the builder to abort if the classpath is invalid
+	 *     - option id:        "org.eclipse.jdt.core.builder.invalidClasspath"
+	 *     - possible values:  { "abort", "ignore" }
+	 *     - default:          "ignore"
+	</pre>
+</ul>
+
+<h3>Problem Reports Fixed</h3>
+<a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15177">15177</a>
+Classpath markers not correctly updated  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15168">15168</a>
+circular errors not reported
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13957">13957</a>
+LaunchingPlugin specification of resourceCopyExclusionFilter
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=12977">12977</a>
+Adding Java nature to a project does not bring it to like in package view  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15107">15107</a>
+Internal Error organizing imports 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15030">15030</a>
+NPE trying to open or edit source files that reference jbuilder.jar 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14838">14838</a>
+Scrapbook editor: bad handling of // comment 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=12543">12543</a>
+Code assist to insert method does not work when there are extra top-level statements
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15061">15061</a>
+IllegalArgumentException in ASTNode.setSourceRange 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15036">15036</a>
+ASTVisitor.preVisit and ASTVisitor.postVisit not called correctly 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=3193">3193</a>
+JM - ISourceManipulation.delete send replace-BufferChangedEvent (1FYE8XI)  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15091">15091</a>
+Too many cycle markers generated when cycle is detected  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14754">14754</a>
+CodeAssist - Duplicate method declaration proposal inside anonymous type
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15051">15051</a>
+Synthetic access methods are not reported to be synthetic
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=3059">3059</a>
+JRE_LIB not appended to buildPath (1GF7TAZ)
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=15050">15050</a>
+Cleanup Javadoc @exception tags in DOM/AST
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14151">14151</a>
+The code formatter does not respect the "maximum line length" property when the indentation is set to tabulation. 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14974">14974</a>
+Bad generated code for '+=' and '-=' operators
+
+<h3>Problem Reports Closed</h3>
+<a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13057">13057</a>
+NPE in JavaElementRequestor
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=11155">11155</a>
+ArrayIndexOutOfBounds exception that caused workbench to freeze
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=12921">12921</a>
+Build sometimes builds files that have not changed
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14962">14962</a>
+JDT Search returning improper type
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14929">14929</a>
+External Locations for Output Files
+
+<h1>
+Eclipse Platform Build Notes&nbsp;<br>
+Java Development Tooling Core</h1>
+Eclipse SDK Build 20020430 - 30th April 2002 
+<br>Project org.eclipse.jdt.core v_243
+<h2>
+What's new in this drop</h2>
+<ul>
+	<li>Priority of the background indexer has been lowered so that
+	    it doesn't interfer with other threads (e.g. when switching JRE
+	    the indexing will not start before the switch has completed)
+	</li>
+	<li>Revised Classpath Container proposal (also see <a href="http://dev.eclipse.org/viewcvs/index.cgi/~checkout~/org.eclipse.jdt.core/notes/r2.0/classpath%20container/classpathContainer.html">notes</a>):
+	<ul>
+	<li><code>classpathContainerChanged()</code> got replaced with setter method <code>JavaCore.setClasspathContainer(IPath containerPath, IJavaProject[] affectedProjects, IClasspathContainer respectiveContainers) </code></li>
+	<li><code>ClasspathContainerResolver</code> got renamed into <code>ClasspathContainerInitializer</code></li>
+	<li> Container can no longer contain any <code>CPE_SOURCE</code> entry.
+	<li> added container interface <code> IClasspathContainer </code> in order to allow containers to be presented in a UI.
+		  <ul>
+		  <li>IClasspathEntry[] getClasspathEntries() </li>
+		  <li>String getDescription() </li>
+		  <li>int getKind() </li>
+		  <li>Path getPath() </li>
+		 </ul>
+	</ul>
+	</li>
+	<li>If the completion is inside a super type in type declaration header then the relevance grow
+		when the type have the correct nature :
+		<ul>
+			<li> After <code>extends</code> keyword of a class header the relevance grow if the type is a class.
+			</li>
+			<li> After <code>implements</code> keyword of a class header the relevance grow if the type is an interface.
+			</li>
+			<li> After <code>extends</code> keyword of an interface header the relevance grow if the type is an interface.
+			</li>
+		</ul>
+	</li>
+	<li> If the completion is inside a type in a catch or throws clause the relevance grow when the type is an exception
+		(if the name of the type contain <code>exception</code> or <code>error</code>).
+	</li>
+	<li> If the completion is inside a throw statement the relevance grow when the proposal is an exception.
+	</li>
+	<li>The background indexer now recovers from internal crash. If this happens, 
+	    a new thread is created and a consistency check is done on all indexes.
+	</li>
+	<li>An internal buffer factory is now used to create buffers when
+	    clients don't provide one.
+	</li>
+	<li>Special handling in the formatter for //$NON-NLS- comments in the source. When a line contains such comments
+	it is not formatted anymore. The user will need to manually format it. See <a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14387">14387</a> and
+	<a href="http://dev.eclipse.org/bugs/show_bug.cgi?id=12540">12540</a>.
+	</li>
+</ul>
+
+<h3>Problem Reports Fixed</h3>
+<a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14933">14933</a>
+AST: No error message generated for unreachable code 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14921">14921</a>
+No error message from inner type instantiation in static context
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13919">13919</a>
+Declaration for package not found if scope is not project  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14852">14852</a>
+Organize Import: missing import 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13531">13531</a>
+Java indexing thread finds "Bonjour, le monde!" too interesting
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14878">14878</a>
+static final char NegThree= (char)-3, -3 == NegThree returns true
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14331">14331</a>
+ICompilationUnit.getElementAt dos not find import decl  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14038">14038</a>
+ClassCastException during JavaReconciling
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14011">14011</a>
+ASTNode.checkNewChild(ASTNode, ASTNode, boolean, Class) 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13577">13577</a>
+Problem highlighter is unable to import from Java3D library.
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14831">14831</a>
+NPE with hierarchy search of a local variable  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14243">14243</a>
+Applet Viewer Integration
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14140">14140</a>
+ClassCastException when trying to open Java editor
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14834">14834</a>
+smalltalk-ish error message
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=11651">11651</a>
+Auto-complete shows all Object subclasses after "throws" keyword
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=4970">4970</a>
+Automatic Code Assist needs to be smarter #6
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=8651">8651</a>
+Code assist should offer exception instead of any class
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14767">14767</a>
+bug in IJavaProject.findType(String, String)
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14642">14642</a>
+StringIndexOutOfBoundsException when attempting to view some classes 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14558">14558</a>
+Adding binary project doesn't fix classpath problems.  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14588">14588</a>
+NullPointerException in Util.equalArraysOrNull  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13492">13492</a>
+Should handle JavaModelExceptions that contains CoreException more gracefully  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=12540">12540</a>
+Code formatter should leave comments at end of line 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14387">14387</a>
+Formatter isn't //$NON-NLS-1$ aware
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14313">14313</a>
+DCR: AST in methods with missing return type 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14094">14094</a>
+Indexer: Deadlock on delete project  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14594">14594</a>
+"Open type" doesn't find types in project with Java nature added  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14602">14602</a>
+ast: length of variable declaration fragment 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14592">14592</a>
+IType#getTypes and IType#getDeclaringType are not coherent with Hastable 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13868">13868</a>
+Java Model not updated properly  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13234">13234</a>
+Can't open type
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=9296">9296</a>
+Hang on open type during indexing
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13916">13916</a>
+api: IScanner - Scanner.linePtr
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14526">14526</a>
+NPE when resolving a SimpleName 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=11529">11529</a>
+ast: missing (?) binding on simpleName in VariableDeclaration 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14453">14453</a>
+Remove InfixExpression.Operator.INSTANCEOF operator 
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14490">14490</a>
+Possible concurrency hole when saving index before query  
+
+<h3>Problem Reports Closed</h3>
+<a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14844">14844</a>
+NPE creating binary projects
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14908">14908</a>
+100% CPU utilization, hang
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14733">14733</a>
+NPE setting marker attributes
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13743">13743</a>
+(NPE) Eclipse froze during "open type"
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14074">14074</a>
+Search: Not all refs to TwoPaneElementSelector constructor found  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14889">14889</a>
+bug in IJavaProject.findType(String, String)
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=12439">12439</a>
+auto completion doesn't consistently work
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14818">14818</a>
+no message for uncaught exception in try block when return in finally
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13810">13810</a>
+ClassCastException in indexer
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13527">13527</a>
+NPE + GP switching JRE
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14096">14096</a>
+IWorkingCopy.findElements should not return null  
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=13943">13943</a>
+Eclipse crashes when doing a "rebuild all"
+<br><a href="http://bugs.eclipse.org/bugs/show_bug.cgi?id=14440">14440</a>
+Possible bug in compiling inner classes
+
+
 <h1>
 Eclipse Platform Build Notes&nbsp;<br>
 Java Development Tooling Core</h1>
@@ -25,6 +255,9 @@ What's new in this drop</h2>
 			<li><code>IType.getTypeQualifiedName(char)</code></li>
 		</ul>
 	</li>
+	<li>API change: <code>IWorkingCopy.findSharedWorkingCopy()</code> is now taking an extra argument: the buffer factory it is associated with. This ensures that
+		working copies can only be reused for the same buffer factories.
+	</li>
 	<li> JavaModelOperations now guarantee the JavaModel is up to date when notifying the Java model change listeners. In particular,
 	a builder running after the Java builder will be able to query the Java model with respect to the changes introduced through Java model
 	operations (except for index queries). This was never guaranteed in 1.0, but indirectly occurred due to the fact that the previous Java
@@ -35,9 +268,9 @@ What's new in this drop</h2>
 	set of libraries (including extension dirs) to be placed on the build path. 
 	<p>New APIs added to reflect this addition:
 	<ul>
-	<li><code>JavaCore#newContainerEntry(IPath containerPath)</code></li>
-	<li><code>JavaCore#newContainerEntry(IPath containerPath, boolean isExported)</code></li>
-	<li><code>JavaCore#classpathContainerChanged(IPath containerPath, IJavaElement scope) </code></li>
+	<li><code>JavaCore.newContainerEntry(IPath containerPath)</code></li>
+	<li><code>JavaCore.newContainerEntry(IPath containerPath, boolean isExported)</code></li>
+	<li><code>JavaCore.classpathContainerChanged(IPath containerPath, IJavaElement scope) </code></li>
 	<li><code>ClasspathContainerResolver </code></li>
 	</ul>
 	</li>

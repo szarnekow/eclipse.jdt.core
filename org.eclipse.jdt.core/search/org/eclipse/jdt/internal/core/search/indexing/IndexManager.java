@@ -120,7 +120,7 @@ public void indexSourceFolder(JavaProject javaProject, IPath sourceFolder) {
  */
 public void checkIndexConsistency() {
 
-	if (VERBOSE) System.out.println("STARTING ("+ Thread.currentThread()+") - ensuring consistency"); //$NON-NLS-1$//$NON-NLS-2$
+	if (VERBOSE) JobManager.log("STARTING ensuring consistency"); //$NON-NLS-1$
 
 	boolean wasEnabled = isEnabled();	
 	try {
@@ -138,15 +138,17 @@ public void checkIndexConsistency() {
 		}
 	} finally {
 		if (wasEnabled) enable();
-		if (VERBOSE) System.out.println("DONE ("+ Thread.currentThread()+") - ensuring consistency"); //$NON-NLS-1$//$NON-NLS-2$
+		if (VERBOSE) JobManager.log("DONE ensuring consistency"); //$NON-NLS-1$
 	}
 }
-private String computeIndexName(String pathString) {
+private String computeIndexName(IPath path) {
+	
+	String pathString = path.toOSString();
 	byte[] pathBytes = pathString.getBytes();
 	checksumCalculator.reset();
 	checksumCalculator.update(pathBytes);
 	String fileName = Long.toString(checksumCalculator.getValue()) + ".index"; //$NON-NLS-1$
-	if (VERBOSE) System.out.println(" index name: " + pathString + " <----> " + fileName); //$NON-NLS-1$ //$NON-NLS-2$
+	if (VERBOSE) JobManager.log("-> index name for " + pathString + " is " + fileName); //$NON-NLS-1$ //$NON-NLS-2$
 	IPath indexPath = getJavaPluginWorkingLocation();
 	String indexDirectory = indexPath.toOSString();
 	if (indexDirectory.endsWith(File.separator)) {
@@ -165,42 +167,52 @@ public void deleting(IProject project) {
  * Remove the index from cache for a given project.
  * Passing null as a job family discards them all.
  */
-public synchronized void discardJobsUntilNextProjectAddition(String jobFamily) {
+public void discardJobsUntilNextProjectAddition(String jobFamily) {
 	boolean wasEnabled = isEnabled();
 	try {
 		disable();
+		
+		// cancel current job if it belongs to the given family
+		IJob currentJob = this.currentJob();
+		if (currentJob != null 
+				&& (jobFamily == null || currentJob.belongsTo(jobFamily))) {
 
-		// flush and compact awaiting jobs
-		int loc = -1;
-		boolean foundProjectAddition = false;
-		for (int i = jobStart; i <= jobEnd; i++){
-			IJob currentJob = awaitingJobs[i];
-			awaitingJobs[i] = null;
-			boolean discard = jobFamily == null;
-			if (!discard && currentJob.belongsTo(jobFamily)){ // might discard
-				if (!(foundProjectAddition || (foundProjectAddition = currentJob instanceof IndexAllProject))) {
-					discard = true;
+			currentJob.cancel();
+		
+			// wait until current active job has finished
+			while (thread != null && executing){
+				try {
+					Thread.currentThread().sleep(50);
+				} catch(InterruptedException e){
 				}
-			}
-			if (discard) {
-				currentJob.cancel();
-				if (i == jobStart) {
-					// wait until current active job has accepted the cancel
-					while (thread != null && executing){
-						try {
-							Thread.currentThread().sleep(50);
-						} catch(InterruptedException e){
-						}
-					}
-				}
-			} else {
-				awaitingJobs[++loc] = currentJob;
 			}
 		}
-		jobStart = 0;
-		jobEnd = loc;
+
+		synchronized(this) {
+			// flush and compact awaiting jobs
+			int loc = -1;
+			boolean foundProjectAddition = false;
+			for (int i = jobStart; i <= jobEnd; i++){
+				currentJob = awaitingJobs[i];
+				if (currentJob == null) continue;
+				awaitingJobs[i] = null;
+				boolean discard = jobFamily == null;
+				if (!discard && currentJob.belongsTo(jobFamily)){ // might discard
+					if (!(foundProjectAddition || (foundProjectAddition = currentJob instanceof IndexAllProject))) {
+						discard = true;
+					}
+				}
+				if (discard) {
+					currentJob.cancel();
+				} else {
+					awaitingJobs[++loc] = currentJob;
+				}
+			}
+			jobStart = 0;
+			jobEnd = loc;
+		}
 	} finally {
-		if (wasEnabled)	enable();
+		if (wasEnabled) enable();
 	}
 }
 
@@ -224,7 +236,7 @@ public synchronized IIndex getIndex(IPath path, boolean mustCreate) {
 		try {
 			if (!mustCreate) return null;
 
-			String indexPath = computeIndexName(path.toOSString());
+			String indexPath = computeIndexName(path);
 			index = IndexFactory.newIndex(indexPath, "Index for " + path.toOSString()); //$NON-NLS-1$
 			indexes.put(path, index);
 			monitors.put(index, new ReadWriteMonitor());
@@ -317,7 +329,7 @@ public synchronized IIndex recreateIndex(IPath path) {
 	if (index != null) {
 		try {
 			// Path is already canonical
-			String indexPath = computeIndexName(path.toOSString());
+			String indexPath = computeIndexName(path);
 			ReadWriteMonitor monitor = (ReadWriteMonitor)monitors.remove(index);
 			index = IndexFactory.newIndex(indexPath, "Index for " + path.toOSString()); //$NON-NLS-1$
 			index.empty();
@@ -389,13 +401,14 @@ public void saveIndexes(){
 			monitor.enterWrite();
 			if (IndexManager.VERBOSE){
 				if (index.hasChanged()){ 
-					System.out.println("-> merging index ("+ Thread.currentThread()+"): "+index.getIndexFile()); //$NON-NLS-1$//$NON-NLS-2$
+					JobManager.log("-> merging index " + index.getIndexFile()); //$NON-NLS-1$
 				}
 			}
 			try {
 				index.save();
 			} catch(IOException e){
-				if (IndexManager.VERBOSE){
+				if (IndexManager.VERBOSE) {
+					JobManager.log("-> got the following exception while merging:"); //$NON-NLS-1$
 					e.printStackTrace();
 				}
 				//org.eclipse.jdt.internal.core.Util.log(e);
@@ -420,6 +433,9 @@ public void shutdown() {
 		File[] indexesFiles = indexesDirectory.listFiles();
 		for (int i = 0, indexesFilesLength = indexesFiles.length; i < indexesFilesLength; i++) {
 			if (keepingIndexesPaths.get(indexesFiles[i].getAbsolutePath()) == null) {
+				if (VERBOSE) {
+					JobManager.log("Deleting index file " + indexesFiles[i]); //$NON-NLS-1$
+				}
 				indexesFiles[i].delete();
 			}
 		}
@@ -451,10 +467,7 @@ public void indexLibrary(IPath path, IProject referingProject) {
 	// check if the same request is not already in the queue
 	for (int i = this.jobEnd; i >= this.jobStart; i--) {
 		IJob awaiting = this.awaitingJobs[i];
-		if (awaiting != null
-			&& request.equals(awaiting) 
-			&& (request.timeStamp == ((IndexRequest)awaiting).timeStamp)) {
-				
+		if (awaiting != null && request.equals(awaiting)) {
 			return;
 		}
 	}

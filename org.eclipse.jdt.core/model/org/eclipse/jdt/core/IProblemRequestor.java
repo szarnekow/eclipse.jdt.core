@@ -6,9 +6,8 @@ which accompanies this distribution, and is available at
 http://www.eclipse.org/legal/cpl-v05.html
  
 Contributors:
-    Philippe Mulet - Initial API and implementation
+     IBM Corporation - initial API and implementation
 **********************************************************************/
-
 package org.eclipse.jdt.core;
 
 import org.eclipse.jdt.core.compiler.IProblem;

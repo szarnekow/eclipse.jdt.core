@@ -28,7 +28,6 @@ public class IndexAllProject extends IndexRequest implements IResourceVisitor {
 	public IndexAllProject(IProject project, IndexManager manager) {
 		this.project = project;
 		this.manager = manager;
-		this.timeStamp = project.getModificationStamp();
 	}
 	public boolean belongsTo(String jobFamily) {
 		return jobFamily.equals(project.getName());
@@ -67,13 +66,12 @@ public int hashCode() {
 					monitor.exitRead(); // free read lock
 					monitor.enterWrite(); // ask permission to write
 					if (IndexManager.VERBOSE)
-						System.out.println("-> merging index : " + index.getIndexFile()); //$NON-NLS-1$
+						JobManager.log("-> merging index " + index.getIndexFile()); //$NON-NLS-1$
 					index.save();
 				} catch (IOException e) {
 					return FAILED;
 				} finally {
-					monitor.exitWrite(); // finished writing
-					monitor.enterRead(); // reacquire read permission
+					monitor.exitWriteEnterRead(); // finished writing and reacquire read permission
 				}
 			}
 			this.indexLastModified = index.getIndexFile().lastModified();

@@ -413,15 +413,15 @@ public class NameLookup {
 	 * The domain of the search is bounded by the Java project from which 
 	 * this name lookup was obtained.
 	 *
-	 * @name the name of the type to find
-	 * @pkg the package to search
+	 * @param name the name of the type to find
+	 * @param pkg the package to search
 	 * @param partialMatch partial name matches qualify when <code>true</code>,
 	 *	only exact name matches qualify when <code>false</code>
 	 * @param acceptFlags a bit mask describing if classes, interfaces or both classes and interfaces
 	 * 	are desired results. If no flags are specified, all types are returned.
 	 *
-	 * @see ACCEPT_CLASSES
-	 * @see ACCEPT_INTERFACES
+	 * @see #ACCEPT_CLASSES
+	 * @see #ACCEPT_INTERFACES
 	 */
 	public IType findType(String name, IPackageFragment pkg, boolean partialMatch, int acceptFlags) {
 		if (pkg == null) {
@@ -439,14 +439,14 @@ public class NameLookup {
 	 * if none exist. The domain of
 	 * the search is bounded by the Java project from which this name lookup was obtained.
 	 *
-	 * @name the name of the type to find
+	 * @param name the name of the type to find
 	 * @param partialMatch partial name matches qualify when <code>true</code>,
 	 *	only exact name matches qualify when <code>false</code>
 	 * @param acceptFlags a bit mask describing if classes, interfaces or both classes and interfaces
 	 * 	are desired results. If no flags are specified, all types are returned.
 	 *
-	 * @see ACCEPT_CLASSES
-	 * @see ACCEPT_INTERFACES
+	 * @see #ACCEPT_CLASSES
+	 * @see #ACCEPT_INTERFACES
 	 */
 	public IType findType(String name, boolean partialMatch, int acceptFlags) {
 		int index= name.lastIndexOf('.');
@@ -517,16 +517,19 @@ public class NameLookup {
 	 * Notifies the given requestor of all types (classes and interfaces) in the
 	 * given package fragment with the given (unqualified) name.
 	 * Checks the requestor at regular intervals to see if the requestor
-	 * has canceled.  If the given package fragment is <code>null</code>, all types in the
+	 * has canceled. If the given package fragment is <code>null</code>, all types in the
 	 * project whose simple name matches the given name are found.
 	 *
+	 * @param name The name to search
+	 * @param pkg The corresponding package fragment
 	 * @param partialMatch partial name matches qualify when <code>true</code>;
 	 *	only exact name matches qualify when <code>false</code>
 	 * @param acceptFlags a bit mask describing if classes, interfaces or both classes and interfaces
 	 * 	are desired results. If no flags are specified, all types are returned.
+	 * @param requestor The requestor that collects the result
 	 *
-	 * @see ACCEPT_CLASSES
-	 * @see ACCEPT_INTERFACES
+	 * @see #ACCEPT_CLASSES
+	 * @see #ACCEPT_INTERFACES
 	 */
 	public void seekTypes(String name, IPackageFragment pkg, boolean partialMatch, int acceptFlags, IJavaElementRequestor requestor) {
 
@@ -573,7 +576,9 @@ public class NameLookup {
 		if (index != -1) {
 			//the type name of the inner type
 			unqualifiedName= name.substring(index + 1, name.length());
-			if (unqualifiedName.length() > 0 && Character.isDigit(unqualifiedName.charAt(0))){
+			// unqualifiedName is empty if the name ends with a '$' sign.
+			// See http://dev.eclipse.org/bugs/show_bug.cgi?id=14642
+			if ((unqualifiedName.length() > 0 && Character.isDigit(unqualifiedName.charAt(0))) || unqualifiedName.length() == 0){
 				unqualifiedName = name;
 			}
 		}

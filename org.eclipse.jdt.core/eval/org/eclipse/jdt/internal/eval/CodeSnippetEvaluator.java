@@ -10,6 +10,8 @@ import org.eclipse.jdt.internal.compiler.*;
 import org.eclipse.jdt.internal.compiler.env.*;
 import org.eclipse.jdt.internal.compiler.classfmt.*;
 import org.eclipse.jdt.internal.compiler.util.CharOperation;
+import org.eclipse.jdt.internal.compiler.util.Util;
+
 import java.util.*;
 
 /**
@@ -160,7 +162,7 @@ private CodeSnippetToCuMapper getMapper() {
 			
 		}
 		this.mapper = new CodeSnippetToCuMapper(
-			this.codeSnippet,
+			this.codeSnippet, 
 			this.context.packageName,
 			this.context.imports,
 			getClassName(),

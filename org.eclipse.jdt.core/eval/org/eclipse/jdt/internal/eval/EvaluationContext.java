@@ -13,6 +13,8 @@ import org.eclipse.jdt.internal.compiler.classfmt.*;
 import org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.jdt.internal.compiler.util.CharOperation;
+import org.eclipse.jdt.internal.compiler.util.Util;
+
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
@@ -149,7 +151,7 @@ private void deployCodeSnippetClassIfNeeded(IRequestor requestor) {
 	}
 }
 /**
- * @see org.eclipse.jdt.internal.eval.IEvaluationContext
+ * @see org.eclipse.jdt.core.eval.IEvaluationContext
  * @exception org.eclipse.jdt.internal.eval.InstallException if the code snippet class files could not be deployed.
  */
 public void evaluate(
@@ -235,7 +237,7 @@ public void evaluate(
 	}
 }
 /**
- * @see org.eclipse.jdt.internal.eval.IEvaluationContext
+ * @see org.eclipse.jdt.core.eval.IEvaluationContext
  * @exception org.eclipse.jdt.internal.eval.InstallException if the code snippet class files could not be deployed.
  */
 public void evaluate(char[] codeSnippet, INameEnvironment environment, Map options, final IRequestor requestor, IProblemFactory problemFactory) throws InstallException {
@@ -294,7 +296,7 @@ public void evaluateImports(INameEnvironment environment, IRequestor requestor, 
 	}
 }
 /**
- * @see org.eclipse.jdt.internal.eval.IEvaluationContext
+ * @see org.eclipse.jdt.core.eval.IEvaluationContext
  * @exception org.eclipse.jdt.internal.eval.InstallException if the code snippet class files could not be deployed.
  * @exception java.lang.IllegalArgumentException if the global has not been installed yet.
  */
@@ -302,7 +304,7 @@ public void evaluateVariable(GlobalVariable variable, INameEnvironment environme
 	this.evaluate(variable.getName(), environment, options, requestor, problemFactory);
 }
 /**
- * @see org.eclipse.jdt.internal.eval.IEvaluationContext
+ * @see org.eclipse.jdt.core.eval.IEvaluationContext
  * @exception org.eclipse.jdt.internal.eval.InstallException if the code snippet class files could not be deployed.
  */
 public void evaluateVariables(INameEnvironment environment, Map options, IRequestor requestor, IProblemFactory problemFactory) throws InstallException {
@@ -362,7 +364,6 @@ private byte[] getCodeSnippetBytes() {
 /**
  * Returns the source of the CodeSnippet class.
  * This is used to generate the binary of the CodeSnippetClass
- * @see getCodeSnippetBytes
  */
 public static String getCodeSnippetSource() {
 	return

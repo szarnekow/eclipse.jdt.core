@@ -1546,7 +1546,7 @@ public class CodeFormatter implements ITerminalSymbols, ICodeFormatter {
 		}
 		SplitLine splitLine = null;
 		if (options.maxLineLength == 0
-			|| currentString.length() < options.maxLineLength
+			|| getLength(currentString, depth) < options.maxLineLength
 			|| (splitLine = split(currentString, offsetInGlobalLine)) == null) {
 
 			// depending on the type of operator, outputs new line before of after dumping it
@@ -1912,9 +1912,10 @@ public class CodeFormatter implements ITerminalSymbols, ICodeFormatter {
 	/**
 	 * Set the positions to map. The mapped positions should be retrieved using the
 	 * getMappedPositions() method.
-	 * @see getMappedPositions()
 	 * @param positions int[]
 	 * @deprecated Set the positions to map using the format(String, int, int[]) method.
+	 * 
+	 * @see #getMappedPositions()
 	 */
 	public void setPositionsToMap(int[] positions) {
 		positionsToMap = positions;
@@ -1950,6 +1951,13 @@ public class CodeFormatter implements ITerminalSymbols, ICodeFormatter {
 	 * or null if the string cannot be split
 	 */
 	public SplitLine split(String stringToSplit, int offsetInGlobalLine) {
+		/*
+		 * See http://dev.eclipse.org/bugs/show_bug.cgi?id=12540 and
+		 * http://dev.eclipse.org/bugs/show_bug.cgi?id=14387 
+		 */
+		if (stringToSplit.indexOf("//$NON-NLS") != -1) { //$NON-NLS-1$
+			return null;
+		}
 		// local variables
 		int currentToken = 0;
 		int splitTokenType = 0;
@@ -2478,6 +2486,24 @@ public class CodeFormatter implements ITerminalSymbols, ICodeFormatter {
 			mappedPositions[indexInMap] += splitDelta;
 			indexInMap++;
 		}
+	}
+	
+	private int getLength(String s, int tabDepth) {
+		int length = 0;
+		for (int i = 0; i < tabDepth; i++) {
+			length += options.tabSize;
+		}
+		for (int i = 0, max = s.length(); i < max; i++) {
+			char currentChar = s.charAt(i);
+			switch (currentChar) {
+				case '\t' :
+					length += options.tabSize;
+					break;
+				default :
+					length++;
+			}
+		}
+		return length;
 	}
 	
 	/** 

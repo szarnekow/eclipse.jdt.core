@@ -40,7 +40,7 @@ protected ClassFile(IPackageFragment parent, String name) {
 }
 
 /**
- * @see ICodeAssist
+ * @see ICodeAssist#codeComplete(int, ICompletionRequestor)
  */
 public void codeComplete(int offset, ICompletionRequestor requestor) throws JavaModelException {
 	String source = getSource();
@@ -57,7 +57,7 @@ public void codeComplete(int offset, ICompletionRequestor requestor) throws Java
 	}
 }
 /**
- * @see ICodeResolve
+ * @see ICodeAssist#codeSelect(int, int)
  */
 public IJavaElement[] codeSelect(int offset, int length) throws JavaModelException {
 	IBuffer buffer = getBuffer();
@@ -287,8 +287,10 @@ public IType getType() throws JavaModelException {
 		String name = fName.substring(0, fName.lastIndexOf('.'));
 		name = name.substring(name.lastIndexOf('.') + 1);
 		int index = name.lastIndexOf('$');
-		if (index > -1 && !Character.isDigit(name.charAt(index + 1))) {
-			name = name.substring(index + 1);
+		if (index > -1) {
+			if (name.length() > (index + 1) && !Character.isDigit(name.charAt(index + 1))) {
+				name = name.substring(index + 1);
+			}
 		}
 		fBinaryType = new BinaryType(this, name);
 	}
@@ -367,12 +369,23 @@ protected IBuffer openBuffer(IProgressMonitor pm) throws JavaModelException {
 	if (mapper != null) {
 		char[] contents = mapper.findSource(getType());
 		if (contents != null) {
+			// create buffer
+			IBuffer buffer = getBufferFactory().createBuffer(this);
 			BufferManager bufManager = getBufferManager();
-			IBuffer buf = bufManager.openBuffer(contents, pm, this, isReadOnly());
-			buf.addBufferChangedListener(this);			
+			bufManager.addBuffer(buffer);
+			
+			// set the buffer source
+			if (buffer != null && buffer.getCharacters() == null){
+				buffer.setContents(contents);
+			}
+			
+			// listen to buffer changes
+			buffer.addBufferChangedListener(this);	
+					
 			// do the source mapping
 			mapper.mapSource(getType(), contents);
-			return buf;
+			
+			return buffer;
 		}
 	} else {
 		// Attempts to find the corresponding java file
@@ -409,8 +422,9 @@ public IJavaElement rootedAt(IJavaProject project) {
 		return null;
 	className = unqualifiedName(className);
 	int count = 0;
-	for (int i = className.length - 1; i > -1; i--) {
-		if (className[i] == '$') {
+	int lastPosition = className.length - 1;
+	for (int i = lastPosition; i > -1; i--) {
+		if (className[i] == '$' && (i != lastPosition)) {
 			char[] name = new char[count];
 			System.arraycopy(className, i + 1, name, 0, count);
 			if (Character.isDigit(name[0])) {
@@ -490,7 +504,7 @@ public static char[] translatedName(char[] name) {
 }
 
 /**
- * @see ICodeAssist
+ * @see ICodeAssist#codeComplete(int, ICodeCompletionRequestor)
  * @deprecated - should use codeComplete(int, ICompletionRequestor) instead
  */
 public void codeComplete(int offset, final ICodeCompletionRequestor requestor) throws JavaModelException {

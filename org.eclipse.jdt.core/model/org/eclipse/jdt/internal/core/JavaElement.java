@@ -131,6 +131,7 @@ protected void closing(Object info) throws JavaModelException {
  * @see Object#equals
  */
 public boolean equals(Object o) {
+	if (fParent == null) return super.equals(o);
 	if (this == o)
 		return true;
 	if (o instanceof JavaElement) {
@@ -407,7 +408,7 @@ protected IJavaElement getSourceElementAt(int position) throws JavaModelExceptio
 				SourceRefElement child = (SourceRefElement) children[i];
 				ISourceRange range = child.getSourceRange();
 				if (position < range.getOffset() + range.getLength() && position >= range.getOffset()) {
-					if (child.getElementType() == TYPE) {
+					if (child instanceof IParent) {
 						return child.getSourceElementAt(position);
 					} else {
 						return child;
@@ -443,6 +444,7 @@ public IWorkspace getWorkspace() {
  * override this method.
  */
 public int hashCode() {
+	if (fParent == null) return super.hashCode();
 	return Util.combineHashCodes(fName.hashCode(), fParent.hashCode());
 }
 /**
@@ -494,13 +496,13 @@ public void offsetSourceRange(int amount) {
  */
 protected void openHierarchy() throws JavaModelException {
 	if (this instanceof IOpenable) {
-		((Openable) this).openWhenClosed(null, null);
+		((Openable) this).openWhenClosed(null);
 	} else {
 		Openable openableParent = (Openable)getOpenableParent();
 		if (openableParent != null) {
 			JavaElementInfo openableParentInfo = (JavaElementInfo) fgJavaModelManager.getInfo((IJavaElement) openableParent);
 			if (openableParentInfo == null) {
-				openableParent.openWhenClosed(null, null);
+				openableParent.openWhenClosed(null);
 			} else {
 				throw newNotPresentException();
 			}
@@ -562,7 +564,7 @@ protected String tabString(int tab) {
 	return buffer.toString();
 }
 /**
- * @private Debugging purposes
+ * Debugging purposes
  */
 public String toDebugString() {
 	StringBuffer buffer = new StringBuffer();
@@ -570,7 +572,7 @@ public String toDebugString() {
 	return buffer.toString();
 }
 /**
- * @private Debugging purposes
+ *  Debugging purposes
  */
 public String toString() {
 	StringBuffer buffer = new StringBuffer();
@@ -578,7 +580,7 @@ public String toString() {
 	return buffer.toString();
 }
 /**
- * @private Debugging purposes
+ *  Debugging purposes
  */
 protected void toString(int tab, StringBuffer buffer) {
 	Object info = this.toStringInfo(tab, buffer);
@@ -588,7 +590,7 @@ protected void toString(int tab, StringBuffer buffer) {
 	this.toStringChildren(tab, buffer, info);
 }
 /**
- * @private Debugging purposes
+ *  Debugging purposes
  */
 public String toStringWithAncestors() {
 	StringBuffer buffer = new StringBuffer();
@@ -597,7 +599,7 @@ public String toStringWithAncestors() {
 	return buffer.toString();
 }
 /**
- * @private Debugging purposes
+ *  Debugging purposes
  */
 protected void toStringAncestors(StringBuffer buffer) {
 	JavaElement parent = (JavaElement)this.getParent();
@@ -609,7 +611,7 @@ protected void toStringAncestors(StringBuffer buffer) {
 	}
 }
 /**
- * @private Debugging purposes
+ *  Debugging purposes
  */
 protected void toStringChildren(int tab, StringBuffer buffer, Object info) {
 	if (info == null || !(info instanceof JavaElementInfo)) return;
@@ -620,7 +622,7 @@ protected void toStringChildren(int tab, StringBuffer buffer, Object info) {
 	}
 }
 /**
- * @private Debugging purposes
+ *  Debugging purposes
  */
 public Object toStringInfo(int tab, StringBuffer buffer) {
 	Object info = fgJavaModelManager.peekAtInfo(this);
@@ -628,7 +630,7 @@ public Object toStringInfo(int tab, StringBuffer buffer) {
 	return info;
 }
 /**
- * @private Debugging purposes
+ *  Debugging purposes
  */
 protected void toStringInfo(int tab, StringBuffer buffer, Object info) {
 	buffer.append(this.tabString(tab));
