@@ -15,6 +15,7 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GHDA2V: ITPJCORE:WINNT - ClassCastException when doing a search
 1GFY02B: ITPJUI:ALL - Delete a method and saving introduces extra lines
 1GFOFMD: ITPJUI:WIN2000 - New class should have space between package and class decls
 1GI3R1I: ITPJCORE:WIN2000 - Compilation error evaluating super expression in debugger
