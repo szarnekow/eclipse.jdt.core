@@ -231,10 +231,6 @@ public AbstractMethodDeclaration updatedMethodDeclaration(){
 					length-1);
 			}
 		}
-	} else {
-		if (this.methodDeclaration.bodyStart == this.methodDeclaration.declarationSourceEnd) {
-			this.methodDeclaration.modifiers |= AccSemicolonBody;
-		}
 	}
 	return methodDeclaration;
 }
