@@ -7,12 +7,12 @@ What's new in this drop (since 0.9)
   * Added 2 new APIs on JavaConventions for classpath validation.
          - IJavaModelStatus validateClasspath(IJavaProject project, IClasspathEntry[] classpath, IPath outputLocation) 
          - IJavaModelStatus validateClasspathEntry(IJavaProject project, IClasspathEntry entry, boolean checkSourceAttachment) 
- * Ant Eclipse compiler task added (org.eclipse.jdt.core.ant.Jdtcom)
- * Assertions support enabled: by default the compiler is 1.3 compliant, but it can optionally be turned into source 1.4 mode cf. JavaCore options.
- * More options are surfaced on JavaCore. See JavaCore.getDefaultOptions() for description.
+  * Ant Eclipse compiler task added (org.eclipse.jdt.core.ant.Jdtcom)
+  * Assertions support enabled: by default the compiler is 1.3 compliant, but it can optionally be turned into source 1.4 mode cf. JavaCore options.
+  * More options are surfaced on JavaCore. See JavaCore.getDefaultOptions() for description.
          - ...internal...ConfigurableOption has disappeared.
- * Evaluation in binaries is functional
- * Search for references now finds results in binaries. Indexes in workspaces must be deleted before starting the workbench.
+  * Evaluation in binaries is functional
+  * Search for references now finds results in binaries. Indexes in workspaces must be deleted before starting the workbench.
  	These indexes are located in [workspace]\.metadata\.plugins\org.eclipse.jdt.core 
  
 PRs Fixed in this Release (since 1.0NL stream)
