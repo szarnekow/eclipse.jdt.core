@@ -231,6 +231,8 @@ public AbstractMethodDeclaration updatedMethodDeclaration(){
 					length-1);
 			}
 		}
+	} else {
+		methodDeclaration.modifiers |= AccSemicolonBody;
 	}
 	return methodDeclaration;
 }
