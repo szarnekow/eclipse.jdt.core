@@ -1167,10 +1167,12 @@ protected void consumeAssignment() {
 			new CompoundAssignment(
 				expressionStack[expressionPtr] ,
 				expressionStack[expressionPtr+1], 
-				op)	:
+				op,
+				scanner.currentPosition)	:
 			new Assignment(
 				expressionStack[expressionPtr] ,
-				expressionStack[expressionPtr+1]);
+				expressionStack[expressionPtr+1],
+				scanner.currentPosition);
 }
 protected void consumeAssignmentOperator(int pos) {
 	// AssignmentOperator ::= '='
@@ -1913,7 +1915,7 @@ protected void consumeExitVariableWithInitialization() {
 	variableDecl.initialization = expressionStack[expressionPtr--];
 	// we need to update the declarationSourceEnd of the local variable declaration to the
 	// source end position of the initialization expression
-	variableDecl.declarationSourceEnd = variableDecl.initialization.sourceEnd;
+	variableDecl.declarationSourceEnd = scanner.currentPosition - 1;
 }
 protected void consumeExitVariableWithoutInitialization() {
 	// ExitVariableWithoutInitialization ::= $empty
@@ -4205,14 +4207,15 @@ protected void consumeUnaryExpression(int op, boolean post) {
 					leftHandSide,
 					IntLiteral.One,
 					op,
-					endPosition + 1); 
+					scanner.currentPosition - 1); 
 		} else {
 			expressionStack[expressionPtr] = 
 				new PrefixExpression(
 					leftHandSide,
 					IntLiteral.One,
 					op,
-					intStack[intPtr--]); 
+					intStack[intPtr--],
+					scanner.currentPosition - 1); 
 		}
 	} else {
 		//the ++ or the -- is NOT taken into account if code gen proceeds
