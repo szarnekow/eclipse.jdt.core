@@ -431,7 +431,6 @@ public class Disassembler extends ClassFileBytesDisassembler {
 		StringBuffer buffer = new StringBuffer();
 
 		ISourceAttribute sourceAttribute = classFileReader.getSourceFileAttribute();
-		IClassFileAttribute classFileAttribute = Util.getAttribute(classFileReader, IAttributeNamesConstants.SIGNATURE);
 		final int accesssFlags = classFileReader.getAccessFlags();
 		if (mode == ClassFileBytesDisassembler.DETAILED) {
 			int minorVersion = classFileReader.getMinorVersion();
@@ -674,7 +673,6 @@ public class Disassembler extends ClassFileBytesDisassembler {
 	private void disassemble(IFieldInfo fieldInfo, StringBuffer buffer, String lineSeparator, int tabNumber, int mode) {
 		writeNewLine(buffer, lineSeparator, tabNumber);
 		char[] fieldDescriptor = fieldInfo.getDescriptor();
-		IClassFileAttribute classFileAttribute = Util.getAttribute(fieldInfo, IAttributeNamesConstants.SIGNATURE);
 		if (mode == DETAILED) {
 			buffer
 				.append(Util.bind("disassembler.begincommentline")) //$NON-NLS-1$
