@@ -15,6 +15,7 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GFBVZH: ITPUI:WIN2000 - ArrayIndexOutOfBoundsException: Java editor
 1GI509E: ITPJCORE:WINNT - IJavaProject.getNonJavaResources returns java and class files
 1GI2WAW: ITPJCORE:WINNT - Too many results for default package
 1GHQZ9H: ITPJUI:ALL - Walkback doing a search
