@@ -1164,7 +1164,7 @@ public final class JavaCore extends Plugin implements IExecutableExtension {
 	 *    line when possible.
 	 *     - option id:				"org.eclipse.jdt.core.formatter.newline.elseIf"
 	 *     - possible values:	{ "insert", "do not insert" }
-	 *     - default:				"insert"
+	 *     - default:				"do not insert"
 	 * 
 	 *	FORMATTER / Inserting New Line In Empty Block
 	 *    When insert, a line break is inserted between contiguous { and }, if } is not followed
@@ -1243,7 +1243,7 @@ public final class JavaCore extends Plugin implements IExecutableExtension {
 		defaultOptions.put("org.eclipse.jdt.core.formatter.newline.openingBrace", "do not insert");
 		defaultOptions.put("org.eclipse.jdt.core.formatter.newline.controlStatement", "do not insert");
 		defaultOptions.put("org.eclipse.jdt.core.formatter.newline.clearAll", "preserve one");
-		defaultOptions.put("org.eclipse.jdt.core.formatter.newline.elseIf", "insert");
+		defaultOptions.put("org.eclipse.jdt.core.formatter.newline.elseIf", "do not insert");
 		defaultOptions.put("org.eclipse.jdt.core.formatter.newline.emptyBlock", "insert");
 		defaultOptions.put("org.eclipse.jdt.core.formatter.lineSplit", "80");
 		defaultOptions.put("org.eclipse.jdt.core.formatter.style.assignment", "normal");
