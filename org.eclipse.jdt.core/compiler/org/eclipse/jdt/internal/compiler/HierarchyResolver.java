@@ -353,6 +353,19 @@ public void setFocusType(char[][] compoundName) {
 	if (compoundName == null || this.lookupEnvironment == null) return;
 	this.focusType = this.lookupEnvironment.askForType(compoundName);
 	
+	/* All siblings of the focus type were added (since this.focusType == null).
+	   Remove the ones that are not part of the hierarchy
+	 */
+	int typeIndex = this.typeIndex;
+	this.typeIndex = -1;
+	ReferenceBinding[] typeBindings = this.typeBindings;
+	this.typeBindings = new ReferenceBinding[5];
+	IGenericType[] typeModels = this.typeModels;
+	this.typeModels = new IGenericType[5];
+	for (int i = 0; i <= typeIndex; i++) {
+		this.remember(typeModels[i], typeBindings[i]); // will skip types not part of the hierarchy
+	}
+	
 }
 private boolean subOrSuperOfFocus(ReferenceBinding typeBinding) {
 	if (this.focusType == null) return true; // accept all types (case of hierarchy in a region)
