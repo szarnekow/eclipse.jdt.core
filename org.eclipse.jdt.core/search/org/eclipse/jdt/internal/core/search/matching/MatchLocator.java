@@ -319,8 +319,9 @@ public class MatchLocator implements ITypeRequestor {
 
 			// create new parser and lookup environment if this is a new project
 			IResource resource = null;
+			JavaProject javaProject = null;
 			try {
-				JavaProject javaProject = (JavaProject) openable.getJavaProject();
+				javaProject = (JavaProject) openable.getJavaProject();
 				resource = openable.getUnderlyingResource();
 				if (resource == null) { // case of a file in an external jar
 					resource = javaProject.getProject();
@@ -328,7 +329,15 @@ public class MatchLocator implements ITypeRequestor {
 				if (!javaProject.equals(previousJavaProject)) {
 					// locate matches in previous project
 					if (previousJavaProject != null) {
-						this.locateMatches();
+						try {
+							this.locateMatches();
+						} catch (JavaModelException e) {
+							if (e.getException() instanceof CoreException) {
+								throw e;
+							} else {
+								// problem with classpath in this project -> skip it
+							}
+						}
 						this.potentialMatchesLength = 0;
 					}
 
@@ -340,12 +349,8 @@ public class MatchLocator implements ITypeRequestor {
 					continue;
 				// the pattern could not be initialized: the match cannot be in this project
 			} catch (JavaModelException e) {
-				if (e.getException() instanceof CoreException) {
-					throw e;
-				} else {
-					// file doesn't exist -> skip it
-					continue;
-				}
+				// file doesn't exist -> skip it
+				continue;
 			}
 
 			// add potential match
@@ -367,7 +372,7 @@ public class MatchLocator implements ITypeRequestor {
 				if (e.getException() instanceof CoreException) {
 					throw e;
 				} else {
-					// last file doesn't exist -> skip it
+					// problem with classpath in last project -> skip it
 				}
 			}
 			this.potentialMatchesLength = 0;
