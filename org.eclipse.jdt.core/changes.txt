@@ -11,7 +11,8 @@ What's new in this drop (since 0.9)
  * Assertions support enabled: by default the compiler is 1.3 compliant, but it can optionally be turned into source 1.4 mode cf. JavaCore options.
  * More options are surfaced on JavaCore. See JavaCore.getDefaultOptions() for description.
          - ...internal...ConfigurableOption has disappeared.
-
+ * Evaluation in binaries is functional
+ 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
 1GFM3X3: ITPJUI:WINNT - Wrong code formatter default for keeping else on same line
