@@ -232,7 +232,9 @@ public AbstractMethodDeclaration updatedMethodDeclaration(){
 			}
 		}
 	} else {
-		methodDeclaration.modifiers |= AccSemicolonBody;
+		if (this.methodDeclaration.bodyStart == this.methodDeclaration.declarationSourceEnd) {
+			this.methodDeclaration.modifiers |= AccSemicolonBody;
+		}
 	}
 	return methodDeclaration;
 }
