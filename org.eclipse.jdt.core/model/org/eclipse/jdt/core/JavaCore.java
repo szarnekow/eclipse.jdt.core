@@ -1183,7 +1183,7 @@ public final class JavaCore extends Plugin implements IExecutableExtension {
 	 *	FORMATTER / Compacting Assignment
 	 *    Assignments can be formatted asymmetrically, e.g. 'int x= 2;', when Normal, a space
 	 *    is inserted before the assignment operator
-	 *     - option id:				"org.eclipse.jdt.core.formatter.style.compactAssignment"
+	 *     - option id:				"org.eclipse.jdt.core.formatter.style.assignment"
 	 *     - possible values:	{ "compact", "normal" }
 	 *     - default:				"normal"
 	 * 
