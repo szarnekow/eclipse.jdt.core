@@ -15,6 +15,8 @@ What's new in this drop (since 0.9)
  
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GH49HW: ITPJUI:WINNT - Search functionality is misleading when viewing source from jar
+1GFXPE5: ITPJUI:ALL - Search for method references broken
 1GFM3X3: ITPJUI:WINNT - Wrong code formatter default for keeping else on same line
 1GHSM7B: ITPJUI:ALL - formatting of anonymous classes
 1GGPVHN: ITPJUI:WIN2000 - Not getting hover Javadoc for ISelection
