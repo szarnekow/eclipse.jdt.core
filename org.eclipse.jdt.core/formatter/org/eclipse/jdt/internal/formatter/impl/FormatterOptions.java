@@ -49,7 +49,7 @@ public class FormatterOptions {
 	public int tabSize = 4; // n spaces for one tab
 	public boolean indentWithTab = true;
 
-	public boolean compactElseIfMode = false; // if true, else and if are kept on the same line.
+	public boolean compactElseIfMode = true; // if true, else and if are kept on the same line.
 	public boolean newLineInEmptyBlockMode = true; // if false, no new line in {} if it's empty.
 	
 	public char[] lineSeparatorSequence = System.getProperty("line.separator").toCharArray(); //$NON-NLS-1$
