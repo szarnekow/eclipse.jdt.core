@@ -967,7 +967,6 @@ public void checkAnnotation() {
 	//since jdk1.2 look only in the last java doc comment...
 	found : {
 		if ((lastAnnotationIndex = scanner.commentPtr) >= 0) { //look for @deprecated
-			scanner.commentPtr = -1; // reset the comment stack, since not necessary after having checked
 			int commentSourceStart = scanner.commentStarts[lastAnnotationIndex];
 			// javadoc only (non javadoc comment have negative end positions.)
 			int commentSourceEnd = scanner.commentStops[lastAnnotationIndex] - 1; //stop is one over
@@ -998,7 +997,8 @@ public void checkAnnotation() {
 	}
 	// modify the modifier source start to point at the first comment
 	if (lastAnnotationIndex >= 0) {
-		modifiersSourceStart = scanner.commentStarts[0]; 
+		modifiersSourceStart = scanner.commentStarts[scanner.commentPtr]; 
+		scanner.commentPtr = -1; // reset the comment stack, since not necessary after having checked
 	}
 }
 protected void classInstanceCreation(boolean alwaysQualified) {
@@ -3583,7 +3583,7 @@ protected void consumeStatementFor() {
 			action, 
 			scope, 
 			intStack[intPtr--], 
-			endPosition)); 
+			endStatementPosition)); 
 }
 protected void consumeStatementIfNoElse() {
 	// IfThenStatement ::=  'if' '(' Expression ')' Statement
@@ -3597,7 +3597,7 @@ protected void consumeStatementIfNoElse() {
 				expressionStack[expressionPtr--], 
 				Block.None, 
 				intStack[intPtr--], 
-				endPosition); 
+				endStatementPosition); 
 	} else {
 		expressionLengthPtr--;
 		astStack[astPtr] = 
@@ -3605,7 +3605,7 @@ protected void consumeStatementIfNoElse() {
 				expressionStack[expressionPtr--], 
 				(Statement) astStack[astPtr], 
 				intStack[intPtr--], 
-				endPosition); 
+				endStatementPosition); 
 	}
 }
 protected void consumeStatementIfWithElse() {
@@ -3624,7 +3624,7 @@ protected void consumeStatementIfWithElse() {
 				(Statement) astStack[astPtr], 
 				(Statement) astStack[astPtr + 1], 
 				intStack[intPtr--], 
-				endPosition); 
+				endStatementPosition); 
 	} else {
 		astLengthPtr--; //second decrement
 		expressionLengthPtr--;
@@ -3633,7 +3633,7 @@ protected void consumeStatementIfWithElse() {
 		(lengthT == 0) ? Block.None : (Statement) astStack[astPtr--], 
 			(lengthE == 0) ? Block.None : (Statement) astStack[astPtr--], 
 			intStack[intPtr--], 
-			endPosition)); 
+			endStatementPosition)); 
 	}
 }
 protected void consumeStatementLabel() {
@@ -3778,7 +3778,7 @@ protected void consumeStatementWhile() {
 				expressionStack[expressionPtr--], 
 				null, 
 				intStack[intPtr--], 
-				endPosition); 
+				endStatementPosition); 
 	} else {
 		expressionLengthPtr--;
 		astStack[astPtr] = 
@@ -3786,7 +3786,7 @@ protected void consumeStatementWhile() {
 				expressionStack[expressionPtr--], 
 				(Statement) astStack[astPtr], 
 				intStack[intPtr--], 
-				endPosition); 
+				endStatementPosition); 
 	}
 }
 protected void consumeStaticInitializer() {
