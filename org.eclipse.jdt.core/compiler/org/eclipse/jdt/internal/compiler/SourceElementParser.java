@@ -70,7 +70,7 @@ public SourceElementParser(
 public SourceElementParser(
 	final ISourceElementRequestor requestor, 
 	IProblemFactory problemFactory) {
-		this(requestor, problemFactory, new CompilerOptions(Compiler.getDefaultOptions(Locale.getDefault())));
+		this(requestor, problemFactory, new CompilerOptions());
 }
 
 protected void classInstanceCreation(boolean alwaysQualified) {
