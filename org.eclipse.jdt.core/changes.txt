@@ -15,6 +15,7 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GI3ND5: ITPJCORE:WINNT - Potential optimization during IB problem generation
 1GFBVZH: ITPUI:WIN2000 - ArrayIndexOutOfBoundsException: Java editor
 1GI509E: ITPJCORE:WINNT - IJavaProject.getNonJavaResources returns java and class files
 1GI2WAW: ITPJCORE:WINNT - Too many results for default package
@@ -83,6 +84,9 @@ PRs Fixed in 1.0NL stream (since 0.9)
 
 PRs Closed in this Release
 ==================================================================================
+1GJ31GB: ITPJCORE:WINNT - Formatter - doesn't line up braces vertically when begin brace on new line
+1GIV9WS: ITPJCORE:WIN2000 - Unexpected compiler behavior
+1GI6VUI: ITPJCORE:WINNT - Source attachment not working anymore in 2.0 stream
 1GIF18T: ITPJCORE:WIN2000 - ArrayIndexOutOfBounds deleting text
 1GF2C3C: ITPJUI:Linux - New class wizard allows illegal character
 1GGRCGZ: ITPJUI:WIN2000 - Can't rename/copy/move/delete default package
