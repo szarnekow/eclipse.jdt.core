@@ -1152,7 +1152,8 @@ protected void consumeArrayInitializer() {
 protected void consumeAssertStatement() {
 	// AssertStatement ::= 'assert' Expression ':' Expression ';'
 	expressionLengthPtr-=2;
-	pushOnAstStack(new AssertStatement(expressionStack[expressionPtr--], expressionStack[expressionPtr--], intStack[intPtr--]));
+	intPtr--; // remove the position pushed for the ':'
+	pushOnAstStack(new AssertStatement(expressionStack[expressionPtr--], expressionStack[expressionPtr--], intStack[intPtr--], endStatementPosition));
 }
 
 protected void consumeAssignment() {
@@ -1293,7 +1294,7 @@ protected void consumeBlockStatements() {
 protected void consumeCaseLabel() {
 	// SwitchLabel ::= 'case' ConstantExpression ':'
 	expressionLengthPtr--;
-	pushOnAstStack(new Case(expressionStack[expressionPtr--]));
+	pushOnAstStack(new Case(intStack[intPtr--], intStack[intPtr--], expressionStack[expressionPtr--]));
 }
 protected void consumeCastExpression() {
 	// CastExpression ::= PushLPAREN PrimitiveType Dimsopt PushRPAREN UnaryExpression
@@ -1528,11 +1529,13 @@ protected void consumeConditionalExpression(int op) {
 
 	expressionPtr -= 2;
 	expressionLengthPtr -= 2;
+	intPtr--; // remove the position pushed for the ':'
 	expressionStack[expressionPtr] =
 		new ConditionalExpression(
 			expressionStack[expressionPtr],
 			expressionStack[expressionPtr + 1],
-			expressionStack[expressionPtr + 2]);
+			expressionStack[expressionPtr + 2],
+			endStatementPosition);
 }
 protected void consumeConstructorBlockStatements() {
 	// ConstructorBody ::= NestedMethod '{' ExplicitConstructorInvocation BlockStatements '}'
@@ -1661,7 +1664,7 @@ protected void consumeConstructorHeaderName() {
 }
 protected void consumeDefaultLabel() {
 	// SwitchLabel ::= 'default' ':'
-	pushOnAstStack(new DefaultCase(endPosition));
+	pushOnAstStack(new DefaultCase(intStack[intPtr--], intStack[intPtr--]));
 }
 protected void consumeDefaultModifiers() {
 	checkAnnotation(); // might update modifiers with AccDeprecated
@@ -3388,7 +3391,7 @@ protected void consumeRightParen() {
 protected void consumeSimpleAssertStatement() {
 	// AssertStatement ::= 'assert' Expression ';'
 	expressionLengthPtr--;
-	pushOnAstStack(new AssertStatement(expressionStack[expressionPtr--], intStack[intPtr--]));	
+	pushOnAstStack(new AssertStatement(expressionStack[expressionPtr--], intStack[intPtr--], endStatementPosition));	
 }
 	
 protected void consumeSingleTypeImportDeclaration() {
@@ -3647,19 +3650,20 @@ protected void consumeStatementLabel() {
 	if (astLengthStack[astLengthPtr] == 0) {
 		astLengthStack[astLengthPtr] = 1;
 		astStack[++astPtr] = 
-			new LabeledStatement(identifierStack[identifierPtr], Block.None, (int) 
-				(identifierPositionStack[identifierPtr--] >>> 32), 
-				endPosition); 
+			new LabeledStatement(
+				identifierStack[identifierPtr],
+				Block.None,
+				(int) (identifierPositionStack[identifierPtr--] >>> 32), 
+				endStatementPosition); 
 	} else {
 		astStack[astPtr] = 
 			new LabeledStatement(
 				identifierStack[identifierPtr], 
 				(Statement) astStack[astPtr], 
-				(int)
-				(identifierPositionStack[identifierPtr--] >>> 32), 
-				endPosition); 
+				(int) (identifierPositionStack[identifierPtr--] >>> 32), 
+				endStatementPosition); 
 	}
-
+	intPtr--; // remove the position pushed for the ':'
 	identifierLengthPtr--;
 }
 protected void consumeStatementReturn() {
@@ -3715,16 +3719,16 @@ protected void consumeStatementSynchronized() {
 			new SynchronizedStatement(
 				exp = expressionStack[expressionPtr--], 
 				Block.None, 
-				exp.sourceStart, 
-				exp.sourceEnd); 
+				intStack[intPtr--], 
+				endStatementPosition); 
 	} else {
 		expressionLengthPtr--;
 		astStack[astPtr] = 
 			new SynchronizedStatement(
 				exp = expressionStack[expressionPtr--], 
 				(Block) astStack[astPtr], 
-				exp.sourceStart, 
-				exp.sourceEnd); 
+				intStack[intPtr--], 
+				endStatementPosition); 
 	}
 	resetModifiers();
 }
@@ -3900,6 +3904,7 @@ protected void consumeToken(int type) {
 			break;
 		case TokenNamesynchronized :
 			checkAndSetModifiers(AccSynchronized);
+			pushOnIntStack(scanner.startPosition);
 			break;
 
 			//==============================
@@ -4023,12 +4028,13 @@ protected void consumeToken(int type) {
 		case TokenNamecontinue :
 		case TokenNameclass :
 		case TokenNamereturn :
+		case TokenNamecase :
+		case TokenNameCOLON  :
+		case TokenNamedefault :
 			pushOnIntStack(scanner.startPosition);
 			break;
-
 			//let extra semantic action decide when to push
 
-		case TokenNamedefault :
 		case TokenNameRBRACKET :
 		case TokenNamePLUS_PLUS :
 		case TokenNameMINUS_MINUS :
@@ -4053,13 +4059,11 @@ protected void consumeToken(int type) {
 			break;
 			//  case TokenNameQUESTION  :
 			//  case TokenNameCOMMA :
-			//  case TokenNameCOLON  :
 			//  case TokenNameEQUAL  :
 			//  case TokenNameLBRACKET  :
 			//  case TokenNameDOT :
 			//  case TokenNameERROR :
 			//  case TokenNameEOF  :
-			//  case TokenNamecase  :
 			//  case TokenNamecatch  :
 			//  case TokenNameelse  :
 			//  case TokenNameextends  :
