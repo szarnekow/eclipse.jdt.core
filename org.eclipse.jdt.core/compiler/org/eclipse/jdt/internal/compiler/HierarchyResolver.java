@@ -92,7 +92,9 @@ public void accept(ISourceType[] sourceTypes, PackageBinding packageBinding) {
 
 	if (unit != null) {
 		lookupEnvironment.buildTypeBindings(unit);
-		rememberWithMemberTypes(sourceTypes[0], unit.types[0].binding);
+		for (int i = 0, length = sourceTypes.length; i < length; i++) {
+			rememberWithMemberTypes(sourceTypes[i], unit.types[i].binding);
+		}
 
 		lookupEnvironment.completeTypeBindings(unit, false);
 	}
