@@ -388,9 +388,8 @@ public NameReference getUnspecifiedReference() {
 		QualifiedNameReference ref = 
 			new QualifiedNameReference(
 				tokens, 
-				(int) (identifierPositionStack[identifierPtr + 1] >> 32), 
-		// sourceStart
-		 (int) identifierPositionStack[identifierPtr + length]); // sourceEnd
+				(int) (identifierPositionStack[identifierPtr + 1] >> 32), // sourceStart
+				(int) identifierPositionStack[identifierPtr + length]); // sourceEnd
 		if (reportReferenceInfo) {
 			requestor.acceptUnknownReference(
 				ref.tokens, 
