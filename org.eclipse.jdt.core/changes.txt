@@ -15,6 +15,8 @@ What's new in this drop (since 0.9)
 
 PRs Fixed in this Release (since 1.0NL stream)
 ==================================================================================
+1GHUAUO: ITPJCORE:ALL - Renaming an element in a working copy corrupts the working copy
+1GHUAM1: ITPJCORE:ALL - NPE when renaming an element in a working copy
 1GHDA2V: ITPJCORE:WINNT - ClassCastException when doing a search
 1GFY02B: ITPJUI:ALL - Delete a method and saving introduces extra lines
 1GFOFMD: ITPJUI:WIN2000 - New class should have space between package and class decls
