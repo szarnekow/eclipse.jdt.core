@@ -224,18 +224,22 @@ private void locateMatchesInClassFile() throws CoreException, JavaModelException
 				for (int i = 0; i < methods.length; i++) {
 					MethodBinding method = methods[i];
 					int level = this.locator.pattern.matchLevel(method);
-					if (level != SearchPattern.INACCURATE_MATCH) { // matchLevel(Binding) returns ACCURATE_MATCH or INACCURATE_MATCH
-						IMethod methodHandle = 
-							binaryType.getMethod(
-								new String(method.isConstructor() ? binding.compoundName[binding.compoundName.length-1] : method.selector),
-								Signature.getParameterTypes(new String(method.signature()).replace('/', '.'))
-							);
-						this.locator.reportBinaryMatch(
-							methodHandle, 
-							info, 
-							level == SearchPattern.ACCURATE_MATCH ? 
-								IJavaSearchResultCollector.EXACT_MATCH : 
-								IJavaSearchResultCollector.POTENTIAL_MATCH);
+					switch (level) {
+						case SearchPattern.IMPOSSIBLE_MATCH:
+						case SearchPattern.INACCURATE_MATCH:
+							break;
+						default:
+							IMethod methodHandle = 
+								binaryType.getMethod(
+									new String(method.isConstructor() ? binding.compoundName[binding.compoundName.length-1] : method.selector),
+									Signature.getParameterTypes(new String(method.signature()).replace('/', '.'))
+								);
+							this.locator.reportBinaryMatch(
+								methodHandle, 
+								info, 
+								level == SearchPattern.ACCURATE_MATCH ? 
+									IJavaSearchResultCollector.EXACT_MATCH : 
+									IJavaSearchResultCollector.POTENTIAL_MATCH);
 					}
 				}
 			}
@@ -246,14 +250,18 @@ private void locateMatchesInClassFile() throws CoreException, JavaModelException
 				for (int i = 0; i < fields.length; i++) {
 					FieldBinding field = fields[i];
 					int level = this.locator.pattern.matchLevel(field);
-					if (level != SearchPattern.INACCURATE_MATCH) { // matchLevel(Binding) returns ACCURATE_MATCH or INACCURATE_MATCH
-						IField fieldHandle = binaryType.getField(new String(field.name));
-						this.locator.reportBinaryMatch(
-							fieldHandle, 
-							info, 
-							level == SearchPattern.ACCURATE_MATCH ? 
-								IJavaSearchResultCollector.EXACT_MATCH : 
-								IJavaSearchResultCollector.POTENTIAL_MATCH);
+					switch (level) {
+						case SearchPattern.IMPOSSIBLE_MATCH:
+						case SearchPattern.INACCURATE_MATCH:
+							break;
+						default:
+							IField fieldHandle = binaryType.getField(new String(field.name));
+							this.locator.reportBinaryMatch(
+								fieldHandle, 
+								info, 
+								level == SearchPattern.ACCURATE_MATCH ? 
+									IJavaSearchResultCollector.EXACT_MATCH : 
+									IJavaSearchResultCollector.POTENTIAL_MATCH);
 					}
 				}
 			}
