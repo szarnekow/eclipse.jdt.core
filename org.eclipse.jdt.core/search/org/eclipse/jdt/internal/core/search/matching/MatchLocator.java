@@ -340,8 +340,12 @@ public class MatchLocator implements ITypeRequestor {
 					continue;
 				// the pattern could not be initialized: the match cannot be in this project
 			} catch (JavaModelException e) {
-				// file doesn't exist -> skip it
-				continue;
+				if (e.getException() instanceof CoreException) {
+					throw e;
+				} else {
+					// file doesn't exist -> skip it
+					continue;
+				}
 			}
 
 			// add potential match
@@ -360,7 +364,11 @@ public class MatchLocator implements ITypeRequestor {
 			try {
 				this.locateMatches();
 			} catch (JavaModelException e) {
-				// last file doesn't exist -> skip it
+				if (e.getException() instanceof CoreException) {
+					throw e;
+				} else {
+					// last file doesn't exist -> skip it
+				}
 			}
 			this.potentialMatchesLength = 0;
 		}
