@@ -108,6 +108,10 @@ protected IProject[] build(int kind, Map ignored, IProgressMonitor monitor) thro
 		}
 		ok = true;
 	} catch (CoreException e) {
+		if (DEBUG){
+			System.out.println("Builder handling CoreException"); //$NON-NLS-1$
+			 e.printStackTrace();
+		}		
 		try {
 			IMarker marker = currentProject.createMarker(ProblemMarkerTag);
 			marker.setAttribute(IMarker.MESSAGE, Util.bind("build.inconsistentProject")); //$NON-NLS-1$
@@ -116,6 +120,10 @@ protected IProject[] build(int kind, Map ignored, IProgressMonitor monitor) thro
 			throw e;
 		}
 	} catch (ImageBuilderInternalException e) {
+		if (DEBUG){
+			System.out.println("Builder handling ImageBuilderInternalException"); //$NON-NLS-1$
+			 e.printStackTrace();
+		}
 		try {
 			IMarker marker = currentProject.createMarker(ProblemMarkerTag);
 			marker.setAttribute(IMarker.MESSAGE, Util.bind("build.inconsistentProject")); //$NON-NLS-1$
@@ -124,10 +132,18 @@ protected IProject[] build(int kind, Map ignored, IProgressMonitor monitor) thro
 			throw e.getThrowable();
 		}
 	} catch (IncompleteClassPathException e) {
+		if (DEBUG){
+			System.out.println("Builder handling IncompleteClassPathException"); //$NON-NLS-1$
+			 e.printStackTrace();
+		}
 		IMarker marker = currentProject.createMarker(ProblemMarkerTag);
 		marker.setAttribute(IMarker.MESSAGE, Util.bind("build.incompleteClassPath", e.missingClassFile)); //$NON-NLS-1$
 		marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 	} catch (MissingSourceFileException e) {
+		if (DEBUG){
+			System.out.println("Builder handling MissingSourceFileException"); //$NON-NLS-1$
+			 e.printStackTrace();
+		}
 		removeProblemsFor(currentProject); // make this the only problem for this project
 		IMarker marker = currentProject.createMarker(ProblemMarkerTag);
 		marker.setAttribute(IMarker.MESSAGE, Util.bind("build.missingSourceFile", e.missingSourceFile)); //$NON-NLS-1$
