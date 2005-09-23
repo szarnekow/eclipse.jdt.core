@@ -321,7 +321,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * @see JavaCore#getDefaultOptions()
 	 * @since 2.1
 	 */
-	Map getOptions(boolean inheritJavaCoreOptions);
+	Map<String,String> getOptions(boolean inheritJavaCoreOptions);
 
 	/**
 	 * Returns the default output location for this project as a workspace-
@@ -402,6 +402,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * @see IClasspathContainer
 	 * @deprecated Use IJavaProject#findPackageFragmentRoots instead
 	 */
+	@Deprecated
 	IPackageFragmentRoot[] getPackageFragmentRoots(IClasspathEntry entry);
 
 	/**

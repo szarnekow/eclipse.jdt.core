@@ -29,6 +29,7 @@ import org.eclipse.jdt.core.dom.AST;
  * This interface is not intended to be implemented by clients.
  * </p>
  */
+@SuppressWarnings("deprecation")
 public interface ICompilationUnit extends IJavaElement, ISourceReference, IParent, IOpenable, IWorkingCopy, ISourceManipulation, ICodeAssist {
 /**
  * Constant indicating that a reconcile operation should not return an AST.

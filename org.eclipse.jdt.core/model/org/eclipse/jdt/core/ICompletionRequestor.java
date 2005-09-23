@@ -23,7 +23,9 @@ import org.eclipse.jdt.core.compiler.IProblem;
  * @since 2.0
  * @deprecated Use {@link CompletionRequestor} instead.
  */
+@Deprecated
 public interface ICompletionRequestor {
+	
 /**
  * Code assist notification of an anonymous type declaration completion.
  * @param superTypePackageName Name of the package that contains the super type of this 
@@ -57,6 +59,7 @@ public interface ICompletionRequestor {
  * 
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptAnonymousType(
 	char[] superTypePackageName,
 	char[] superTypeName,
@@ -68,6 +71,7 @@ void acceptAnonymousType(
 	int completionStart,
 	int completionEnd,
 	int relevance);
+
 /**
  * Code assist notification of a class completion.
  * 
@@ -89,6 +93,7 @@ void acceptAnonymousType(
  *    
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptClass(
 	char[] packageName,
 	char[] className,
@@ -97,6 +102,7 @@ void acceptClass(
 	int completionStart,
 	int completionEnd,
 	int relevance);
+
 /**
  * Code assist notification of a compilation error detected during completion.
  *  @param error Only problems which are categorized as non-syntax errors are notified to the 
@@ -110,7 +116,9 @@ void acceptClass(
  *      
  * @deprecated Use {@link CompletionRequestor#completionFailure(IProblem)} instead.
  */
+@Deprecated
 void acceptError(IProblem error);
+
 /**
  * Code assist notification of a field completion.
  * 
@@ -137,6 +145,7 @@ void acceptError(IProblem error);
  *
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptField(
 	char[] declaringTypePackageName,
 	char[] declaringTypeName,
@@ -148,6 +157,7 @@ void acceptField(
 	int completionStart,
 	int completionEnd,
 	int relevance);
+
 /**
  * Code assist notification of an interface completion.
  * 
@@ -169,6 +179,7 @@ void acceptField(
  *    
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptInterface(
 	char[] packageName,
 	char[] interfaceName,
@@ -177,6 +188,7 @@ void acceptInterface(
 	int completionStart,
 	int completionEnd,
 	int relevance);
+
 /**
  * Code assist notification of a keyword completion.
  * @param keywordName The keyword source.
@@ -188,7 +200,9 @@ void acceptInterface(
  * 		value is higher.
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptKeyword(char[] keywordName, int completionStart, int completionEnd, int relevance);
+
 /**
  * Code assist notification of a label completion.
  * 
@@ -201,7 +215,9 @@ void acceptKeyword(char[] keywordName, int completionStart, int completionEnd, i
  * 		value is higher.
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptLabel(char[] labelName, int completionStart, int completionEnd, int relevance);
+
 /**
  * Code assist notification of a local variable completion.
  * 
@@ -225,6 +241,7 @@ void acceptLabel(char[] labelName, int completionStart, int completionEnd, int r
  *    
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptLocalVariable(
 	char[] name,
 	char[] typePackageName,
@@ -233,6 +250,7 @@ void acceptLocalVariable(
 	int completionStart,
 	int completionEnd,
 	int relevance);
+
 /**
  * Code assist notification of a method completion.
  * 
@@ -267,6 +285,7 @@ void acceptLocalVariable(
  * 
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptMethod(
 	char[] declaringTypePackageName,
 	char[] declaringTypeName,
@@ -316,6 +335,7 @@ void acceptMethod(
  * 
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptMethodDeclaration(
 	char[] declaringTypePackageName,
 	char[] declaringTypeName,
@@ -330,6 +350,7 @@ void acceptMethodDeclaration(
 	int completionStart,
 	int completionEnd,
 	int relevance);
+
 /**
  * Code assist notification of a modifier completion.
  * 
@@ -342,7 +363,9 @@ void acceptMethodDeclaration(
  * 		value is higher.
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptModifier(char[] modifierName, int completionStart, int completionEnd, int relevance);
+
 /**
  * Code assist notification of a package completion.
  * 
@@ -360,12 +383,14 @@ void acceptModifier(char[] modifierName, int completionStart, int completionEnd,
  *    The default package is represented by an empty array.
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptPackage(
 	char[] packageName,
 	char[] completionName,
 	int completionStart,
 	int completionEnd,
 	int relevance);
+
 /**
  * Code assist notification of a type completion.
  * 
@@ -385,6 +410,7 @@ void acceptPackage(
  *    The default package is represented by an empty array.
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptType(
 	char[] packageName,
 	char[] typeName,
@@ -415,6 +441,7 @@ void acceptType(
  *    The default package is represented by an empty array.
  * @deprecated Use {@link CompletionRequestor#accept(CompletionProposal)} instead.
  */
+@Deprecated
 void acceptVariableName(
 	char[] typePackageName,
 	char[] typeName,

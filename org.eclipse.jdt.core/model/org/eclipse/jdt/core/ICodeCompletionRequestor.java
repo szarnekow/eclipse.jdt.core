@@ -22,6 +22,7 @@ import org.eclipse.core.resources.IMarker;
  * @see ICodeAssist
  * @deprecated Use {@link CompletionRequestor} instead.
  */
+@Deprecated
 public interface ICodeCompletionRequestor {
 /**
  * Code assist notification of a class completion.
@@ -46,6 +47,7 @@ void acceptClass(
 	int modifiers,
 	int completionStart,
 	int completionEnd);
+
 /**
  * Code assist notification of a compilation error detected during completion.
  *  @param marker Only problems which are categorized as errors are notified to the requestor,
@@ -58,6 +60,7 @@ void acceptClass(
  *      Note: the problem knows its originating file name.
  */
 void acceptError(IMarker marker);
+
 /**
  * Code assist notification of a field completion.
  *
@@ -96,6 +99,7 @@ void acceptField(
 	int modifiers,
 	int completionStart,
 	int completionEnd);
+
 /**
  * Code assist notification of an interface completion.
  *
@@ -119,6 +123,7 @@ void acceptInterface(
 	int modifiers,
 	int completionStart,
 	int completionEnd);
+
 /**
  * Code assist notification of a keyword completion.
  *
@@ -127,6 +132,7 @@ void acceptInterface(
  * @param completionEnd The end position of insertion of the name of this keyword.
  */
 void acceptKeyword(char[] keywordName, int completionStart, int completionEnd);
+
 /**
  * Code assist notification of a label completion.
  *
@@ -135,19 +141,15 @@ void acceptKeyword(char[] keywordName, int completionStart, int completionEnd);
  * @param completionEnd The end position of insertion of the name of this label.
  */
 void acceptLabel(char[] labelName, int completionStart, int completionEnd);
+
 /**
  * Code assist notification of a local variable completion.
  *
  * @param name Name of the new local variable.
- * 
  * @param typePackageName Name of the package in which the type of this new local variable is declared.
- * 
  * @param typeName Name of the type of this new local variable.
- * 
  * @param modifiers The modifiers of this new local variable.
- * 
  * @param completionStart The start position of insertion of the name of this new local variable.
- * 
  * @param completionEnd The end position of insertion of the name of this new local variable.
  *
  * NOTE - All package and type names are presented in their readable form:
@@ -168,28 +170,18 @@ void acceptLocalVariable(
  * Code assist notification of a method completion.
  *
  * @param declaringTypePackageName Name of the package in which the type that contains this new method is declared.
- * 
  * @param declaringTypeName Name of the type declaring this new method.
- * 
  * @param selector Name of the new method.
- * 
  * @param parameterPackageNames Names of the packages in which the parameter types are declared.
  *    	Should contain as many elements as parameterTypeNames.
- * 
  * @param parameterTypeNames Names of the parameters types.
  *    	Should contain as many elements as parameterPackageNames.
- * 
  * @param returnTypePackageName Name of the package in which the return type is declared.
- * 
  * @param returnTypeName Name of the return type of this new method, should be <code>null</code> for a constructor.
- * 
  * @param completionName The completion for the method.
  *   	Can include zero, one or two brackets. If the closing bracket is included, then the cursor should be placed before it.
- * 
  * @param modifiers The modifiers of this new method.
- * 
  * @param completionStart The start position of insertion of the name of this new method.
- * 
  * @param completionEnd The end position of insertion of the name of this new method.
  *
  * NOTE - All package and type names are presented in their readable form:
@@ -213,6 +205,7 @@ void acceptMethod(
 	int modifiers,
 	int completionStart,
 	int completionEnd);
+
 /**
  * Code assist notification of a modifier completion.
  *
@@ -221,6 +214,7 @@ void acceptMethod(
  * @param completionEnd The end position of insertion of the name of this new modifier.
  */
 void acceptModifier(char[] modifierName, int completionStart, int completionEnd);
+
 /**
  * Code assist notification of a package completion.
  *
@@ -239,6 +233,7 @@ void acceptPackage(
 	char[] completionName,
 	int completionStart,
 	int completionEnd);
+
 /**
  * Code assist notification of a type completion.
  * 

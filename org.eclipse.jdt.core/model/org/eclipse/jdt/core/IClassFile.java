@@ -33,6 +33,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
  
 public interface IClassFile extends IJavaElement, IParent, IOpenable, ISourceReference, ICodeAssist {
+	
 /**
  * Returns the smallest element within this class file that 
  * includes the given source position (a method, field, etc.), or
@@ -43,20 +44,20 @@ public interface IClassFile extends IJavaElement, IParent, IOpenable, ISourceRef
  * @param position a source position inside the class file
  * @return the innermost Java element enclosing a given source position or <code>null</code>
  *  if none (excluding the class file).
- *
  * @exception JavaModelException if this element does not exist or if an
  *      exception occurs while accessing its corresponding resource
  */
 IJavaElement getElementAt(int position) throws JavaModelException;
+
 /**
  * Returns the type contained in this class file.
  *
  * @return the type contained in this class file
- *
  * @exception JavaModelException if this element does not exist or if an
  *      exception occurs while accessing its corresponding resource
  */
 IType getType() throws JavaModelException;
+
 /**
  * Returns a working copy on the source associated with this class file using the given 
  * owner to create the buffer, or <code>null</code> if there is no source associated
@@ -80,6 +81,7 @@ IType getType() throws JavaModelException;
  * @since 3.0
  */
 ICompilationUnit getWorkingCopy(WorkingCopyOwner owner, IProgressMonitor monitor) throws JavaModelException;
+
 /**
  * Returns a working copy on the source associated with this class file using the given 
  * factory to create the buffer, or <code>null</code> if there is no source associated
@@ -103,22 +105,24 @@ ICompilationUnit getWorkingCopy(WorkingCopyOwner owner, IProgressMonitor monitor
  * @since 2.0
  * @deprecated Use getWorkingCopy(WorkingCopyOwner, IProgressMonitor) instead
  */
-IJavaElement getWorkingCopy(IProgressMonitor monitor, IBufferFactory factory) throws JavaModelException;/**
+@Deprecated
+IJavaElement getWorkingCopy(IProgressMonitor monitor, IBufferFactory factory) throws JavaModelException;
+
+/**
  * Returns whether this type represents a class. This is not guaranteed to be
  * instantaneous, as it may require parsing the underlying file.
  *
  * @return <code>true</code> if the class file represents a class.
- *
  * @exception JavaModelException if this element does not exist or if an
  *      exception occurs while accessing its corresponding resource
  */
 boolean isClass() throws JavaModelException;
+
 /**
  * Returns whether this type represents an interface. This is not guaranteed to
  * be instantaneous, as it may require parsing the underlying file. 
  *
  * @return <code>true</code> if the class file represents an interface.
- *
  * @exception JavaModelException if this element does not exist or if an
  *      exception occurs while accessing its corresponding resource
  */
