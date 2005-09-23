@@ -38,6 +38,7 @@ import org.eclipse.core.runtime.IStatus;
  * @see IJavaModelStatusConstants
  */
 public interface IJavaModelStatus extends IStatus {
+
 /**
  * Returns any Java elements associated with the failure (see specification
  * of the status code), or an empty array if no elements are related to this
@@ -47,6 +48,7 @@ public interface IJavaModelStatus extends IStatus {
  * @see IJavaModelStatusConstants
  */
 IJavaElement[] getElements();
+
 /**
  * Returns the path associated with the failure (see specification
  * of the status code), or <code>null</code> if the failure is not 
@@ -60,6 +62,7 @@ IJavaElement[] getElements();
  * @see IJavaModelStatusConstants#RELATIVE_PATH
  */
 IPath getPath();
+
 /**
  * Returns the string associated with the failure (see specification
  * of the status code), or <code>null</code> if no string is related to this
@@ -69,7 +72,9 @@ IPath getPath();
  * @see IJavaModelStatusConstants
  * @deprecated Use IStatus#getMessage instead
  */
+@Deprecated
 String getString();
+
 /**
  * Returns whether this status indicates that a Java model element does not exist.
  * This convenience method is equivalent to

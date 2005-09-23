@@ -171,6 +171,7 @@ public interface IJavaElementDelta {
 	 * classpath. This flag is only valid if the element is an <code>IPackageFragmentRoot</code>.
 	 * @deprecated Use F_REORDER instead.
 	 */
+	@Deprecated
 	public int F_CLASSPATH_REORDER = 0x00100;
 	/**
 	 * Change flag indicating that the element has changed position relatively to its siblings. 
@@ -263,89 +264,89 @@ public interface IJavaElementDelta {
 	 */
 	public int F_PRIMARY_RESOURCE = 0x40000;
 
-	/**
-	 * Returns deltas for the children that have been added.
-	 * @return deltas for the children that have been added
-	 */
-	public IJavaElementDelta[] getAddedChildren();
+/**
+ * Returns deltas for the children that have been added.
+ * @return deltas for the children that have been added
+ */
+public IJavaElementDelta[] getAddedChildren();
 
-	/**
-	 * Returns deltas for the affected (added, removed, or changed) children.
-	 * @return deltas for the affected (added, removed, or changed) children
-	 */
-	public IJavaElementDelta[] getAffectedChildren();
+/**
+ * Returns deltas for the affected (added, removed, or changed) children.
+ * @return deltas for the affected (added, removed, or changed) children
+ */
+public IJavaElementDelta[] getAffectedChildren();
 
-	/**
-	 * Returns deltas for the children which have changed.
-	 * @return deltas for the children which have changed
-	 */
-	public IJavaElementDelta[] getChangedChildren();
+/**
+ * Returns deltas for the children which have changed.
+ * @return deltas for the children which have changed
+ */
+public IJavaElementDelta[] getChangedChildren();
 
-	/**
-	 * Returns the element that this delta describes a change to.
-	 * @return the element that this delta describes a change to
-	 */
-	public IJavaElement getElement();
+/**
+ * Returns the element that this delta describes a change to.
+ * @return the element that this delta describes a change to
+ */
+public IJavaElement getElement();
 
-	/**
-	 * Returns flags that describe how an element has changed. 
-	 * Such flags should be tested using the <code>&</code> operand. For example:
-	 * <pre>
-	 * if ((delta.getFlags() & IJavaElementDelta.F_CONTENT) != 0) {
-	 * 	// the delta indicates a content change
-	 * }
-	 * </pre>
-	 *
-	 * @return flags that describe how an element has changed
-	 */
-	public int getFlags();
+/**
+ * Returns flags that describe how an element has changed. 
+ * Such flags should be tested using the <code>&</code> operand. For example:
+ * <pre>
+ * if ((delta.getFlags() & IJavaElementDelta.F_CONTENT) != 0) {
+ * 	// the delta indicates a content change
+ * }
+ * </pre>
+ *
+ * @return flags that describe how an element has changed
+ */
+public int getFlags();
 
-	/**
-	 * Returns the kind of this delta - one of <code>ADDED</code>, <code>REMOVED</code>,
-	 * or <code>CHANGED</code>.
-	 * 
-	 * @return the kind of this delta
-	 */
-	public int getKind();
+/**
+ * Returns the kind of this delta - one of <code>ADDED</code>, <code>REMOVED</code>,
+ * or <code>CHANGED</code>.
+ * 
+ * @return the kind of this delta
+ */
+public int getKind();
 
-	/**
-	 * Returns an element describing this element before it was moved
-	 * to its current location, or <code>null</code> if the
-	 * <code>F_MOVED_FROM</code> change flag is not set. 
-	 * 
-	 * @return an element describing this element before it was moved
-	 * to its current location, or <code>null</code> if the
-	 * <code>F_MOVED_FROM</code> change flag is not set
-	 */
-	public IJavaElement getMovedFromElement();
+/**
+ * Returns an element describing this element before it was moved
+ * to its current location, or <code>null</code> if the
+ * <code>F_MOVED_FROM</code> change flag is not set. 
+ * 
+ * @return an element describing this element before it was moved
+ * to its current location, or <code>null</code> if the
+ * <code>F_MOVED_FROM</code> change flag is not set
+ */
+public IJavaElement getMovedFromElement();
 
-	/**
-	 * Returns an element describing this element in its new location,
-	 * or <code>null</code> if the <code>F_MOVED_TO</code> change
-	 * flag is not set.
-	 * 
-	 * @return an element describing this element in its new location,
-	 * or <code>null</code> if the <code>F_MOVED_TO</code> change
-	 * flag is not set
-	 */
-	public IJavaElement getMovedToElement();
+/**
+ * Returns an element describing this element in its new location,
+ * or <code>null</code> if the <code>F_MOVED_TO</code> change
+ * flag is not set.
+ * 
+ * @return an element describing this element in its new location,
+ * or <code>null</code> if the <code>F_MOVED_TO</code> change
+ * flag is not set
+ */
+public IJavaElement getMovedToElement();
 
-	/**
-	 * Returns deltas for the children which have been removed.
-	 * 
-	 * @return deltas for the children which have been removed
-	 */
-	public IJavaElementDelta[] getRemovedChildren();
+/**
+ * Returns deltas for the children which have been removed.
+ * 
+ * @return deltas for the children which have been removed
+ */
+public IJavaElementDelta[] getRemovedChildren();
 
-	/**
-	 * Returns the collection of resource deltas.
-	 * <p>
-	 * Note that resource deltas, like Java element deltas, are generally only valid
-	 * for the dynamic scope of an event notification. Clients must not hang on to
-	 * these objects.
-	 * </p>
-	 *
-	 * @return the underlying resource deltas, or <code>null</code> if none
-	 */
-	public IResourceDelta[] getResourceDeltas();
+/**
+ * Returns the collection of resource deltas.
+ * <p>
+ * Note that resource deltas, like Java element deltas, are generally only valid
+ * for the dynamic scope of an event notification. Clients must not hang on to
+ * these objects.
+ * </p>
+ *
+ * @return the underlying resource deltas, or <code>null</code> if none
+ */
+public IResourceDelta[] getResourceDeltas();
 }
