@@ -154,7 +154,7 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 * Generates the element infos for this element, its ancestors (if they are not opened) and its children (if it is an Openable).
 	 * Puts the newly created element info in the given map.
 	 */
-	protected abstract void generateInfos(Object info, HashMap newElements, IProgressMonitor pm) throws JavaModelException;
+	protected abstract void generateInfos(Object info, HashMap<IJavaElement,Object> newElements, IProgressMonitor pm) throws JavaModelException;
 	/**
 	 * @see IJavaElement
 	 */

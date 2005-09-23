@@ -15,13 +15,6 @@ import java.util.HashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.IClassFile;
-import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.env.IBinaryField;
 import org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
@@ -62,7 +55,7 @@ ClassFileInfo(ClassFile classFile) {
  * Creates the handles and infos for the fields of the given binary type.
  * Adds new handles to the given vector.
  */
-private void generateFieldInfos(IType type, IBinaryType typeInfo, HashMap newElements, ArrayList childrenHandles) {
+private void generateFieldInfos(IType type, IBinaryType typeInfo, HashMap<IJavaElement, Object> newElements, ArrayList<IMember> childrenHandles) {
 	// Make the fields
 	IBinaryField[] fields = typeInfo.getFields();
 	if (fields == null) {
@@ -80,7 +73,7 @@ private void generateFieldInfos(IType type, IBinaryType typeInfo, HashMap newEle
  * Creates the handles for the inner types of the given binary type.
  * Adds new handles to the given vector.
  */
-private void generateInnerClassHandles(IType type, IBinaryType typeInfo, ArrayList childrenHandles) {
+private void generateInnerClassHandles(IType type, IBinaryType typeInfo, ArrayList<IMember> childrenHandles) {
 	// Add inner types
 	// If the current type is an inner type, innerClasses returns
 	// an extra entry for the current type.  This entry must be removed.
@@ -99,7 +92,7 @@ private void generateInnerClassHandles(IType type, IBinaryType typeInfo, ArrayLi
  * Creates the handles and infos for the methods of the given binary type.
  * Adds new handles to the given vector.
  */
-private void generateMethodInfos(IType type, IBinaryType typeInfo, HashMap newElements, ArrayList childrenHandles, ArrayList typeParameterHandles) {
+private void generateMethodInfos(IType type, IBinaryType typeInfo, HashMap<IJavaElement, Object> newElements, ArrayList<IMember> childrenHandles, ArrayList<TypeParameter> typeParameterHandles) {
 	IBinaryMethod[] methods = typeInfo.getMethods();
 	if (methods == null) {
 		return;
@@ -150,7 +143,7 @@ private void generateMethodInfos(IType type, IBinaryType typeInfo, HashMap newEl
  * Creates the handles and infos for the type parameter of the given binary member.
  * Adds new handles to the given vector.
  */
-private void generateTypeParameterInfos(BinaryMember parent, char[] signature, HashMap newElements, ArrayList typeParameterHandles) {
+private void generateTypeParameterInfos(BinaryMember parent, char[] signature, HashMap<IJavaElement, Object> newElements, ArrayList<TypeParameter> typeParameterHandles) {
 	if (signature == null) return;
 	char[][] typeParameterSignatures = Signature.getTypeParameters(signature);
 	for (int i = 0, typeParameterCount = typeParameterSignatures.length; i < typeParameterCount; i++) {
@@ -180,7 +173,7 @@ private void generateTypeParameterInfos(BinaryMember parent, char[] signature, H
  * Returns the list of children (<code>BinaryMember</code>s) of the
  * <code>BinaryType</code> of our <code>ClassFile</code>.
  */
-IJavaElement[] getBinaryChildren(HashMap newElements) {
+IJavaElement[] getBinaryChildren(HashMap<IJavaElement, Object> newElements) {
 	if (this.binaryChildren == null) {
 		readBinaryChildren(newElements, null/*type info not known here*/);
 	}
@@ -198,8 +191,8 @@ boolean hasReadBinaryChildren() {
  * <code>ClassFile</code> and adds them to the
  * <code>JavaModelManager</code>'s cache.
  */
-protected void readBinaryChildren(HashMap newElements, IBinaryType typeInfo) {
-	ArrayList childrenHandles = new ArrayList();
+protected void readBinaryChildren(HashMap<IJavaElement, Object> newElements, IBinaryType typeInfo) {
+	ArrayList<IMember> childrenHandles = new ArrayList<IMember>();
 	BinaryType type = null;
 	try {
 		type = (BinaryType) this.classFile.getType();
@@ -213,7 +206,7 @@ protected void readBinaryChildren(HashMap newElements, IBinaryType typeInfo) {
 	} catch (JavaModelException npe) {
 		return;
 	}
-	ArrayList typeParameterHandles = new ArrayList();
+	ArrayList<TypeParameter> typeParameterHandles = new ArrayList<TypeParameter>();
 	if (typeInfo != null) { //may not be a valid class file
 		generateTypeParameterInfos(type, typeInfo.getGenericSignature(), newElements, typeParameterHandles);
 		generateFieldInfos(type, typeInfo, newElements, childrenHandles);

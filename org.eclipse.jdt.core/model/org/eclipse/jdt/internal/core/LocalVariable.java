@@ -72,7 +72,7 @@ public class LocalVariable extends SourceRefElement implements ILocalVariable {
 		return this.parent.exists(); // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=46192
 	}
 
-	protected void generateInfos(Object info, HashMap newElements, IProgressMonitor pm) {
+	protected void generateInfos(Object info, HashMap<IJavaElement,Object> newElements, IProgressMonitor pm) {
 		// a local variable has no info
 	}
 

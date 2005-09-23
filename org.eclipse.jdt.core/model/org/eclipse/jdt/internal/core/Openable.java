@@ -192,7 +192,7 @@ public boolean exists() {
 	}
 	return super.exists();
 }
-protected void generateInfos(Object info, HashMap newElements, IProgressMonitor monitor) throws JavaModelException {
+protected void generateInfos(Object info, HashMap<IJavaElement,Object> newElements, IProgressMonitor monitor) throws JavaModelException {
 
 	if (JavaModelManager.VERBOSE){
 		String element;

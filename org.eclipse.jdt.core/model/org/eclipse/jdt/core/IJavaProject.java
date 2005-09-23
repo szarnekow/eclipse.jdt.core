@@ -750,7 +750,7 @@ public interface IJavaProject extends IParent, IJavaElement, IOpenable {
 	 * @see JavaCore#getDefaultOptions()
 	 * @since 2.1
 	 */
-	void setOptions(Map newOptions);
+	void setOptions(Map<String,String> newOptions);
 
 	/**
 	 * Sets the default output location of this project to the location

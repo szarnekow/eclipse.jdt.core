@@ -105,7 +105,7 @@ public ASTNode findNode(CompilationUnit ast) {
 /*
  * @see JavaElement#generateInfos
  */
-protected void generateInfos(Object info, HashMap newElements, IProgressMonitor pm) throws JavaModelException {
+protected void generateInfos(Object info, HashMap<IJavaElement,Object> newElements, IProgressMonitor pm) throws JavaModelException {
 	Openable openableParent = (Openable)getOpenableParent();
 	if (openableParent == null) return;
 
