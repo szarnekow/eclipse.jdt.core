@@ -1238,7 +1238,7 @@ public static char[][] getThrownExceptionTypes(char[] methodSignature) throws Il
 	}
 	int length = methodSignature.length;
 	int i = exceptionStart;
-	ArrayList exceptionList = new ArrayList(1);
+	ArrayList<char[]> exceptionList = new ArrayList<char[]>(1);
 	while (i < length) {
 		if (methodSignature[i] == C_EXCEPTION_START) {
 			exceptionStart++;
@@ -1284,7 +1284,7 @@ public static char[][] getTypeArguments(char[] parameterizedTypeSignature) throw
 	}
 	if (start < 0) // invalid number of generic start/end
 		throw new IllegalArgumentException();
-	ArrayList args = new ArrayList();
+	ArrayList<char[]> args = new ArrayList<char[]>();
 	int p = start + 1;
 	while (true) {
 		if (p >= parameterizedTypeSignature.length) {
@@ -1395,7 +1395,7 @@ public static char[][] getTypeParameters(char[] methodOrTypeSignature) throws Il
 		if (length == 0) return CharOperation.NO_CHAR_CHAR;
 		if (methodOrTypeSignature[0] != C_GENERIC_START) return CharOperation.NO_CHAR_CHAR;
 		
-		ArrayList paramList = new ArrayList(1);
+		ArrayList<char[]> paramList = new ArrayList<char[]>(1);
 		int paramStart = 1, i = 1;  // start after leading '<'
 		while (i < length) {
 			if (methodOrTypeSignature[i] == C_GENERIC_END) {
