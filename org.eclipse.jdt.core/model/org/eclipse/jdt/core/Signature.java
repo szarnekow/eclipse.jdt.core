@@ -1452,6 +1452,7 @@ public static char[][] getTypeParameters(char[] methodOrTypeSignature) throws Il
 	}
 	throw new IllegalArgumentException();
 }
+
 /**
  * Extracts the type parameter signatures from the given method or type signature. 
  * The method or type signature is expected to be dot-based.
@@ -2151,6 +2152,7 @@ public static String removeCapture(String methodOrTypeSignature) {
 public static char[] toCharArray(char[] methodSignature, char[] methodName, char[][] parameterNames, boolean fullyQualifyTypeNames, boolean includeReturnType) {
 	return toCharArray(methodSignature, methodName, parameterNames, fullyQualifyTypeNames, includeReturnType, false);
 }
+
 /**
  * Converts the given method signature to a readable form. The method signature is expected to
  * be dot-based.
@@ -2222,6 +2224,7 @@ public static char[] toCharArray(char[] methodSignature, char[] methodName, char
 	buffer.getChars(0, buffer.length(), result, 0);
 	return result;
 }
+
 /**
  * Converts the given type signature to a readable string. The signature is expected to
  * be dot-based.
@@ -2281,6 +2284,7 @@ public static char[] toCharArray(char[] signature) throws IllegalArgumentExcepti
 private static int appendTypeSignature(char[] string, int start, boolean fullyQualifyTypeNames, StringBuffer buffer) {
 	return appendTypeSignature(string, start, fullyQualifyTypeNames, buffer, false);
 }
+
 /**
  * Scans the given string for a type signature starting at the given
  * index and appends it to the given buffer, and returns the index of the last
@@ -2376,6 +2380,7 @@ private static int appendTypeSignature(char[] string, int start, boolean fullyQu
 		}
 	}
 }
+
 /**
  * Scans the given string for an array type signature starting at the given
  * index and appends it to the given buffer, and returns the index of the last
@@ -2392,6 +2397,7 @@ private static int appendTypeSignature(char[] string, int start, boolean fullyQu
 private static int appendArrayTypeSignature(char[] string, int start, boolean fullyQualifyTypeNames, StringBuffer buffer) {
 	return appendArrayTypeSignature(string, start, fullyQualifyTypeNames, buffer, false);
 }
+
 /**
  * Scans the given string for an array type signature starting at the given
  * index and appends it to the given buffer, and returns the index of the last
@@ -2467,6 +2473,7 @@ private static int appendArrayTypeSignature(char[] string, int start, boolean fu
 	}
 	return e;
 }
+
 /**
  * Scans the given string for a class type signature starting at the given
  * index and appends it to the given buffer, and returns the index of the last
@@ -2671,6 +2678,7 @@ public static char[] toQualifiedName(char[][] segments) {
 	}
 	return result;
 }
+
 /**
  * Converts the given array of qualified name segments to a qualified name.
  * <p>
@@ -2695,6 +2703,7 @@ public static String toQualifiedName(String[] segments) {
 	}
 	return new String(toQualifiedName(charArrays));
 }
+
 /**
  * Converts the given type signature to a readable string. The signature is expected to
  * be dot-based.
@@ -2725,6 +2734,7 @@ public static String toQualifiedName(String[] segments) {
 public static String toString(String signature) throws IllegalArgumentException {
 	return new String(toCharArray(signature.toCharArray()));
 }
+
 /**
  * Converts the given method signature to a readable string. The method signature is expected to
  * be dot-based.
@@ -2745,6 +2755,7 @@ public static String toString(String signature) throws IllegalArgumentException 
 public static String toString(String methodSignature, String methodName, String[] parameterNames, boolean fullyQualifyTypeNames, boolean includeReturnType) {
 	return toString(methodSignature, methodName, parameterNames, fullyQualifyTypeNames, includeReturnType, false);
 }
+
 /**
  * Converts the given method signature to a readable string. The method signature is expected to
  * be dot-based.
