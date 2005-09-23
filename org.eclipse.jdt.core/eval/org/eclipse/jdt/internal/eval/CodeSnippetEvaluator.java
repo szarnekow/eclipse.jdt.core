@@ -47,14 +47,14 @@ public class CodeSnippetEvaluator extends Evaluator implements EvaluationConstan
 /**
  * Creates a new code snippet evaluator.
  */
-CodeSnippetEvaluator(char[] codeSnippet, EvaluationContext context, INameEnvironment environment, Map options, IRequestor requestor, IProblemFactory problemFactory) {
+CodeSnippetEvaluator(char[] codeSnippet, EvaluationContext context, INameEnvironment environment, Map<String,String> options, IRequestor requestor, IProblemFactory problemFactory) {
 	super(context, environment, options, requestor, problemFactory);
 	this.codeSnippet = codeSnippet;
 }
 /**
  * @see org.eclipse.jdt.internal.eval.Evaluator
  */
-protected void addEvaluationResultForCompilationProblem(Map resultsByIDs, IProblem problem, char[] cuSource) {
+protected void addEvaluationResultForCompilationProblem(Map<char[],EvaluationResult> resultsByIDs, IProblem problem, char[] cuSource) {
 	CodeSnippetToCuMapper sourceMapper = getMapper();
 	int pbLineNumber = problem.getSourceLineNumber();
 	int evaluationType = sourceMapper.getEvaluationType(pbLineNumber);
@@ -93,7 +93,7 @@ protected void addEvaluationResultForCompilationProblem(Map resultsByIDs, IProbl
 			break;
 	}
 
-	EvaluationResult result = (EvaluationResult)resultsByIDs.get(evaluationID);
+	EvaluationResult result = resultsByIDs.get(evaluationID);
 	if (result == null) {
 		resultsByIDs.put(evaluationID, new EvaluationResult(evaluationID, evaluationType, new IProblem[] {problem}));
 	} else {
