@@ -10,14 +10,16 @@
  *******************************************************************************/
 package org.eclipse.jdt.internal.core.util;
 
+import java.util.ArrayList;
+
 /**
  * The SortOperation takes a collection of objects and returns
  * a sorted collection of these objects. The sorting of these
  * objects is based on their toString(). They are sorted in
  * alphabetical order.
  */
-public class ToStringSorter {
-	Object[] sortedObjects;
+public class ToStringSorter<T> {
+	ArrayList<T> sortedObjects;
 	String[] sortedStrings;
 /**
  *  Returns true if stringTwo is 'greater than' stringOne
@@ -41,9 +43,9 @@ private void quickSort(int left, int right) {
 		while (compare(midToString, this.sortedStrings[right]))
 			right--;
 		if (left <= right) {
-			Object tmp = this.sortedObjects[left];
-			this.sortedObjects[left] = this.sortedObjects[right];
-			this.sortedObjects[right] = tmp;
+			T tmp = this.sortedObjects.get(left);
+			this.sortedObjects.set(left, this.sortedObjects.get(right));
+			this.sortedObjects.set(right, tmp);
 			String tmpToString = this.sortedStrings[left];
 			this.sortedStrings[left] = this.sortedStrings[right];
 			this.sortedStrings[right] = tmpToString;
@@ -61,9 +63,9 @@ private void quickSort(int left, int right) {
  *  Return a new sorted collection from this unsorted collection.
  *  Sort using quick sort.
  */
-public void sort(Object[] unSortedObjects, String[] unsortedStrings) {
-	int size = unSortedObjects.length;
-	this.sortedObjects = new Object[size];
+public void sort(ArrayList<T> unSortedObjects, String[] unsortedStrings) {
+	int size = unSortedObjects.size();
+	this.sortedObjects = new ArrayList<T>(size);
 	this.sortedStrings = new String[size];
 	
 	//copy the array so can return a new sorted collection  

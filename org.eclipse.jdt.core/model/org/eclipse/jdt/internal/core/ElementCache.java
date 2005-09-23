@@ -17,7 +17,7 @@ import org.eclipse.jdt.internal.core.util.LRUCache;
 /**
  * An LRU cache of <code>JavaElements</code>.
  */
-public class ElementCache extends OverflowingLRUCache {
+public class ElementCache extends OverflowingLRUCache<IJavaElement, Object> {
 	
 	IJavaElement spaceLimitParent = null;
 	
@@ -40,7 +40,7 @@ public ElementCache(int size, int overflow) {
  * <p>NOTE: this triggers an external removal of this element
  * by closing the element.
  */
-protected boolean close(LRUCacheEntry entry) {
+protected boolean close(LRUCacheEntry<IJavaElement, Object> entry) {
 	Openable element = (Openable) entry._fKey;
 	try {
 		if (!element.canBeRemovedFromCache()) {
@@ -90,7 +90,7 @@ protected void resetSpaceLimit(int defaultLimit, IJavaElement parent) {
 /**
  * Returns a new instance of the reciever.
  */
-protected LRUCache newInstance(int size, int overflow) {
+protected LRUCache<IJavaElement, Object> newInstance(int size, int overflow) {
 	return new ElementCache(size, overflow);
 }
 

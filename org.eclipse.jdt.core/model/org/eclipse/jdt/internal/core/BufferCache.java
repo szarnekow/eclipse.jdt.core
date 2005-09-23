@@ -11,12 +11,13 @@
 package org.eclipse.jdt.internal.core;
 
 import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.internal.core.util.LRUCache;
 
 /**
  * An LRU cache of <code>IBuffers</code>.
  */
-public class BufferCache extends OverflowingLRUCache {
+public class BufferCache extends OverflowingLRUCache<IOpenable, IBuffer> {
 /**
  * Constructs a new buffer cache of the given size.
  */
@@ -51,7 +52,7 @@ protected boolean close(LRUCacheEntry entry) {
 	/**
 	 * Returns a new instance of the reciever.
 	 */
-	protected LRUCache newInstance(int size, int overflow) {
+	protected LRUCache<IOpenable, IBuffer> newInstance(int size, int overflow) {
 		return new BufferCache(size, overflow);
 	}
 }

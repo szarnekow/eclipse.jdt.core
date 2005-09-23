@@ -32,7 +32,7 @@ public class BufferManager {
 	 * LRU cache of buffers. The key and value for an entry
 	 * in the table is the identical buffer.
 	 */
-	protected OverflowingLRUCache openBuffers = new BufferCache(60);
+	protected OverflowingLRUCache<IOpenable, IBuffer> openBuffers = new BufferCache(60);
 	
 	/**
 	 * @deprecated
@@ -74,7 +74,7 @@ public IBuffer createBuffer(IOpenable owner) {
  * buffer associated with it.
  */
 public IBuffer getBuffer(IOpenable owner) {
-	return (IBuffer)this.openBuffers.get(owner);
+	return this.openBuffers.get(owner);
 }
 /**
  * Returns the default buffer manager.
@@ -100,7 +100,7 @@ public org.eclipse.jdt.core.IBufferFactory getDefaultBufferFactory() {
  * @see OverflowingLRUCache
  * @return Enumeration of IBuffer
  */
-public Enumeration getOpenBuffers() {
+public Enumeration<IBuffer> getOpenBuffers() {
 	synchronized (this.openBuffers) {
 		this.openBuffers.shrink();
 		return this.openBuffers.elements();

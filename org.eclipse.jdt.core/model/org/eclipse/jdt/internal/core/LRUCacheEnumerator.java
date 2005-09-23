@@ -22,34 +22,34 @@ import java.util.Enumeration;
  *	elements returned from the enumerator could have been closed 
  *	by the cache.
  */
-public class LRUCacheEnumerator implements Enumeration {
+public class LRUCacheEnumerator<T> implements Enumeration<T> {
 	/**
 	 *	Current element;
 	 */
-	protected LRUEnumeratorElement fElementQueue;
+	protected LRUEnumeratorElement<T> fElementQueue;
 
-	public static class LRUEnumeratorElement {
+	public static class LRUEnumeratorElement<T> {
 		/**
 		 *	Value returned by <code>nextElement()</code>;
 		 */
-		public Object fValue;
+		public T fValue;
 		
 		/**
 		 *	Next element
 		 */
-		public LRUEnumeratorElement fNext;
+		public LRUEnumeratorElement<T> fNext;
 
 		/**
 		 * Constructor
 		 */
-		public LRUEnumeratorElement(Object value) {
+		public LRUEnumeratorElement(T value) {
 			fValue = value;
 		}
 	}
 /**
  *	Creates a CacheEnumerator on the list of <code>LRUEnumeratorElements</code>.
  */
-public LRUCacheEnumerator(LRUEnumeratorElement firstElement) {
+public LRUCacheEnumerator(LRUEnumeratorElement<T> firstElement) {
 	fElementQueue = firstElement;
 }
 /**
@@ -61,8 +61,8 @@ public boolean hasMoreElements() {
 /**
  * Returns the next element.
  */
-public Object nextElement() {
-	Object temp = fElementQueue.fValue;
+public T nextElement() {
+	T temp = fElementQueue.fValue;
 	fElementQueue = fElementQueue.fNext;
 	return temp;
 }
