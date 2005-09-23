@@ -195,8 +195,7 @@ public class WeakHashSet<E> {
 			if (value != null) {
 				E referent = value.get();
 				if (referent != null) {
-					buffer.append(referent.toString());
-					buffer.append(", "); //$NON-NLS-1$
+					buffer.append(referent.toString()).append(", "); //$NON-NLS-1$
 				}
 			}
 		}
