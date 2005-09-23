@@ -1710,7 +1710,7 @@ public class JavaModelManager implements ISaveParticipant {
 	
 	public synchronized String intern(String s) {
 		// make sure to copy the string (so that it doesn't hold on the underlying char[] that might be much bigger than necessary)
-		return (String) this.stringSymbols.add(new String(s));
+		return this.stringSymbols.add(new String(s));
 		
 		// Note1: String#intern() cannot be used as on some VMs this prevents the string from being garbage collected
 		// Note 2: Instead of using a WeakHashset, one could use a WeakHashMap with the following implementation
