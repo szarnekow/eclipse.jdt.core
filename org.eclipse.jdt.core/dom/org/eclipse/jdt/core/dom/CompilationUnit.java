@@ -118,7 +118,7 @@ public class CompilationUnit extends ASTNode {
 	 * or <code>null</code> if none; initially <code>null</code>.
 	 * @since 3.0
 	 */
-	private List optionalCommentList = null;
+	private List<Comment> optionalCommentList = null;
 	
 	/**
 	 * The package declaration, or <code>null</code> if none; initially
@@ -726,7 +726,7 @@ public class CompilationUnit extends ASTNode {
 	 * @see ASTParser
 	 * @since 3.0
 	 */
-	public List getCommentList() {
+	public List<Comment> getCommentList() {
 		return this.optionalCommentList;
 	}
 	

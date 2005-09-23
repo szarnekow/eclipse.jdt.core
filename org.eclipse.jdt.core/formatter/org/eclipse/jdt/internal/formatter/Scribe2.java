@@ -45,7 +45,7 @@ public class Scribe2 {
 	private boolean checkLineWrapping;
 	/** one-based column */
 	public int column;
-	private List comments;
+	private List<Comment> comments;
 		
 	// Most specific alignment. 
 	public Alignment2 currentAlignment;
@@ -535,10 +535,8 @@ public class Scribe2 {
 	private boolean hasNLSTag(int sourceStart) {
 		final Comment comment = this.unit.getAST().newBlockComment();
 		comment.setSourceRange(sourceStart, 1);
-		int index = Collections.binarySearch(this.comments, comment, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				Comment comment1 = (Comment) o1;
-				Comment comment2 = (Comment) o2;
+		int index = Collections.binarySearch(this.comments, comment, new Comparator<Comment>() {
+			public int compare(Comment comment1, Comment comment2) {
 				return comment1.getStartPosition() - comment2.getStartPosition();
 			}
 		});
@@ -547,7 +545,7 @@ public class Scribe2 {
 			index = -index - 1;
 			final int commentLength = this.comments.size();
 			for (int i = index; i < commentLength; i++) {
-				Comment currentComment = (Comment) comments.get(i);
+				Comment currentComment = comments.get(i);
 				final int start = currentComment.getStartPosition();
 				if (this.unit.lineNumber(start) == lineNumber) {
 					if (currentComment.isLineComment()) {
