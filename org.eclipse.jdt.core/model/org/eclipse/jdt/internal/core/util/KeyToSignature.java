@@ -28,8 +28,8 @@ public class KeyToSignature extends BindingKeyParser {
 	
 	public StringBuffer signature = new StringBuffer();
 	private int kind;
-	private ArrayList arguments = new ArrayList();
-	private ArrayList typeParameters = new ArrayList();
+	private ArrayList<BindingKeyParser> arguments = new ArrayList<BindingKeyParser>();
+	private ArrayList<char[]> typeParameters = new ArrayList<char[]>();
 	private int mainTypeStart = -1;
 	private int mainTypeEnd;
 	private int typeSigStart = -1;
@@ -67,7 +67,7 @@ public class KeyToSignature extends BindingKeyParser {
 	}
 	
 	public void consumeMethod(char[] selector, char[] methodSignature) {
-		this.arguments = new ArrayList();
+		this.arguments = new ArrayList<BindingKeyParser>();
 		if (this.kind == SIGNATURE) {
 			this.signature = new StringBuffer();
 			CharOperation.replace(methodSignature, '/', '.');
@@ -184,7 +184,7 @@ public class KeyToSignature extends BindingKeyParser {
 			}
 			this.signature.append('>');
 			if (this.kind != TYPE_ARGUMENTS)
-				this.arguments = new ArrayList();
+				this.arguments = new ArrayList<BindingKeyParser>();
 		}
 	}
 	
@@ -225,14 +225,14 @@ public class KeyToSignature extends BindingKeyParser {
 			typeParametersSig.append('<');
 			for (int i = 0; i < length; i++) {
 				char[] typeParameterSig = Signature.createTypeParameterSignature(
-						(char[]) this.typeParameters.get(i), 
+						this.typeParameters.get(i), 
 						new char[][]{ ConstantPool.ObjectSignature });
 				typeParametersSig.append(typeParameterSig);
 				// TODO (jerome) add type parameter bounds in binding key
 			}
 			typeParametersSig.append('>');
 			this.signature.insert(this.typeSigStart, typeParametersSig);
-			this.typeParameters = new ArrayList();
+			this.typeParameters = new ArrayList<char[]>();
 		}
 		this.signature.append(';');
 	}
