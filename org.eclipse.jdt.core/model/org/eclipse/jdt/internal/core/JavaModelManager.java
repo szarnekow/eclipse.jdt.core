@@ -79,7 +79,7 @@ public class JavaModelManager implements ISaveParticipant {
 	public HashMap<IJavaProject, Map<IPath, IClasspathContainer>> previousSessionContainers = new HashMap<IJavaProject, Map<IPath, IClasspathContainer>>(5);
 	private ThreadLocal<Map<IJavaProject, HashSet<IPath>>> containerInitializationInProgress = new ThreadLocal<Map<IJavaProject, HashSet<IPath>>>();
 	public boolean batchContainerInitializations = false;
-	public HashMap containerInitializersCache = new HashMap(5);
+	public HashMap<String,ClasspathContainerInitializer> containerInitializersCache = new HashMap<String,ClasspathContainerInitializer>(5);
 	
 	/*
 	 * A HashSet that contains the IJavaProject whose classpath is being resolved.
@@ -1259,9 +1259,9 @@ public class JavaModelManager implements ISaveParticipant {
 	 * As such it should not be stored into container caches.
 	 */
 	public IClasspathContainer getPreviousSessionContainer(IPath containerPath, IJavaProject project) {
-			Map previousContainerValues = this.previousSessionContainers.get(project);
+			Map<IPath,IClasspathContainer> previousContainerValues = this.previousSessionContainers.get(project);
 			if (previousContainerValues != null){
-			    IClasspathContainer previousContainer = (IClasspathContainer)previousContainerValues.get(containerPath);
+			    IClasspathContainer previousContainer = previousContainerValues.get(containerPath);
 			    if (previousContainer != null) {
 					if (JavaModelManager.CP_RESOLVE_VERBOSE){
 						StringBuffer buffer = new StringBuffer();
@@ -1311,7 +1311,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 * Returns the temporary cache for newly opened elements for the current thread.
 	 * Creates it if not already created.
 	 */
-	public HashMap getTemporaryCache() {
+	public HashMap<IJavaElement,Object> getTemporaryCache() {
 		HashMap<IJavaElement,Object> result = this.temporaryCache.get();
 		if (result == null) {
 			result = new HashMap<IJavaElement,Object>();
@@ -1393,7 +1393,7 @@ public class JavaModelManager implements ISaveParticipant {
 			ICompilationUnit[] primaryWCs = addPrimary && owner != DefaultWorkingCopyOwner.PRIMARY 
 				? getWorkingCopies(DefaultWorkingCopyOwner.PRIMARY, false) 
 				: null;
-			Map workingCopyToInfos = this.perWorkingCopyInfos.get(owner);
+			Map<CompilationUnit,PerWorkingCopyInfo> workingCopyToInfos = this.perWorkingCopyInfos.get(owner);
 			if (workingCopyToInfos == null) return primaryWCs;
 			int primaryLength = primaryWCs == null ? 0 : primaryWCs.length;
 			int size = workingCopyToInfos.size(); // note size is > 0 otherwise pathToPerWorkingCopyInfos would be null
@@ -1409,9 +1409,8 @@ public class JavaModelManager implements ISaveParticipant {
 				if (index != primaryLength)
 					System.arraycopy(result, 0, result = new ICompilationUnit[index+size], 0, index);
 			}
-			Iterator iterator = workingCopyToInfos.values().iterator();
-			while(iterator.hasNext()) {
-				result[index++] = ((JavaModelManager.PerWorkingCopyInfo)iterator.next()).getWorkingCopy();
+			for (PerWorkingCopyInfo info : workingCopyToInfos.values()) {
+				result[index++] = info.getWorkingCopy();
 			}
 			return result;
 		}		
@@ -1910,7 +1909,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 *  disturbing the cache ordering.
 	 */
 	protected synchronized Object peekAtInfo(IJavaElement element) {
-		HashMap tempCache = this.temporaryCache.get();
+		HashMap<IJavaElement,Object> tempCache = this.temporaryCache.get();
 		if (tempCache != null) {
 			Object result = tempCache.get(element);
 			if (result != null) {
@@ -1933,7 +1932,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 * added to the cache. If it is the case, another thread has opened the element (or one of
 	 * its ancestors). So returns without updating the cache.
 	 */
-	protected synchronized void putInfos(IJavaElement openedElement, Map newElements) {
+	protected synchronized void putInfos(IJavaElement openedElement, Map<IJavaElement,Object> newElements) {
 		// remove children
 		Object existingInfo = this.cache.peekAtInfo(openedElement);
 		if (openedElement instanceof IParent && existingInfo instanceof JavaElementInfo) {
@@ -1958,19 +1957,16 @@ public class JavaModelManager implements ISaveParticipant {
 		// Subsequent resolution against package in the jar would fail as a result.
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=102422
 		// (theodora)
-		for(Iterator it = newElements.entrySet().iterator(); it.hasNext(); ) {
-			Map.Entry entry = (Map.Entry)it.next();
-			IJavaElement element = (IJavaElement)entry.getKey();
+		for(Iterator<Map.Entry<IJavaElement,Object>> it = newElements.entrySet().iterator(); it.hasNext(); ) {
+			Map.Entry<IJavaElement,Object> entry = it.next();
+			IJavaElement element = entry.getKey();
 			if( element instanceof JarPackageFragmentRoot ){
 				Object info = entry.getValue();
 				it.remove();
 				this.cache.putInfo(element, info);
 			}
 		}	
-	
-		Iterator iterator = newElements.keySet().iterator();	
-		while (iterator.hasNext()) {
-			IJavaElement element = (IJavaElement)iterator.next();
+		for (IJavaElement element : newElements.keySet()) {
 			Object info = newElements.get(element);
 			this.cache.putInfo(element, info);
 		}
