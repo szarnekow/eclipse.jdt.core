@@ -62,13 +62,13 @@ import org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
 class BinaryExpressionFragmentBuilder
 	extends ASTVisitor {
 		
-	ArrayList fragmentsList;
-	ArrayList operatorsList;
+	ArrayList<ASTNode> fragmentsList;
+	ArrayList<Integer> operatorsList;
 	private int realFragmentsSize;
 
 	BinaryExpressionFragmentBuilder() {
-		this.fragmentsList = new ArrayList();
-		this.operatorsList = new ArrayList();
+		this.fragmentsList = new ArrayList<ASTNode>();
+		this.operatorsList = new ArrayList<Integer>();
 		this.realFragmentsSize = 0;
 	}
 
@@ -100,7 +100,7 @@ class BinaryExpressionFragmentBuilder
 		int length = operatorsList.size();
 		int[] tab = new int[length];
 		for (int i = 0; i < length; i++) {
-			tab[i] = ((Integer)operatorsList.get(i)).intValue();
+			tab[i] = operatorsList.get(i).intValue();
 		}
 		return tab;
 	}

@@ -288,7 +288,7 @@ public class CodeFormatterVisitor extends ASTVisitor {
 	}
 
 	private ASTNode[] computeMergedMemberDeclarations(ASTNode[] nodes){
-		ArrayList mergedNodes = new ArrayList();
+		ArrayList<ASTNode> mergedNodes = new ArrayList<ASTNode>();
 		for (int i = 0, max = nodes.length; i < max; i++) {
 			ASTNode currentNode = nodes[i];
 			if (currentNode instanceof FieldDeclaration) {
@@ -298,7 +298,7 @@ public class CodeFormatterVisitor extends ASTVisitor {
 					mergedNodes.add(currentNode);
 				} else {
 					// we need to check if the previous merged node is a field declaration
-					ASTNode previousMergedNode = (ASTNode) mergedNodes.get(mergedNodes.size() - 1);
+					ASTNode previousMergedNode = mergedNodes.get(mergedNodes.size() - 1);
 					if (previousMergedNode instanceof MultiFieldDeclaration) {
 						// we merge the current node
 						MultiFieldDeclaration multiFieldDeclaration = (MultiFieldDeclaration) previousMergedNode;
