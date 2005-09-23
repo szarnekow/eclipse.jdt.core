@@ -1547,7 +1547,7 @@ public class JavaProject
 	/**
 	 * @see org.eclipse.jdt.core.IJavaProject#getOptions(boolean)
 	 */
-	public Map getOptions(boolean inheritJavaCoreOptions) {
+	public Map<String, String> getOptions(boolean inheritJavaCoreOptions) {
 
 		// initialize to the defaults from JavaCore options pool
 		Map options = inheritJavaCoreOptions ? JavaCore.getOptions() : new Hashtable(5);

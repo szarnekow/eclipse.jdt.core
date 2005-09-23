@@ -178,7 +178,7 @@ public void evaluateCodeSnippet(
 		varNames[i] = localVariableNames[i].toCharArray();
 	}
 
-	Map options = this.project.getOptions(true);
+	Map<String, String> options = this.project.getOptions(true);
 	// transfer the imports of the IType to the evaluation context
 	if (declaringType != null) {
 		// retrieves the package statement 

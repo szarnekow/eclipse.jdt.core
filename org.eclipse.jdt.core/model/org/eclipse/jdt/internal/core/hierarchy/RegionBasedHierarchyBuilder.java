@@ -20,10 +20,12 @@ import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.compiler.env.IGenericType;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.Openable;
@@ -48,7 +50,7 @@ public void build(boolean computeSubtypes) {
 				this.hierarchy.progressMonitor == null ? 
 					null : 
 					new SubProgressMonitor(this.hierarchy.progressMonitor, 30);
-			HashMap allOpenablesInRegion = determineOpenablesInRegion(typeInRegionMonitor);
+			HashMap<IJavaProject, ArrayList<IOpenable>> allOpenablesInRegion = determineOpenablesInRegion(typeInRegionMonitor);
 			this.hierarchy.initialize(allOpenablesInRegion.size());
 			IProgressMonitor buildMonitor = 
 				this.hierarchy.progressMonitor == null ? 
@@ -67,16 +69,16 @@ public void build(boolean computeSubtypes) {
 /**
  * Configure this type hierarchy that is based on a region.
  */
-private void createTypeHierarchyBasedOnRegion(HashMap allOpenablesInRegion, IProgressMonitor monitor) {
+private void createTypeHierarchyBasedOnRegion(HashMap<IJavaProject, ArrayList<IOpenable>> allOpenablesInRegion, IProgressMonitor monitor) {
 	
 	int size = allOpenablesInRegion.size();
 	if (size != 0) {
-		this.infoToHandle = new HashMap(size);
+		this.infoToHandle = new HashMap<IGenericType, IJavaElement>(size);
 	}
 	
-	Iterator javaProjects = allOpenablesInRegion.keySet().iterator();
+	Iterator<IJavaProject> javaProjects = allOpenablesInRegion.keySet().iterator();
 	while (javaProjects.hasNext()) {
-		ArrayList allOpenables = (ArrayList) allOpenablesInRegion.get(javaProjects.next());
+		ArrayList<IOpenable> allOpenables = allOpenablesInRegion.get(javaProjects.next());
 		Openable[] openables = new Openable[allOpenables.size()];
 		allOpenables.toArray(openables);
 	
@@ -94,12 +96,11 @@ private void createTypeHierarchyBasedOnRegion(HashMap allOpenablesInRegion, IPro
 	
 	/**
 	 * Returns all of the openables defined in the region of this type hierarchy.
-	 * Returns a map from IJavaProject to ArrayList of Openable
 	 */
-	private HashMap determineOpenablesInRegion(IProgressMonitor monitor) {
+	private HashMap<IJavaProject, ArrayList<IOpenable>> determineOpenablesInRegion(IProgressMonitor monitor) {
 
 		try {
-			HashMap allOpenables = new HashMap();
+			HashMap<IJavaProject, ArrayList<IOpenable>> allOpenables = new HashMap<IJavaProject, ArrayList<IOpenable>>();
 			IJavaElement[] roots =
 				((RegionBasedTypeHierarchy) this.hierarchy).region.getElements();
 			int length = roots.length;
@@ -107,9 +108,9 @@ private void createTypeHierarchyBasedOnRegion(HashMap allOpenablesInRegion, IPro
 			for (int i = 0; i <length; i++) {
 				IJavaElement root = roots[i];
 				IJavaProject javaProject = root.getJavaProject();
-				ArrayList openables = (ArrayList) allOpenables.get(javaProject);
+				ArrayList<IOpenable> openables = allOpenables.get(javaProject);
 				if (openables == null) {
-					openables = new ArrayList();
+					openables = new ArrayList<IOpenable>();
 					allOpenables.put(javaProject, openables);
 				}
 				switch (root.getElementType()) {
@@ -124,7 +125,7 @@ private void createTypeHierarchyBasedOnRegion(HashMap allOpenablesInRegion, IPro
 						break;
 					case IJavaElement.CLASS_FILE :
 					case IJavaElement.COMPILATION_UNIT :
-						openables.add(root);
+						openables.add((IOpenable) root);
 						break;
 					case IJavaElement.TYPE :
 						IType type = (IType)root;
@@ -151,7 +152,7 @@ private void createTypeHierarchyBasedOnRegion(HashMap allOpenablesInRegion, IPro
 	 */
 	private void injectAllOpenablesForJavaProject(
 		IJavaProject project,
-		ArrayList openables) {
+		ArrayList<IOpenable> openables) {
 		try {
 			IPackageFragmentRoot[] devPathRoots =
 				((JavaProject) project).getPackageFragmentRoots();
@@ -173,7 +174,7 @@ private void createTypeHierarchyBasedOnRegion(HashMap allOpenablesInRegion, IPro
 	 */
 	private void injectAllOpenablesForPackageFragment(
 		IPackageFragment packFrag,
-		ArrayList openables) {
+		ArrayList<IOpenable> openables) {
 			
 		try {
 			IPackageFragmentRoot root = (IPackageFragmentRoot) packFrag.getParent();
@@ -203,7 +204,7 @@ private void createTypeHierarchyBasedOnRegion(HashMap allOpenablesInRegion, IPro
 	 */
 	private void injectAllOpenablesForPackageFragmentRoot(
 		IPackageFragmentRoot root,
-		ArrayList openables) {
+		ArrayList<IOpenable> openables) {
 		try {
 			IJavaElement[] packFrags = root.getChildren();
 			for (int k = 0; k < packFrags.length; k++) {

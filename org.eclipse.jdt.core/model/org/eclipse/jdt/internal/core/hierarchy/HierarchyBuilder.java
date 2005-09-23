@@ -16,6 +16,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -47,7 +48,7 @@ public abstract class HierarchyBuilder {
 	 * for the types in the region (in other words, it contains
 	 * no supertypes outside the region).
 	 */
-	protected Map infoToHandle;
+	protected Map<IGenericType, IJavaElement> infoToHandle;
 	/*
 	 * The dot-separated fully qualified name of the focus type, or null of none.
 	 */
@@ -82,7 +83,7 @@ public abstract class HierarchyBuilder {
 				project.getOptions(true),
 				this,
 				new DefaultProblemFactory());
-		this.infoToHandle = new HashMap(5);
+		this.infoToHandle = new HashMap<IGenericType, IJavaElement>(5);
 		this.focusQualifiedName = focusType == null ? null : focusType.getFullyQualifiedName();
 	}
 	

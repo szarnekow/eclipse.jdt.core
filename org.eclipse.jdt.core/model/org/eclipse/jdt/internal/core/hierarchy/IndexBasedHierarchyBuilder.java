@@ -42,11 +42,7 @@ public class IndexBasedHierarchyBuilder extends HierarchyBuilder implements Suff
 	 * for the types in the region (in other words, it contains no supertypes outside
 	 * the region).
 	 */
-	protected Map cuToHandle;
-	/**
-	 * A map from compilation unit handles to working copies.
-	 */
-	protected Map handleToWorkingCopy;
+	protected Map<ICompilationUnit, Openable> cuToHandle;
 
 	/**
 	 * The scope this hierarchy builder should restrain results to.
@@ -56,7 +52,7 @@ public class IndexBasedHierarchyBuilder extends HierarchyBuilder implements Suff
 	/**
 	 * Cache used to record binaries recreated from index matches
 	 */
-	protected Map binariesFromIndexMatches;
+	protected Map<String, IBinaryType> binariesFromIndexMatches;
 	
 	/**
 	 * Collection used to queue subtype index queries
@@ -93,8 +89,8 @@ public class IndexBasedHierarchyBuilder extends HierarchyBuilder implements Suff
 	}
 public IndexBasedHierarchyBuilder(TypeHierarchy hierarchy, IJavaSearchScope scope) throws JavaModelException {
 	super(hierarchy);
-	this.cuToHandle = new HashMap(5);
-	this.binariesFromIndexMatches = new HashMap(10);
+	this.cuToHandle = new HashMap<ICompilationUnit, Openable>(5);
+	this.binariesFromIndexMatches = new HashMap<String, IBinaryType>(10);
 	this.scope = scope;
 }
 public void build(boolean computeSubtypes) {
@@ -112,7 +108,7 @@ public void build(boolean computeSubtypes) {
 				this.hierarchy.progressMonitor == null ? 
 					null : 
 					new SubProgressMonitor(this.hierarchy.progressMonitor, amountOfWorkForSubtypes);
-			HashSet localTypes = new HashSet(10); // contains the paths that have potential subtypes that are local/anonymous types
+			HashSet<String> localTypes = new HashSet<String>(10); // contains the paths that have potential subtypes that are local/anonymous types
 			String[] allPossibleSubtypes;
 			if (((Member)focusType).getOuterMostLocalContext() == null) {
 				// top level or member type
@@ -137,7 +133,7 @@ public void build(boolean computeSubtypes) {
 		manager.flushZipFiles();
 	}
 }
-private void buildForProject(JavaProject project, ArrayList potentialSubtypes, org.eclipse.jdt.core.ICompilationUnit[] workingCopies, HashSet localTypes, IProgressMonitor monitor) throws JavaModelException {
+private void buildForProject(JavaProject project, ArrayList<IOpenable> potentialSubtypes, org.eclipse.jdt.core.ICompilationUnit[] workingCopies, HashSet<String> localTypes, IProgressMonitor monitor) throws JavaModelException {
 	// copy vectors into arrays
 	int openablesLength = potentialSubtypes.size();
 	Openable[] openables = new Openable[openablesLength];
@@ -166,7 +162,7 @@ private void buildForProject(JavaProject project, ArrayList potentialSubtypes, o
 
 		SearchableEnvironment searchableEnvironment = project.newSearchableNameEnvironment(unitsToLookInside);
 		this.nameLookup = searchableEnvironment.nameLookup;
-		Map options = project.getOptions(true);
+		Map<String, String> options = project.getOptions(true);
 		// disable task tags to speed up parsing
 		options.put(JavaCore.COMPILER_TASK_TAGS, ""); //$NON-NLS-1$
 		this.hierarchyResolver = 
@@ -188,7 +184,7 @@ private void buildForProject(JavaProject project, ArrayList potentialSubtypes, o
 				} else {
 					openable = (Openable)declaringMember.getCompilationUnit();
 				}
-				localTypes = new HashSet();
+				localTypes = new HashSet<String>();
 				localTypes.add(openable.getPath().toString());
 				this.hierarchyResolver.resolve(new Openable[] {openable}, localTypes, monitor);
 				return;
@@ -200,11 +196,11 @@ private void buildForProject(JavaProject project, ArrayList potentialSubtypes, o
 /**
  * Configure this type hierarchy based on the given potential subtypes.
  */
-private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet localTypes, IProgressMonitor monitor) {
+private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet<String> localTypes, IProgressMonitor monitor) {
 	IType focusType = this.getType();
 		
 	// substitute compilation units with working copies
-	HashMap wcPaths = new HashMap(); // a map from path to working copies
+	HashMap<String, org.eclipse.jdt.core.ICompilationUnit> wcPaths = new HashMap<String, org.eclipse.jdt.core.ICompilationUnit>(); // a map from path to working copies
 	int wcLength;
 	org.eclipse.jdt.core.ICompilationUnit[] workingCopies = this.hierarchy.workingCopies;
 	if (workingCopies != null && (wcLength = workingCopies.length) > 0) {
@@ -247,7 +243,7 @@ private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet l
 	 */
 	org.eclipse.jdt.internal.core.util.Util.sortReverseOrder(allPotentialSubTypes);
 	
-	ArrayList potentialSubtypes = new ArrayList();
+	ArrayList<IOpenable> potentialSubtypes = new ArrayList<IOpenable>();
 
 	try {
 		// create element infos for subtypes
@@ -262,7 +258,7 @@ private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet l
 				if (i > 0 && resourcePath.equals(allPotentialSubTypes[i-1])) continue;
 				
 				Openable handle;
-				org.eclipse.jdt.core.ICompilationUnit workingCopy = (org.eclipse.jdt.core.ICompilationUnit)wcPaths.get(resourcePath);
+				org.eclipse.jdt.core.ICompilationUnit workingCopy = wcPaths.get(resourcePath);
 				if (workingCopy != null) {
 					handle = (Openable)workingCopy;
 				} else {
@@ -276,12 +272,12 @@ private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet l
 				IJavaProject project = handle.getJavaProject();
 				if (currentProject == null) {
 					currentProject = project;
-					potentialSubtypes = new ArrayList(5);
+					potentialSubtypes = new ArrayList<IOpenable>(5);
 				} else if (!currentProject.equals(project)) {
 					// build current project
 					this.buildForProject((JavaProject)currentProject, potentialSubtypes, workingCopies, localTypes, monitor);
 					currentProject = project;
-					potentialSubtypes = new ArrayList(5);
+					potentialSubtypes = new ArrayList<IOpenable>(5);
 				}
 				
 				potentialSubtypes.add(handle);
@@ -310,7 +306,7 @@ private void buildFromPotentialSubtypes(String[] allPotentialSubTypes, HashSet l
 		if (!this.hierarchy.contains(focusType)) {
 			try {
 				currentProject = focusType.getJavaProject();
-				potentialSubtypes = new ArrayList();
+				potentialSubtypes = new ArrayList<IOpenable>();
 				if (focusType.isBinary()) {
 					potentialSubtypes.add(focusType.getClassFile());
 				} else {
@@ -337,7 +333,7 @@ protected ICompilationUnit createCompilationUnitFromPath(Openable handle, String
 }
 protected IBinaryType createInfoFromClassFile(Openable classFile, String osPath) {
 	String documentPath = classFile.getPath().toString();
-	IBinaryType binaryType = (IBinaryType)this.binariesFromIndexMatches.get(documentPath);
+	IBinaryType binaryType = this.binariesFromIndexMatches.get(documentPath);
 	if (binaryType != null) {
 		this.infoToHandle.put(binaryType, classFile);
 		return binaryType;
@@ -352,7 +348,7 @@ protected IBinaryType createInfoFromClassFileInJar(Openable classFile) {
 	// take the OS path for external jars, and the forward slash path for internal jars
 	String rootPath = path.getDevice() == null ? path.toString() : path.toOSString();
 	String documentPath = rootPath + IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR + filePath;
-	IBinaryType binaryType = (IBinaryType)this.binariesFromIndexMatches.get(documentPath);
+	IBinaryType binaryType = this.binariesFromIndexMatches.get(documentPath);
 	if (binaryType != null) {
 		this.infoToHandle.put(binaryType, classFile);
 		return binaryType;
@@ -364,10 +360,10 @@ protected IBinaryType createInfoFromClassFileInJar(Openable classFile) {
  * Returns all of the possible subtypes of this type hierarchy.
  * Returns null if they could not be determine.
  */
-private String[] determinePossibleSubTypes(final HashSet localTypes, IProgressMonitor monitor) {
+private String[] determinePossibleSubTypes(final HashSet<String> localTypes, IProgressMonitor monitor) {
 
 	class PathCollector implements IPathRequestor {
-		HashSet paths = new HashSet(10);
+		HashSet<String> paths = new HashSet<String>(10);
 		public void acceptPath(String path, boolean containsLocalTypes) {
 			this.paths.add(path);
 			if (containsLocalTypes) {
@@ -418,7 +414,7 @@ private String[] determinePossibleSubTypes(final HashSet localTypes, IProgressMo
 public static void searchAllPossibleSubTypes(
 	IType type,
 	IJavaSearchScope scope,
-	final Map binariesFromIndexMatches,
+	final Map<String, IBinaryType> binariesFromIndexMatches,
 	final IPathRequestor pathRequestor,
 	int waitingPolicy,	// WaitUntilReadyToSearch | ForceImmediateSearch | CancelIfNotReadyToSearch
 	IProgressMonitor progressMonitor) {

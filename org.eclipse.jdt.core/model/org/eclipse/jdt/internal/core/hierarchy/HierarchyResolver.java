@@ -479,7 +479,7 @@ public void resolve(IGenericType suppliedType) {
 			reportHierarchy(this.builder.getType(), null, binaryTypeBinding);
 		} else {
 			org.eclipse.jdt.core.ICompilationUnit cu = ((SourceTypeElementInfo)suppliedType).getHandle().getCompilationUnit();
-			HashSet localTypes = new HashSet();
+			HashSet<String> localTypes = new HashSet<String>();
 			localTypes.add(cu.getPath().toString());
 			this.superTypesOnly = true;
 			resolve(new Openable[] {(Openable)cu}, localTypes, null);
