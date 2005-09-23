@@ -35,13 +35,13 @@ import org.eclipse.jdt.internal.core.util.Util;
 public abstract class Evaluator {
 	EvaluationContext context;
 	INameEnvironment environment;
-	Map options;
+	Map<String,String> options;
 	IRequestor requestor;
 	IProblemFactory problemFactory;
 /**
  * Creates a new evaluator.
  */
-Evaluator(EvaluationContext context, INameEnvironment environment, Map options, IRequestor requestor, IProblemFactory problemFactory) {
+Evaluator(EvaluationContext context, INameEnvironment environment, Map<String,String> options, IRequestor requestor, IProblemFactory problemFactory) {
 	this.context = context;
 	this.environment = environment;
 	this.options = options;
@@ -54,7 +54,7 @@ Evaluator(EvaluationContext context, INameEnvironment environment, Map options, 
  * are computed so that they correspond to the given problem. If it is found to be an internal problem,
  * then the evaluation id of the result is the given compilation unit source.
  */
-protected abstract void addEvaluationResultForCompilationProblem(Map resultsByIDs,IProblem problem, char[] cuSource);
+protected abstract void addEvaluationResultForCompilationProblem(Map<char[],EvaluationResult> resultsByIDs,IProblem problem, char[] cuSource);
 /**
  * Returns the evaluation results that converts the given compilation result that has problems.
  * If the compilation result has more than one problem, then the problems are broken down so that
@@ -62,20 +62,17 @@ protected abstract void addEvaluationResultForCompilationProblem(Map resultsByID
  */
 protected EvaluationResult[] evaluationResultsForCompilationProblems(CompilationResult result, char[] cuSource) {
 	// Break down the problems and group them by ids in evaluation results
-	IProblem[] problems = result.getAllProblems();
-	HashMap resultsByIDs = new HashMap(5);
-	for (int i = 0; i < problems.length; i++) {
-		addEvaluationResultForCompilationProblem(resultsByIDs, problems[i], cuSource);
+	HashMap<char[],EvaluationResult> resultsByIDs = new HashMap<char[],EvaluationResult>(5);
+	for (IProblem problem : result.getAllProblems()) {
+		addEvaluationResultForCompilationProblem(resultsByIDs, problem, cuSource);
 	}
 
 	// Copy results
-	int size = resultsByIDs.size();
-	EvaluationResult[] evalResults = new EvaluationResult[size];
-	Iterator results = resultsByIDs.values().iterator();
-	for (int i = 0; i < size; i++) {
-		evalResults[i] = (EvaluationResult)results.next();
+	int i = 0;
+	EvaluationResult[] evalResults = new EvaluationResult[resultsByIDs.size()];
+	for (EvaluationResult evalResult : resultsByIDs.values()) {
+		evalResults[i++] = evalResult;
 	}
-
 	return evalResults;
 }
 /**
@@ -84,7 +81,7 @@ protected EvaluationResult[] evaluationResultsForCompilationProblems(Compilation
  */
 ClassFile[] getClasses() {
 	final char[] source = getSource();
-	final ArrayList classDefinitions = new ArrayList();
+	final ArrayList<ClassFile> classDefinitions = new ArrayList<ClassFile>();
 
 	// The requestor collects the class definitions and problems
 	class CompilerRequestor implements ICompilerRequestor {
@@ -92,32 +89,27 @@ ClassFile[] getClasses() {
 		public void acceptResult(CompilationResult result) {
 			if (result.hasProblems()) {
 				EvaluationResult[] evalResults = evaluationResultsForCompilationProblems(result, source);
-				for (int i = 0; i < evalResults.length; i++) {
-					EvaluationResult evalResult = evalResults[i];
-					IProblem[] problems = evalResult.getProblems();
-					for (int j = 0; j < problems.length; j++) {
-						Evaluator.this.requestor.acceptProblem(problems[j], evalResult.getEvaluationID(), evalResult.getEvaluationType());
+				for (EvaluationResult evalResult : evalResults) {
+					char[] evalID = evalResult.getEvaluationID();
+					int evalType = evalResult.getEvaluationType();
+					for (IProblem problem : evalResult.getProblems()) {
+						Evaluator.this.requestor.acceptProblem(problem, evalID, evalType);
 					}
 				}
 			}
 			if (result.hasErrors()) {
 				this.hasErrors = true;
 			} else {
-				ClassFile[] classFiles = result.getClassFiles();
-				for (int i = 0; i < classFiles.length; i++) {
-					ClassFile classFile = classFiles[i];
-/* 
-			
-					char[] filename = classFile.fileName();
-					int length = filename.length;
-					char[] relativeName = new char[length + 6];
-					System.arraycopy(filename, 0, relativeName, 0, length);
-					System.arraycopy(".class".toCharArray(), 0, relativeName, length, 6);
-					CharOperation.replace(relativeName, '/', java.io.File.separatorChar);
-					ClassFile.writeToDisk("d:/test/snippet", new String(relativeName), classFile.getBytes());
-					String str = "d:/test/snippet" + "/" + new String(relativeName);
-					System.out.println(org.eclipse.jdt.core.tools.classfmt.disassembler.ClassFileDisassembler.disassemble(str));				
- */	
+				for (ClassFile classFile : result.getClassFiles()) {
+//					char[] filename = classFile.fileName();
+//					int length = filename.length;
+//					char[] relativeName = new char[length + 6];
+//					System.arraycopy(filename, 0, relativeName, 0, length);
+//					System.arraycopy(".class".toCharArray(), 0, relativeName, length, 6);
+//					CharOperation.replace(relativeName, '/', java.io.File.separatorChar);
+//					ClassFile.writeToDisk("d:/test/snippet", new String(relativeName), classFile.getBytes());
+//					String str = "d:/test/snippet" + "/" + new String(relativeName);
+//					System.out.println(org.eclipse.jdt.core.tools.classfmt.disassembler.ClassFileDisassembler.disassemble(str));				
 					classDefinitions.add(classFile);
 				}
 			}

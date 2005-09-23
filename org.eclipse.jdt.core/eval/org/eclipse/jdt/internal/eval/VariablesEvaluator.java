@@ -32,13 +32,13 @@ public class VariablesEvaluator extends Evaluator implements EvaluationConstants
 /**
  * Creates a new global variables evaluator.
  */
-VariablesEvaluator(EvaluationContext context, INameEnvironment environment, Map options, IRequestor requestor, IProblemFactory problemFactory) {
+VariablesEvaluator(EvaluationContext context, INameEnvironment environment, Map<String,String> options, IRequestor requestor, IProblemFactory problemFactory) {
 	super(context, environment, options, requestor, problemFactory);
 }
 /**
  * @see org.eclipse.jdt.internal.eval.Evaluator
  */
-protected void addEvaluationResultForCompilationProblem(Map resultsByIDs, IProblem problem, char[] cuSource) {
+protected void addEvaluationResultForCompilationProblem(Map<char[],EvaluationResult> resultsByIDs, IProblem problem, char[] cuSource) {
 	// set evaluation id and type to an internal problem by default
 	char[] evaluationID = cuSource;
 	int evaluationType = EvaluationResult.T_INTERNAL;
@@ -128,7 +128,7 @@ protected void addEvaluationResultForCompilationProblem(Map resultsByIDs, IProbl
 		}
 	}
 
-	EvaluationResult result = (EvaluationResult)resultsByIDs.get(evaluationID);
+	EvaluationResult result = resultsByIDs.get(evaluationID);
 	if (result == null) {
 		resultsByIDs.put(evaluationID, new EvaluationResult(evaluationID, evaluationType, new IProblem[] {problem}));
 	} else {
