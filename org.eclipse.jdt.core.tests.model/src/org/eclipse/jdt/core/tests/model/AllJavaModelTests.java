@@ -183,9 +183,7 @@ private static Class[] getAllTestClasses() {
 	return result;
 }
 
-/**
- * @deprecated JDOM is obsolete
- */
+@Deprecated /* JDOM is obsolete */
 private static Class[] getDeprecatedJDOMTestClasses() {
 	return new Class[] {
 		//Create type source tests

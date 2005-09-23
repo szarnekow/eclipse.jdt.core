@@ -36,6 +36,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 	
 	ICompilationUnit workingCopy;
 	
+	@Override
 	public void setUpSuite() throws Exception {
 		super.setUpSuite();
 		this.ast = AST.newAST(AST.JLS3);
@@ -53,6 +54,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 		return buildTestSuite(ASTConverter15Test.class);
 	}
 	
+	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		if (this.workingCopy != null) {
@@ -303,7 +305,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 		assertTrue("not static", importDeclaration.isStatic());
 	}
 	
-	/** @deprecated using deprecated code */
+	@Deprecated /* using deprecated code */
 	public void test0008() throws JavaModelException {
 		ICompilationUnit sourceUnit = getCompilationUnit("Converter15" , "src", "test0008", "X.java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		ASTNode result = runConversion(AST.JLS2, sourceUnit, true);
@@ -2107,6 +2109,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.SingleVariableDeclaration)
 			 */
+			@Override
 			public boolean visit(SingleVariableDeclaration node) {
 				IVariableBinding binding = node.resolveBinding();
 				assertNotNull("No method", binding.getDeclaringMethod());
@@ -2115,6 +2118,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.VariableDeclarationFragment)
 			 */
+			@Override
 			public boolean visit(VariableDeclarationFragment node) {
 				IVariableBinding binding = node.resolveBinding();
 				ASTNode parent = node.getParent();
@@ -2157,6 +2161,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.FieldAccess)
 			 */
+			@Override
 			public boolean visit(FieldAccess node) {
 				IVariableBinding binding = node.resolveFieldBinding();
 				assertNull("No method", binding.getDeclaringMethod());
@@ -2165,6 +2170,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#endVisit(org.eclipse.jdt.core.dom.SuperFieldAccess)
 			 */
+			@Override
 			public boolean visit(SuperFieldAccess node) {
 				IVariableBinding binding = node.resolveFieldBinding();
 				assertNull("No method", binding.getDeclaringMethod());
@@ -2717,6 +2723,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.SingleVariableDeclaration)
 			 */
+			@Override
 			public boolean visit(SingleVariableDeclaration node) {
 				IVariableBinding binding = node.resolveBinding();
 				assertNotNull("No binding", binding);
@@ -2727,6 +2734,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.VariableDeclarationFragment)
 			 */
+			@Override
 			public boolean visit(VariableDeclarationFragment node) {
 				IVariableBinding binding = node.resolveBinding();
 				assertNotNull("No binding", binding);
@@ -2737,6 +2745,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.FieldAccess)
 			 */
+			@Override
 			public boolean visit(FieldAccess node) {
 				IVariableBinding binding = node.resolveFieldBinding();
 				assertNotNull("No binding", binding);
@@ -2747,6 +2756,7 @@ public class ASTConverter15Test extends ConverterTestSetup {
 			/* (non-Javadoc)
 			 * @see org.eclipse.jdt.core.dom.ASTVisitor#endVisit(org.eclipse.jdt.core.dom.SuperFieldAccess)
 			 */
+			@Override
 			public boolean visit(SuperFieldAccess node) {
 				IVariableBinding binding = node.resolveFieldBinding();
 				assertNotNull("No binding", binding);

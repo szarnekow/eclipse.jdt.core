@@ -12,8 +12,6 @@ package org.eclipse.jdt.core.tests.model;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 
 import junit.framework.Test;
 
@@ -37,6 +35,7 @@ public class ClassFileTests extends ModifyingResourceTests {
 		return buildTestSuite(ClassFileTests.class);
 	}
 
+	@Override
 	public void setUpSuite() throws Exception {
 		super.setUpSuite();
 		IJavaProject javaProject = createJavaProject("P");
@@ -87,6 +86,7 @@ public class ClassFileTests extends ModifyingResourceTests {
 			
 	}
 	
+	@Override
 	public void tearDownSuite() throws Exception {
 		super.tearDownSuite();
 		deleteProject("P");
@@ -200,8 +200,8 @@ public class ClassFileTests extends ModifyingResourceTests {
 
 	/**
 	 * Ensure that the type parameter signatures of a binary method are correct.
-	 * @deprecated
 	 */
+	@Deprecated /* using deprecated code */
 	public void testParameterTypeSignatures6() throws JavaModelException {
 		IType type = this.jarRoot.getPackageFragment("generic").getClassFile("X.class").getType();
 		IMethod method = type.getMethod("foo", new String[] {"TK;", "TV;"});

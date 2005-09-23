@@ -84,6 +84,8 @@ public static Test suite() {
 	return buildTestSuite(ClasspathTests.class);
 	//return buildTestSuite(ClasspathTests.class, "testClasspathValidation02", null);
 }
+
+@Override
 public void setUpSuite() throws Exception {
 	super.setUpSuite();
 	
@@ -1183,7 +1185,7 @@ public void testClasspathValidation20() throws CoreException {
 		System.arraycopy(originalCP, 0, newCP, 0, originalCP.length);
 		newCP[originalCP.length] = JavaCore.newSourceEntry(new Path("/P/src"), new IPath[0], new Path("/S/bin"));
 		
-		Map options = new Hashtable(5);
+		Map<String, String> options = new Hashtable<String, String>(5);
 		options.put(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS, JavaCore.DISABLED);
 		proj.setOptions(options);
 		IJavaModelStatus status = JavaConventions.validateClasspath(proj, newCP, proj.getOutputLocation());
@@ -1208,7 +1210,7 @@ public void testClasspathValidation21() throws CoreException {
 		System.arraycopy(originalCP, 0, newCP, 0, originalCP.length);
 		newCP[originalCP.length] = JavaCore.newSourceEntry(new Path("/P/src"), new IPath[]{new Path("**/src")}, null);
 		
-		Map options = new Hashtable(5);
+		Map<String, String> options = new Hashtable<String, String>(5);
 		options.put(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, JavaCore.DISABLED);
 		proj.setOptions(options);
 		IJavaModelStatus status = JavaConventions.validateClasspath(proj, newCP, proj.getOutputLocation());
@@ -1579,7 +1581,7 @@ public void testClasspathValidation37() throws CoreException {
 		System.arraycopy(originalCP, 0, newCP, 0, originalCP.length);
 		newCP[originalCP.length] = JavaCore.newSourceEntry(new Path("/P/src"), new IPath[]{new Path("**/src")}, new Path[0], null);
 		
-		Map options = new Hashtable(5);
+		Map<String, String> options = new Hashtable<String, String>(5);
 		options.put(JavaCore.CORE_ENABLE_CLASSPATH_EXCLUSION_PATTERNS, JavaCore.DISABLED);
 		proj.setOptions(options);
 		IJavaModelStatus status = JavaConventions.validateClasspath(proj, newCP, proj.getOutputLocation());

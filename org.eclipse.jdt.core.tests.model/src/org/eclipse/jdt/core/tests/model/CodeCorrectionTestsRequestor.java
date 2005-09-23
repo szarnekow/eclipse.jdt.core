@@ -26,16 +26,13 @@ public class CodeCorrectionTestsRequestor implements ICorrectionRequestor {
 		}
 	}
 	
-	private class SuggestionComparator implements Comparator {
-		public int compare(Object o1,Object o2) {
-			Suggestion s1 = (Suggestion)o1;
-			Suggestion s2 = (Suggestion)o2;
-			
-			int result = s1.text.compareTo(s2.text);
+	private class SuggestionComparator<T extends Suggestion> implements Comparator<T> {
+		public int compare(T o1,T o2) {
+			int result = o1.text.compareTo(o2.text);
 			if(result == 0) {
-				result = s1.start - s2.start;
+				result = o1.start - o2.start;
 				if(result == 0) {
-					result = s1.end - s2.end;	
+					result = o1.end - o2.end;	
 				}
 			}
 			return result;
@@ -112,7 +109,7 @@ public class CodeCorrectionTestsRequestor implements ICorrectionRequestor {
 		Object[] unsorted = fSuggestions.toArray();
 		Suggestion[] sorted = new Suggestion[unsorted.length];
 		System.arraycopy(unsorted, 0, sorted, 0, unsorted.length);
-		Arrays.sort(sorted, new SuggestionComparator());
+		Arrays.<Suggestion>sort(sorted, new SuggestionComparator<Suggestion>());
 		return sorted;
 	}
 }

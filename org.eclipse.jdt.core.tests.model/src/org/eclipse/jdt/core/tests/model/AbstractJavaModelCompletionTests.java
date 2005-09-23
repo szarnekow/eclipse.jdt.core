@@ -30,6 +30,7 @@ public abstract class AbstractJavaModelCompletionTests extends AbstractJavaModel
 public AbstractJavaModelCompletionTests(String name) {
 	super(name);
 }
+@Override
 public ICompilationUnit getWorkingCopy(String path, String source) throws JavaModelException {
 	return super.getWorkingCopy(path, source, this.owner, null);
 }
@@ -50,22 +51,26 @@ protected CompletionResult complete(String path, String source, boolean showPosi
 	result.cursorLocation = cursorLocation;
 	return result;
 }
+@Override
 public void setUpSuite() throws Exception {
 	super.setUpSuite();
 	this.oldOptions = JavaCore.getOptions();
 	
 	waitUntilIndexesReady();
 }
+@Override
 protected void setUp() throws Exception {
 	super.setUp();
 	
 	this.owner = new WorkingCopyOwner(){};
 }
+@Override
 public void tearDownSuite() throws Exception {
 	JavaCore.setOptions(oldOptions);
 	
 	super.tearDownSuite();
 }
+@Override
 protected void tearDown() throws Exception {
 	if(this.wc != null) {
 		this.wc.discardWorkingCopy();

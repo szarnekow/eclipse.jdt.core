@@ -127,7 +127,8 @@ public class AbstractASTTests extends ModifyingResourceTests {
 	}
 	
 	public class BindingRequestor extends ASTRequestor {
-		HashMap bindings = new HashMap();
+		HashMap<String, IBinding> bindings = new HashMap<String, IBinding>();
+		@Override
 		public void acceptBinding(String bindingKey, IBinding binding) {
 			this.bindings.put(bindingKey, binding);
 		}
@@ -135,7 +136,7 @@ public class AbstractASTTests extends ModifyingResourceTests {
 			int length = this.bindings.size();
 			IBinding[] result = new IBinding[length];
 			for (int i = 0; i < length; i++) {
-				result[i] = (IBinding) this.bindings.get(bindingKeys[i]);
+				result[i] = this.bindings.get(bindingKeys[i]);
 			}
 			return result;
 		}
@@ -366,7 +367,8 @@ public class AbstractASTTests extends ModifyingResourceTests {
 	
 	protected ASTNode[] findNodes(CompilationUnit unit, final MarkerInfo markerInfo) {
 		class Visitor extends ASTVisitor {
-			ArrayList found = new ArrayList();
+			ArrayList<ASTNode> found = new ArrayList<ASTNode>();
+			@Override
 			public void preVisit(ASTNode node) {
 				if (node instanceof CompilationUnit) return;
 				int index = markerInfo.indexOfASTStart(node.getStartPosition());

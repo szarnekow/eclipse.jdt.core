@@ -67,6 +67,7 @@ public class ASTModelBridgeTests extends AbstractASTTests {
 		return parser.createBindings(elements, null);
 	}
 	
+	@Override
 	public void setUpSuite() throws Exception {
 		super.setUpSuite();
 		IJavaProject project = createJavaProject("P", new String[] {"src"}, new String[] {"JCL15_LIB,JCL15_SRC", "/P/lib"}, "bin", "1.5");
@@ -120,6 +121,7 @@ public class ASTModelBridgeTests extends AbstractASTTests {
 			null);
 	}
 	
+	@Override
 	public void tearDownSuite() throws Exception {
 		if (this.workingCopy != null)
 			this.workingCopy.discardWorkingCopy();

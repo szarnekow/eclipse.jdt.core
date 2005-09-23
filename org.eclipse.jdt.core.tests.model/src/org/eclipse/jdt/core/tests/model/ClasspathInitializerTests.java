@@ -26,13 +26,13 @@ import junit.framework.Test;
 public class ClasspathInitializerTests extends ModifyingResourceTests {
 	
 public static class DefaultVariableInitializer implements VariablesInitializer.ITestInitializer {
-	Map variableValues;
+	Map<String, Path> variableValues;
 	
 	/*
 	 * values is [<var name>, <var value>]*
 	 */
 	public DefaultVariableInitializer(String[] values) {
-		variableValues = new HashMap();
+		variableValues = new HashMap<String, Path>();
 		for (int i = 0; i < values.length; i+=2) {
 			variableValues.put(values[i], new Path(values[i+1]));
 		}
@@ -42,7 +42,7 @@ public static class DefaultVariableInitializer implements VariablesInitializer.I
 		if (variableValues == null) return;
 		JavaCore.setClasspathVariable(
 			variable, 
-			(IPath)variableValues.get(variable), 
+			variableValues.get(variable), 
 			null);
 	}
 }
@@ -78,14 +78,14 @@ public static class DefaultContainerInitializer implements ContainerInitializer.
 		}
 	}
 	
-	Map containerValues;
+	Map<String, DefaultContainer> containerValues;
 	CoreException exception;
 	
 	/*
 	 * values is [<project name>, <lib path>[,<lib path>]* ]*
 	 */
 	public DefaultContainerInitializer(String[] values) {
-		containerValues = new HashMap();
+		containerValues = new HashMap<String, DefaultContainer>();
 		for (int i = 0; i < values.length; i+=2) {
 			final String projectName = values[i];
 			final char[][] libPaths = CharOperation.splitOn(',', values[i+1].toCharArray());
@@ -104,7 +104,7 @@ public static class DefaultContainerInitializer implements ContainerInitializer.
 			JavaCore.setClasspathContainer(
 				containerPath, 
 				new IJavaProject[] {project},
-				new IClasspathContainer[] {(IClasspathContainer)containerValues.get(project.getElementName())}, 
+				new IClasspathContainer[] {containerValues.get(project.getElementName())}, 
 				null);
 		} catch (CoreException e) {
 			this.exception = e;
@@ -142,6 +142,8 @@ static {
 	// Range numbers of tests to run: all tests between "test<first>" and "test<last>" will be run for { first, last }
 //		TESTS_RANGE = new int[] { 16, -1 };
 }
+
+@Override
 protected void tearDown() throws Exception {
 	// Cleanup caches
 	JavaModelManager manager = JavaModelManager.getJavaModelManager();
@@ -377,6 +379,7 @@ public void testContainerInitializer07() throws CoreException {
 		boolean gotException = false;
 		try {
 			ContainerInitializer.setInitializer(new DefaultContainerInitializer(new String[] {"P1", "/P1/lib.jar"}) {
+				@Override
 				public void initialize(IPath containerPath, IJavaProject project) throws CoreException {
 					throw new OperationCanceledException("test");
 				}});
@@ -412,6 +415,7 @@ public void testContainerInitializer08() throws CoreException {
 			projectRefs[(i*2)+1] = "/P" + i + "/test.jar";
 		}
 		ContainerInitializer.setInitializer(new DefaultContainerInitializer(projectRefs) {
+			
 			void foo(int n) {
 				if (n > 0) {
 					foo(n-1);
@@ -426,6 +430,8 @@ public void testContainerInitializer08() throws CoreException {
 					}
 				}
 			}
+			
+			@Override
 			public void initialize(IPath containerPath, IJavaProject project) throws CoreException {
 				foo(500);
 				super.initialize(containerPath, project);
@@ -482,8 +488,12 @@ public void testContainerInitializer08() throws CoreException {
 public void testContainerInitializer09() throws CoreException {
 	try {
 		ClasspathInitializerTests.DefaultContainerInitializer initializer = new ClasspathInitializerTests.DefaultContainerInitializer(new String[] {"P1", "/P1/lib.jar"}) {
+			
+			@Override
 			protected DefaultContainer newContainer(char[][] libPaths) {
 				return new DefaultContainer(libPaths) {
+					
+					@Override
 					public IClasspathEntry[] getClasspathEntries() {
 						try {
 							getJavaProject("P1").getResolvedClasspath(true);
@@ -554,6 +564,8 @@ public void testContainerInitializer10() throws CoreException {
 		final IJavaProject p1 = createJavaProject("P1");
 		final IJavaProject p2 = createJavaProject("P2");
 		ContainerInitializer.setInitializer(new DefaultContainerInitializer(new String[] {"P3", "/P1"}) {
+			
+			@Override
 	        public void initialize(IPath containerPath, IJavaProject project) throws CoreException {
 	            super.initialize(containerPath, project);
 	            getJavaModel().refreshExternalArchives(new IJavaElement[] {p1}, null);
@@ -619,6 +631,8 @@ public void testContainerInitializer11() throws CoreException {
 			"");
 		simulateExitRestart();
 		ClasspathInitializerTests.DefaultContainerInitializer initializer = new ClasspathInitializerTests.DefaultContainerInitializer(new String[] {}) {
+			
+			@Override
 			public void initialize(IPath containerPath,IJavaProject project) throws CoreException {
 				assertTrue("Should not initialize container on shutdown", false);
 			}
@@ -825,6 +839,8 @@ public void testVariableInitializer8() throws CoreException {
 		boolean gotException = false;
 		try {
 			VariablesInitializer.setInitializer(new DefaultVariableInitializer(new String[] {"TEST_LIB", "/P1/lib.jar"}) {
+				
+				@Override
 				public void initialize(String variable) throws JavaModelException {
 					throw new OperationCanceledException("test");
 				}

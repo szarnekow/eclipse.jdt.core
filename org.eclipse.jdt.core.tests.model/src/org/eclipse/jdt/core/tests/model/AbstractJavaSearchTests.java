@@ -54,6 +54,8 @@ public class AbstractJavaSearchTests extends AbstractJavaModelTests implements I
 		public boolean showProject;
 		public boolean showSynthetic;
 		public int count = 0;
+		
+		@Override
 		public void acceptSearchMatch(SearchMatch match) throws CoreException {
 			count++;
 			try {
@@ -332,6 +334,8 @@ public class AbstractJavaSearchTests extends AbstractJavaModelTests implements I
 			}
 			return contents;
 		}
+		
+		@Override
 		public String toString() {
 			return results.toString();
 		}
@@ -388,6 +392,7 @@ public class AbstractJavaSearchTests extends AbstractJavaModelTests implements I
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.tests.model.AbstractJavaModelTests#copyDirectory(java.io.File, java.io.File)
 	 */
+	@Override
 	protected void copyDirectory(File sourceDir, File targetDir) throws IOException {
 		if (COPY_DIRS) {
 			super.copyDirectory(sourceDir, targetDir);
@@ -419,7 +424,7 @@ public class AbstractJavaSearchTests extends AbstractJavaModelTests implements I
 		IJavaElement[] searchPackages = null;
 		if (addSubpackages) {
 			// Create list of package with first found one
-			List packages = new ArrayList();
+			List<IPackageFragment> packages = new ArrayList<IPackageFragment>();
 			packages.add(fragment);
 			// Add all possible subpackages
 			IJavaElement[] children= ((IPackageFragmentRoot)fragment.getParent()).getChildren();
@@ -459,6 +464,8 @@ public class AbstractJavaSearchTests extends AbstractJavaModelTests implements I
 	protected void search(IJavaElement element, int limitTo, int matchRule, IJavaSearchScope scope) throws CoreException {
 		search(element, limitTo, matchRule, scope, resultCollector);
 	}
+	
+	@Override
 	protected void search(IJavaElement element, int limitTo, int matchRule, IJavaSearchScope scope, SearchRequestor requestor) throws CoreException {
 		SearchPattern pattern = SearchPattern.createPattern(element, limitTo, matchRule);
 		assertNotNull("Pattern should not be null", pattern);
@@ -484,6 +491,8 @@ public class AbstractJavaSearchTests extends AbstractJavaModelTests implements I
 	protected void search(String patternString, int searchFor, int limitTo, int matchRule, IJavaSearchScope scope) throws CoreException {
 		search(patternString, searchFor, limitTo, matchRule, scope, resultCollector);
 	}
+	
+	@Override
 	protected void search(String patternString, int searchFor, int limitTo, int matchRule, IJavaSearchScope scope, SearchRequestor requestor) throws CoreException {
 		if (patternString.indexOf('*') != -1 || patternString.indexOf('?') != -1) {
 			matchRule |= SearchPattern.R_PATTERN_MATCH;
@@ -510,6 +519,8 @@ public class AbstractJavaSearchTests extends AbstractJavaModelTests implements I
 	protected void searchDeclarationsOfSentMessages(IJavaElement enclosingElement, SearchRequestor requestor) throws JavaModelException {
 		new SearchEngine().searchDeclarationsOfSentMessages(enclosingElement, requestor, null);
 	}
+	
+	@Override
 	protected void setUp () throws Exception {
 		super.setUp();
 		this.resultCollector = new JavaSearchResultCollector();

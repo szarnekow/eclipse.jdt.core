@@ -1269,9 +1269,9 @@ assertEqualString(preview, buf.toString());
 		TypeDeclaration type= findTypeDeclaration(astRoot, "E");
 		
 		MethodDeclaration[] methods= type.getMethods();
-		Arrays.sort(methods, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				return ((MethodDeclaration) o1).getName().getIdentifier().compareTo(((MethodDeclaration) o2).getName().getIdentifier());
+		Arrays.<MethodDeclaration>sort(methods, new Comparator<MethodDeclaration>() {
+			public int compare(MethodDeclaration m1, MethodDeclaration m2) {
+				return m1.getName().getIdentifier().compareTo(m2.getName().getIdentifier());
 			}
 		});
 		

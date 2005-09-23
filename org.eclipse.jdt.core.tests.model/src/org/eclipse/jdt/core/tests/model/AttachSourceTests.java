@@ -35,7 +35,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 */
 public class AttachSourceTests extends ModifyingResourceTests {
 
-	/** @deprecated using deprecated code */
+	@Deprecated /* using deprecated code */
 	private static final int AST_INTERNAL_JLS2 = AST.JLS2;
 	
 	private IPackageFragmentRoot pkgFragmentRoot;
@@ -55,13 +55,17 @@ public ASTNode runConversion(IClassFile classFile, boolean resolveBindings) {
 	parser.setWorkingCopyOwner(null);
 	return parser.createAST(null);
 }
+
+@Override
 protected void setUp() throws Exception {
 	super.setUp();
 	this.attachSource(this.pkgFragmentRoot, "/AttachSourceTests/attachsrc.zip", "");
 }
+
 /**
  * Create project and set the jar placeholder.
  */
+@Override
 public void setUpSuite() throws Exception {
 	super.setUpSuite();
 	
@@ -113,6 +117,8 @@ private void setUpInnerClassesJar() throws IOException, CoreException {
 	IFile jar = getFile("/AttachSourceTests/innerClasses.jar");
 	this.innerClasses = project.getPackageFragmentRoot(jar).getPackageFragment("inner");
 }
+
+@Override
 protected void tearDown() throws Exception {
 	IJavaProject project = this.getJavaProject("/AttachSourceTests");
 	IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
@@ -130,6 +136,7 @@ protected void tearDown() throws Exception {
 /**
  * Reset the jar placeholder and delete project.
  */
+@Override
 public void tearDownSuite() throws Exception {
 	this.deleteProject("AttachSourceTests");
 	super.tearDown();

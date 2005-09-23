@@ -108,6 +108,7 @@ public abstract class AbstractJavaModelTests extends SuiteOfTestCases {
 			};
 			org.eclipse.jdt.internal.core.util.Util.sort(elementDeltas, comparer);
 		}
+		@Override
 		public String toString() {
 			StringBuffer buffer = new StringBuffer();
 			for (int i=0, length= this.deltas.length; i<length; i++) {
@@ -433,7 +434,7 @@ protected void assertDeltas(String message, String expected) {
 	 */
 	protected void attachSource(IPackageFragmentRoot root, String sourcePath, String sourceRoot) throws JavaModelException {
 		IJavaProject javaProject = root.getJavaProject();
-		IClasspathEntry[] entries = (IClasspathEntry[])javaProject.getRawClasspath().clone();
+		IClasspathEntry[] entries = javaProject.getRawClasspath().clone();
 		for (int i = 0; i < entries.length; i++){
 			IClasspathEntry entry = entries[i];
 			if (entry.getPath().toOSString().toLowerCase().equals(root.getPath().toOSString().toLowerCase())) {
@@ -951,7 +952,7 @@ protected void assertDeltas(String message, String expected) {
 				
 				// set compliance level options
 				if ("1.5".equals(compliance)) {
-					Map options = new HashMap();
+					Map<String, String> options = new HashMap<String, String>();
 					options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
 					options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);	
 					options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_5);	
@@ -1839,7 +1840,7 @@ protected void assertDeltas(String message, String expected) {
 		IJavaProject javaProject = JavaCore.create(project);
 		if ("1.5".equals(compliance)) {
 			// set options
-			Map options = new HashMap();
+			Map<String, String> options = new HashMap<String, String>();
 			options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
 			options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);	
 			options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_5);	
@@ -1889,6 +1890,7 @@ protected void assertDeltas(String message, String expected) {
 			} 
 		}	
 	}
+	@Override
 	public void setUpSuite() throws Exception {
 		super.setUpSuite();
 		
@@ -1899,6 +1901,7 @@ protected void assertDeltas(String message, String expected) {
 			getWorkspace().setDescription(description);
 		}
 	}
+	@Override
 	protected void setUp () throws Exception {
 		super.setUp();
 		if (discard) {
@@ -2003,6 +2006,7 @@ protected void assertDeltas(String message, String expected) {
 		}
 		return buffer.toString();
 	}
+	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		if (discard && workingCopies != null) {
@@ -2038,6 +2042,7 @@ protected void assertDeltas(String message, String expected) {
 				IJavaSearchConstants.CLASS,
 				scope, 
 				new TypeNameRequestor() {
+					@Override
 					public void acceptType(
 						int modifiers,
 						char[] packageName,
