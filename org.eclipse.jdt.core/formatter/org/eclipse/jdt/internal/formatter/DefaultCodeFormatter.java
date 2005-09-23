@@ -68,11 +68,11 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		return null;
 	}
 	private CodeSnippetParsingUtil codeSnippetParsingUtil;
-	private Map defaultCompilerOptions;
+	private Map<String,String> defaultCompilerOptions;
 	
 	private CodeFormatterVisitor newCodeFormatter;
 	private CodeFormatterVisitor2 newCodeFormatter2;
-	private Map options;
+	private Map<String,String> options;
 	
 	private DefaultCodeFormatterOptions preferences;
 	
@@ -84,7 +84,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		this(preferences, null);
 	}
 
-	public DefaultCodeFormatter(DefaultCodeFormatterOptions defaultCodeFormatterOptions, Map options) {
+	public DefaultCodeFormatter(DefaultCodeFormatterOptions defaultCodeFormatterOptions, Map<String,String> options) {
 		if (options != null) {
 			this.options = options;
 			this.preferences = new DefaultCodeFormatterOptions(options);
@@ -98,7 +98,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		}
 	}
 
-	public DefaultCodeFormatter(Map options) {
+	public DefaultCodeFormatter(Map<String,String> options) {
 		this(null, options);
 	}
 	
@@ -280,9 +280,9 @@ public class DefaultCodeFormatter extends CodeFormatter {
 		return this.newCodeFormatter.scribe.toString();
 	}
 
-	private Map getDefaultCompilerOptions() {
+	private Map<String,String> getDefaultCompilerOptions() {
 		if (this.defaultCompilerOptions ==  null) {
-			Map optionsMap = new HashMap(30);
+			Map<String,String> optionsMap = new HashMap<String,String>(30);
 			optionsMap.put(CompilerOptions.OPTION_LocalVariableAttribute, CompilerOptions.DO_NOT_GENERATE); 
 			optionsMap.put(CompilerOptions.OPTION_LineNumberAttribute, CompilerOptions.DO_NOT_GENERATE);
 			optionsMap.put(CompilerOptions.OPTION_SourceFileAttribute, CompilerOptions.DO_NOT_GENERATE);
@@ -340,7 +340,7 @@ public class DefaultCodeFormatter extends CodeFormatter {
 			optionsMap.put(CompilerOptions.OPTION_InlineJsr, CompilerOptions.DISABLED); 
 			this.defaultCompilerOptions = optionsMap;
 		}
-		Object sourceOption = this.options.get(CompilerOptions.OPTION_Source);
+		String sourceOption = this.options.get(CompilerOptions.OPTION_Source);
 		if (sourceOption != null) {
 			this.defaultCompilerOptions.put(CompilerOptions.OPTION_Source, sourceOption);
 		} else {

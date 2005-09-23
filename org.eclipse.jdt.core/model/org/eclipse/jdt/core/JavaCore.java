@@ -2397,7 +2397,7 @@ public final class JavaCore extends Plugin {
 	 * @see #getDefaultOptions()
 	 * @see JavaCorePreferenceInitializer for changing default settings
 	 */
-	public static Hashtable getOptions() {
+	public static Hashtable<String,String> getOptions() {
 		return JavaModelManager.getJavaModelManager().getOptions();
 	}
 

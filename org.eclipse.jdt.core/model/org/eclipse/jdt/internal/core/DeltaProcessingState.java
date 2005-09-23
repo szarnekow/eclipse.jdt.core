@@ -76,7 +76,7 @@ public class DeltaProcessingState implements IResourceChangeListener {
 	/* Threads that are currently running initializeRoots() */
 	private Set initializingThreads = Collections.synchronizedSet(new HashSet());	
 	
-	public Hashtable externalTimeStamps;
+	public Hashtable<IPath, Long> externalTimeStamps;
 	
 	public HashMap projectUpdates = new HashMap();
 
@@ -439,9 +439,9 @@ public class DeltaProcessingState implements IResourceChangeListener {
 
 	}
 	
-	public Hashtable getExternalLibTimeStamps() {
+	public Hashtable<IPath, Long> getExternalLibTimeStamps() {
 		if (this.externalTimeStamps == null) {
-			Hashtable timeStamps = new Hashtable();
+			Hashtable<IPath, Long> timeStamps = new Hashtable<IPath, Long>();
 			File timestampsFile = getTimeStampsFile();
 			DataInputStream in = null;
 			try {

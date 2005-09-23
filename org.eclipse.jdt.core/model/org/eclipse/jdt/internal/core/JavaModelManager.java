@@ -68,23 +68,23 @@ public class JavaModelManager implements ISaveParticipant {
 	/**
 	 * Classpath variables pool
 	 */
-	public HashMap variables = new HashMap(5);
-	public HashMap previousSessionVariables = new HashMap(5);
-	private ThreadLocal variableInitializationInProgress = new ThreadLocal();
+	public HashMap<String, IPath> variables = new HashMap<String, IPath>(5);
+	public HashMap<String, IPath> previousSessionVariables = new HashMap<String, IPath>(5);
+	private ThreadLocal<HashSet<String>> variableInitializationInProgress = new ThreadLocal<HashSet<String>>();
 		
 	/**
 	 * Classpath containers pool
 	 */
-	public HashMap containers = new HashMap(5);
-	public HashMap previousSessionContainers = new HashMap(5);
-	private ThreadLocal containerInitializationInProgress = new ThreadLocal();
+	public HashMap<IJavaProject, Map<IPath, IClasspathContainer>> containers = new HashMap<IJavaProject, Map<IPath, IClasspathContainer>>(5);
+	public HashMap<IJavaProject, Map<IPath, IClasspathContainer>> previousSessionContainers = new HashMap<IJavaProject, Map<IPath, IClasspathContainer>>(5);
+	private ThreadLocal<Map<IJavaProject, HashSet<IPath>>> containerInitializationInProgress = new ThreadLocal<Map<IJavaProject, HashSet<IPath>>>();
 	public boolean batchContainerInitializations = false;
 	public HashMap containerInitializersCache = new HashMap(5);
 	
 	/*
 	 * A HashSet that contains the IJavaProject whose classpath is being resolved.
 	 */
-	private ThreadLocal classpathsBeingResolved = new ThreadLocal();
+	private ThreadLocal<HashSet<IJavaProject>> classpathsBeingResolved = new ThreadLocal<HashSet<IJavaProject>>();
 	
 	/*
 	 * The unique workspace scope
@@ -168,8 +168,8 @@ public class JavaModelManager implements ISaveParticipant {
 	public final static ICompilationUnit[] NO_WORKING_COPY = new ICompilationUnit[0];
 	
 	// Preferences
-	HashSet optionNames = new HashSet(20);
-	Hashtable optionsCache;
+	HashSet<String> optionNames = new HashSet<String>(20);
+	Hashtable<String, String> optionsCache;
 
 	public final IEclipsePreferences[] preferencesLookup = new IEclipsePreferences[2];
 	static final int PREF_INSTANCE = 0;
@@ -213,23 +213,23 @@ public class JavaModelManager implements ISaveParticipant {
 
 	public synchronized IClasspathContainer containerGet(IJavaProject project, IPath containerPath) {	
 		// check initialization in progress first
-		HashSet projectInitializations = containerInitializationInProgress(project);
+		HashSet<IPath> projectInitializations = containerInitializationInProgress(project);
 		if (projectInitializations.contains(containerPath)) {
 			return CONTAINER_INITIALIZATION_IN_PROGRESS;
 		}
 		
-		Map projectContainers = (Map)this.containers.get(project);
+		Map<IPath,IClasspathContainer> projectContainers = this.containers.get(project);
 		if (projectContainers == null){
 			return null;
 		}
-		IClasspathContainer container = (IClasspathContainer)projectContainers.get(containerPath);
+		IClasspathContainer container = projectContainers.get(containerPath);
 		return container;
 	}
 	
-	private synchronized Map containerClone(IJavaProject project) {
-		Map originalProjectContainers = (Map)this.containers.get(project);
+	private synchronized Map<IPath, IClasspathContainer> containerClone(IJavaProject project) {
+		Map<IPath, IClasspathContainer> originalProjectContainers = this.containers.get(project);
 		if (originalProjectContainers == null) return null;
-		Map projectContainers = new HashMap(originalProjectContainers.size());
+		Map<IPath, IClasspathContainer> projectContainers = new HashMap<IPath, IClasspathContainer>(originalProjectContainers.size());
 		projectContainers.putAll(originalProjectContainers);
 		return projectContainers;
 	}
@@ -237,15 +237,15 @@ public class JavaModelManager implements ISaveParticipant {
 	/*
 	 * Returns the set of container paths for the given project that are being initialized in the current thread.
 	 */
-	private HashSet containerInitializationInProgress(IJavaProject project) {
-		Map initializations = (Map)this.containerInitializationInProgress.get();
+	private HashSet<IPath> containerInitializationInProgress(IJavaProject project) {
+		Map<IJavaProject, HashSet<IPath>> initializations = this.containerInitializationInProgress.get();
 		if (initializations == null) {
-			initializations = new HashMap();
+			initializations = new HashMap<IJavaProject, HashSet<IPath>>();
 			this.containerInitializationInProgress.set(initializations);
 		}
-		HashSet projectInitializations = (HashSet)initializations.get(project);
+		HashSet<IPath> projectInitializations = initializations.get(project);
 		if (projectInitializations == null) {
-			projectInitializations = new HashSet();
+			projectInitializations = new HashSet<IPath>();
 			initializations.put(project, projectInitializations);
 		}
 		return projectInitializations;
@@ -255,7 +255,7 @@ public class JavaModelManager implements ISaveParticipant {
 
 		// set/unset the initialization in progress
 		if (container == CONTAINER_INITIALIZATION_IN_PROGRESS) {
-			HashSet projectInitializations = containerInitializationInProgress(project);
+			HashSet<IPath> projectInitializations = containerInitializationInProgress(project);
 			projectInitializations.add(containerPath);
 			
 			// do not write out intermediate initialization value
@@ -263,9 +263,9 @@ public class JavaModelManager implements ISaveParticipant {
 		} else {
 			containerRemoveInitializationInProgress(project, containerPath);
 
-			Map projectContainers = (Map)this.containers.get(project);
+			Map<IPath, IClasspathContainer> projectContainers = this.containers.get(project);
 			if (projectContainers == null){
-				projectContainers = new HashMap(1);
+				projectContainers = new HashMap<IPath, IClasspathContainer>(1);
 				this.containers.put(project, projectContainers);
 			}
 	
@@ -275,7 +275,7 @@ public class JavaModelManager implements ISaveParticipant {
    				projectContainers.put(containerPath, container);
 			}
 			// discard obsoleted information about previous session
-			Map previousContainers = (Map)this.previousSessionContainers.get(project);
+			Map<IPath,IClasspathContainer> previousContainers = this.previousSessionContainers.get(project);
 			if (previousContainers != null){
 				previousContainers.remove(containerPath);
 			}
@@ -372,10 +372,10 @@ public class JavaModelManager implements ISaveParticipant {
 	}
 	
 	private void containerRemoveInitializationInProgress(IJavaProject project, IPath containerPath) {
-		HashSet projectInitializations = containerInitializationInProgress(project);
+		HashSet<IPath> projectInitializations = containerInitializationInProgress(project);
 		projectInitializations.remove(containerPath);
 		if (projectInitializations.size() == 0) {
-			Map initializations = (Map)this.containerInitializationInProgress.get();
+			Map<IJavaProject,HashSet<IPath>> initializations = this.containerInitializationInProgress.get();
 			initializations.remove(project);
 		}
 	}
@@ -383,14 +383,10 @@ public class JavaModelManager implements ISaveParticipant {
 	private synchronized void containersReset(String[] containerIDs) {
 		for (int i = 0; i < containerIDs.length; i++) {
 			String containerID = containerIDs[i];
-			Iterator projectIterator = this.containers.keySet().iterator();
-			while (projectIterator.hasNext()){
-				IJavaProject project = (IJavaProject)projectIterator.next();
-				Map projectContainers = (Map)this.containers.get(project);
+			for (IJavaProject project : this.containers.keySet()) {
+				Map<IPath, IClasspathContainer> projectContainers = this.containers.get(project);
 				if (projectContainers != null){
-					Iterator containerIterator = projectContainers.keySet().iterator();
-					while (containerIterator.hasNext()){
-						IPath containerPath = (IPath)containerIterator.next();
+					for (IPath containerPath : projectContainers.keySet()) {
 						if (containerPath.segment(0).equals(containerID)) { // registered container
 							projectContainers.put(containerPath, null); // reset container value, but leave entry in Map
 						}
@@ -659,12 +655,12 @@ public class JavaModelManager implements ISaveParticipant {
 	/*
 	 * Temporary cache of newly opened elements
 	 */
-	private ThreadLocal temporaryCache = new ThreadLocal();
+	private ThreadLocal<HashMap<IJavaElement,Object>> temporaryCache = new ThreadLocal<HashMap<IJavaElement,Object>>();
 
 	/**
 	 * Set of elements which are out of sync with their buffers.
 	 */
-	protected Map elementsOutOfSynchWithBuffers = new HashMap(11);
+	protected Map<Openable,Openable> elementsOutOfSynchWithBuffers = new HashMap<Openable,Openable>(11);
 	
 	/**
 	 * Holds the state used for delta processing.
@@ -677,18 +673,18 @@ public class JavaModelManager implements ISaveParticipant {
 	 * Table from IProject to PerProjectInfo.
 	 * NOTE: this object itself is used as a lock to synchronize creation/removal of per project infos
 	 */
-	protected Map perProjectInfos = new HashMap(5);
+	protected Map<IProject, PerProjectInfo> perProjectInfos = new HashMap<IProject, PerProjectInfo>(5);
 	
 	/**
 	 * Table from WorkingCopyOwner to a table of ICompilationUnit (working copy handle) to PerWorkingCopyInfo.
 	 * NOTE: this object itself is used as a lock to synchronize creation/removal of per working copy infos
 	 */
-	protected Map perWorkingCopyInfos = new HashMap(5);
+	protected Map<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>> perWorkingCopyInfos = new HashMap<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>>(5);
 	
 	/**
 	 * A weak set of the known search scopes.
 	 */
-	protected WeakHashMap searchScopes = new WeakHashMap();
+	protected WeakHashMap<AbstractSearchScope,Object> searchScopes = new WeakHashMap<AbstractSearchScope,Object>();
 
 	public static class PerProjectInfo {
 		
@@ -697,11 +693,11 @@ public class JavaModelManager implements ISaveParticipant {
 		public boolean triedRead;
 		public IClasspathEntry[] rawClasspath;
 		public IClasspathEntry[] resolvedClasspath;
-		public Map resolvedPathToRawEntries; // reverse map from resolved path to raw entries
+		public Map<IPath,IClasspathEntry> resolvedPathToRawEntries; // reverse map from resolved path to raw entries
 		public IPath outputLocation;
 		
 		public IEclipsePreferences preferences;
-		public Hashtable options;
+		public Hashtable<String,String> options;
 		
 		public PerProjectInfo(IProject project) {
 
@@ -714,7 +710,7 @@ public class JavaModelManager implements ISaveParticipant {
 			IClasspathEntry[] classpath = this.resolvedClasspath;
 			if (classpath == null) return;
 			IWorkspaceRoot wRoot = ResourcesPlugin.getWorkspace().getRoot();
-			Map externalTimeStamps = JavaModelManager.getJavaModelManager().deltaState.getExternalLibTimeStamps();
+			Map<IPath, Long> externalTimeStamps = JavaModelManager.getJavaModelManager().deltaState.getExternalLibTimeStamps();
 			for (int i = 0, length = classpath.length; i < length; i++) {
 				IClasspathEntry entry = classpath[i];
 				if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
@@ -818,7 +814,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 * A cache of opened zip files per thread.
 	 * (for a given thread, the object value is a HashMap from IPath to java.io.ZipFile)
 	 */
-	private ThreadLocal zipFiles = new ThreadLocal();
+	private ThreadLocal<HashMap<IPath, ZipFile>> zipFiles = new ThreadLocal<HashMap<IPath, ZipFile>>();
 	
 	
 	/**
@@ -855,7 +851,8 @@ public class JavaModelManager implements ISaveParticipant {
 	/**
 	 * @deprecated
 	 */
-	private void addDeprecatedOptions(Hashtable options) {
+	@Deprecated
+	private void addDeprecatedOptions(Hashtable<String, String> options) {
 		options.put(JavaCore.COMPILER_PB_INVALID_IMPORT, JavaCore.ERROR);		
 		options.put(JavaCore.COMPILER_PB_UNREACHABLE_CODE, JavaCore.ERROR);
 	}
@@ -866,7 +863,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 */
 	public void cacheZipFiles() {
 		if (this.zipFiles.get() != null) return;
-		this.zipFiles.set(new HashMap());
+		this.zipFiles.set(new HashMap<IPath, ZipFile>());
 	}
 	public void closeZipFile(ZipFile zipFile) {
 		if (zipFile == null) return;
@@ -972,10 +969,10 @@ public class JavaModelManager implements ISaveParticipant {
 		PerWorkingCopyInfo info = null;
 		synchronized(this.perWorkingCopyInfos) {
 			WorkingCopyOwner owner = workingCopy.owner;
-			Map workingCopyToInfos = (Map)this.perWorkingCopyInfos.get(owner);
+			Map<CompilationUnit,PerWorkingCopyInfo> workingCopyToInfos = this.perWorkingCopyInfos.get(owner);
 			if (workingCopyToInfos == null) return -1;
 			
-			info = (PerWorkingCopyInfo)workingCopyToInfos.get(workingCopy);
+			info = workingCopyToInfos.get(workingCopy);
 			if (info == null) return -1;
 			
 			if (--info.useCount == 0) {
@@ -1015,20 +1012,18 @@ public class JavaModelManager implements ISaveParticipant {
 	 */
 	public void flushZipFiles() {
 		Thread currentThread = Thread.currentThread();
-		HashMap map = (HashMap)this.zipFiles.get();
+		HashMap<IPath,ZipFile> map = this.zipFiles.get();
 		if (map == null) return;
 		this.zipFiles.set(null);
-		Iterator iterator = map.values().iterator();
-		while (iterator.hasNext()) {
+		for (ZipFile zipFile : map.values()) {
 			try {
-				ZipFile zipFile = (ZipFile)iterator.next();
 				if (JavaModelManager.ZIP_ACCESS_VERBOSE) {
 					System.out.println("(" + currentThread + ") [JavaModelManager.flushZipFiles()] Closing ZipFile on " +zipFile.getName()); //$NON-NLS-1$//$NON-NLS-2$
 				}
 				zipFile.close();
 			} catch (IOException e) {
 				// problem occured closing zip file: cannot do much more
-			}
+			}			
 		}
 	}
 	
@@ -1055,7 +1050,7 @@ public class JavaModelManager implements ISaveParticipant {
 	/** 
 	 * Returns the set of elements which are out of synch with their buffers.
 	 */
-	protected Map getElementsOutOfSynchWithBuffers() {
+	protected Map<Openable,Openable> getElementsOutOfSynchWithBuffers() {
 		return this.elementsOutOfSynchWithBuffers;
 	}
 
@@ -1067,7 +1062,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 *  Returns the info for the element.
 	 */
 	public synchronized Object getInfo(IJavaElement element) {
-		HashMap tempCache = (HashMap)this.temporaryCache.get();
+		HashMap<IJavaElement,Object> tempCache = this.temporaryCache.get();
 		if (tempCache != null) {
 			Object result = tempCache.get(element);
 			if (result != null) {
@@ -1084,9 +1079,9 @@ public class JavaModelManager implements ISaveParticipant {
 		return preferencesLookup[PREF_INSTANCE];
 	}
  
-	public Hashtable getDefaultOptions(){
+	public Hashtable<String, String> getDefaultOptions(){
 	
-		Hashtable defaultOptions = new Hashtable(10);
+		Hashtable<String, String> defaultOptions = new Hashtable<String, String>(10);
 
 		// see JavaCorePreferenceInitializer#initializeDefaultPluginPreferences() for changing default settings
 		IEclipsePreferences defaultPreferences = getDefaultPreferences();
@@ -1171,13 +1166,13 @@ public class JavaModelManager implements ISaveParticipant {
 		return null;
 	}
 	
-	public Hashtable getOptions() {
+	public Hashtable<String, String> getOptions() {
 
 		// return cached options if already computed
-		if (this.optionsCache != null) return new Hashtable(this.optionsCache);
+		if (this.optionsCache != null) return new Hashtable<String, String>(this.optionsCache);
 
 		// init
-		Hashtable options = new Hashtable(10);
+		Hashtable<String, String> options = new Hashtable<String, String>(10);
 		IPreferencesService service = Platform.getPreferencesService();
 
 		// set options using preferences service lookup
@@ -1197,7 +1192,7 @@ public class JavaModelManager implements ISaveParticipant {
 		addDeprecatedOptions(options);
 
 		// store built map in cache
-		this.optionsCache = new Hashtable(options);
+		this.optionsCache = new Hashtable<String, String>(options);
 
 		// return built map
 		return options;
@@ -1208,7 +1203,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 */
 	public PerProjectInfo getPerProjectInfo(IProject project, boolean create) {
 		synchronized(this.perProjectInfos) { // use the perProjectInfo collection as its own lock
-			PerProjectInfo info= (PerProjectInfo) this.perProjectInfos.get(project);
+			PerProjectInfo info= this.perProjectInfos.get(project);
 			if (info == null && create) {
 				info= new PerProjectInfo(project);
 				this.perProjectInfos.put(project, info);
@@ -1242,13 +1237,13 @@ public class JavaModelManager implements ISaveParticipant {
 	public PerWorkingCopyInfo getPerWorkingCopyInfo(CompilationUnit workingCopy,boolean create, boolean recordUsage, IProblemRequestor problemRequestor) {
 		synchronized(this.perWorkingCopyInfos) { // use the perWorkingCopyInfo collection as its own lock
 			WorkingCopyOwner owner = workingCopy.owner;
-			Map workingCopyToInfos = (Map)this.perWorkingCopyInfos.get(owner);
+			Map<CompilationUnit, PerWorkingCopyInfo> workingCopyToInfos = this.perWorkingCopyInfos.get(owner);
 			if (workingCopyToInfos == null && create) {
-				workingCopyToInfos = new HashMap();
+				workingCopyToInfos = new HashMap<CompilationUnit, PerWorkingCopyInfo>();
 				this.perWorkingCopyInfos.put(owner, workingCopyToInfos);
 			}
 
-			PerWorkingCopyInfo info = workingCopyToInfos == null ? null : (PerWorkingCopyInfo) workingCopyToInfos.get(workingCopy);
+			PerWorkingCopyInfo info = workingCopyToInfos == null ? null : workingCopyToInfos.get(workingCopy);
 			if (info == null && create) {
 				info= new PerWorkingCopyInfo(workingCopy, problemRequestor);
 				workingCopyToInfos.put(workingCopy, info);
@@ -1264,7 +1259,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 * As such it should not be stored into container caches.
 	 */
 	public IClasspathContainer getPreviousSessionContainer(IPath containerPath, IJavaProject project) {
-			Map previousContainerValues = (Map)this.previousSessionContainers.get(project);
+			Map previousContainerValues = this.previousSessionContainers.get(project);
 			if (previousContainerValues != null){
 			    IClasspathContainer previousContainer = (IClasspathContainer)previousContainerValues.get(containerPath);
 			    if (previousContainer != null) {
@@ -1298,7 +1293,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 * Returns a persisted container from previous session if any
 	 */
 	public IPath getPreviousSessionVariable(String variableName) {
-		IPath previousPath = (IPath)this.previousSessionVariables.get(variableName);
+		IPath previousPath = this.previousSessionVariables.get(variableName);
 		if (previousPath != null){
 			if (CP_RESOLVE_VERBOSE){
 				Util.verbose(
@@ -1317,9 +1312,9 @@ public class JavaModelManager implements ISaveParticipant {
 	 * Creates it if not already created.
 	 */
 	public HashMap getTemporaryCache() {
-		HashMap result = (HashMap)this.temporaryCache.get();
+		HashMap<IJavaElement,Object> result = this.temporaryCache.get();
 		if (result == null) {
-			result = new HashMap();
+			result = new HashMap<IJavaElement,Object>();
 			this.temporaryCache.set(result);
 		}
 		return result;
@@ -1337,7 +1332,7 @@ public class JavaModelManager implements ISaveParticipant {
 		Plugin jdtCorePlugin = JavaCore.getPlugin();
 		if (jdtCorePlugin == null) return null;
 
-		ArrayList variableList = new ArrayList(5);
+		ArrayList<String> variableList = new ArrayList<String>(5);
 		IExtensionPoint extension = Platform.getExtensionRegistry().getExtensionPoint(JavaCore.PLUGIN_ID, JavaModelManager.CPVARIABLE_INITIALIZER_EXTPOINT_ID);
 		if (extension != null) {
 			IExtension[] extensions =  extension.getExtensions();
@@ -1362,7 +1357,7 @@ public class JavaModelManager implements ISaveParticipant {
 		Plugin jdtCorePlugin = JavaCore.getPlugin();
 		if (jdtCorePlugin == null) return null;
 
-		ArrayList containerIDList = new ArrayList(5);
+		ArrayList<String> containerIDList = new ArrayList<String>(5);
 		IExtensionPoint extension = Platform.getExtensionRegistry().getExtensionPoint(JavaCore.PLUGIN_ID, JavaModelManager.CPCONTAINER_INITIALIZER_EXTPOINT_ID);
 		if (extension != null) {
 			IExtension[] extensions =  extension.getExtensions();
@@ -1398,7 +1393,7 @@ public class JavaModelManager implements ISaveParticipant {
 			ICompilationUnit[] primaryWCs = addPrimary && owner != DefaultWorkingCopyOwner.PRIMARY 
 				? getWorkingCopies(DefaultWorkingCopyOwner.PRIMARY, false) 
 				: null;
-			Map workingCopyToInfos = (Map)this.perWorkingCopyInfos.get(owner);
+			Map workingCopyToInfos = this.perWorkingCopyInfos.get(owner);
 			if (workingCopyToInfos == null) return primaryWCs;
 			int primaryLength = primaryWCs == null ? 0 : primaryWCs.length;
 			int size = workingCopyToInfos.size(); // note size is > 0 otherwise pathToPerWorkingCopyInfos would be null
@@ -1438,10 +1433,10 @@ public class JavaModelManager implements ISaveParticipant {
 	 */
 	public ZipFile getZipFile(IPath path) throws CoreException {
 			
-		HashMap map;
+		HashMap<IPath, ZipFile> map;
 		ZipFile zipFile;
-		if ((map = (HashMap)this.zipFiles.get()) != null 
-				&& (zipFile = (ZipFile)map.get(path)) != null) {
+		if ((map = this.zipFiles.get()) != null 
+				&& (zipFile = map.get(path)) != null) {
 				
 			return zipFile;
 		}
@@ -1494,13 +1489,13 @@ public class JavaModelManager implements ISaveParticipant {
 		}
 
 		// collect all container paths
-		HashMap allContainerPaths = new HashMap();
+		HashMap<IJavaProject, HashSet<IPath>> allContainerPaths = new HashMap<IJavaProject, HashSet<IPath>>();
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0, length = projects.length; i < length; i++) {
 			IProject project = projects[i];
 			if (!JavaProject.hasJavaNature(project)) continue;
 			IJavaProject javaProject = new JavaProject(project, getJavaModel());
-			HashSet paths = null;
+			HashSet<IPath> paths = null;
 			IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
 			for (int j = 0, length2 = rawClasspath.length; j < length2; j++) {
 				IClasspathEntry entry = rawClasspath[j];
@@ -1508,7 +1503,7 @@ public class JavaModelManager implements ISaveParticipant {
 				if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER
 						&& containerGet(javaProject, path) == null) {
 					if (paths == null) {
-						paths = new HashSet();
+						paths = new HashSet<IPath>();
 						allContainerPaths.put(javaProject, paths);
 					}
 					paths.add(path);
@@ -1527,9 +1522,9 @@ public class JavaModelManager implements ISaveParticipant {
 			*/
 		}
 		// TODO (frederic) remove following block when JDT/UI dummy project will be thrown away...
-		HashSet containerPaths = (HashSet) allContainerPaths.get(javaProjectToInit);
+		HashSet<IPath> containerPaths = allContainerPaths.get(javaProjectToInit);
 		if (containerPaths == null) {
-			containerPaths = new HashSet();
+			containerPaths = new HashSet<IPath>();
 			allContainerPaths.put(javaProjectToInit, containerPaths);
 		}
 		containerPaths.add(containerToInit);
@@ -1541,13 +1536,13 @@ public class JavaModelManager implements ISaveParticipant {
 		// initialize all containers
 		boolean ok = false;
 		try {
-			Set keys = allContainerPaths.keySet();
+			Set<IJavaProject> keys = allContainerPaths.keySet();
 			int length = keys.size();
 			IJavaProject[] javaProjects = new IJavaProject[length]; // clone as the following will have a side effect
 			keys.toArray(javaProjects);
 			for (int i = 0; i < length; i++) {
 				IJavaProject javaProject = javaProjects[i];
-				HashSet pathSet = (HashSet) allContainerPaths.get(javaProject);
+				HashSet<IPath> pathSet = allContainerPaths.get(javaProject);
 				if (pathSet == null) continue;
 				int length2 = pathSet.size();
 				IPath[] paths = new IPath[length2];
@@ -1732,10 +1727,10 @@ public class JavaModelManager implements ISaveParticipant {
 		*/	
 	}
 	
-	private HashSet getClasspathBeingResolved() {
-	    HashSet result = (HashSet) this.classpathsBeingResolved.get();
+	private HashSet<IJavaProject> getClasspathBeingResolved() {
+	    HashSet<IJavaProject> result = this.classpathsBeingResolved.get();
 	    if (result == null) {
-	        result = new HashSet();
+	        result = new HashSet<IJavaProject>();
 	        this.classpathsBeingResolved.set(result);
 	    }
 	    return result;
@@ -1748,6 +1743,7 @@ public class JavaModelManager implements ISaveParticipant {
 	/**
 	 * @deprecated
 	 */
+	@Deprecated
 	private boolean isDeprecatedOption(String optionName) {
 		return JavaCore.COMPILER_PB_INVALID_IMPORT.equals(optionName)
 				|| JavaCore.COMPILER_PB_UNREACHABLE_CODE.equals(optionName);
@@ -1914,7 +1910,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 *  disturbing the cache ordering.
 	 */
 	protected synchronized Object peekAtInfo(IJavaElement element) {
-		HashMap tempCache = (HashMap)this.temporaryCache.get();
+		HashMap tempCache = this.temporaryCache.get();
 		if (tempCache != null) {
 			Object result = tempCache.get(element);
 			if (result != null) {
@@ -2055,9 +2051,9 @@ public class JavaModelManager implements ISaveParticipant {
 				if (addToContainerValues) {
 					getJavaModelManager().containerPut(project, containerPath, container);
 				}
-				Map projectContainers = (Map)getJavaModelManager().previousSessionContainers.get(project);
+				Map<IPath, IClasspathContainer> projectContainers = getJavaModelManager().previousSessionContainers.get(project);
 				if (projectContainers == null){
-					projectContainers = new HashMap(1);
+					projectContainers = new HashMap<IPath, IClasspathContainer>(1);
 					getJavaModelManager().previousSessionContainers.put(project, projectContainers);
 				}
 				projectContainers.put(containerPath, container);
@@ -2132,7 +2128,7 @@ public class JavaModelManager implements ISaveParticipant {
 	public void removePerProjectInfo(JavaProject javaProject) {
 		synchronized(this.perProjectInfos) { // use the perProjectInfo collection as its own lock
 			IProject project = javaProject.getProject();
-			PerProjectInfo info= (PerProjectInfo) this.perProjectInfos.get(project);
+			PerProjectInfo info= this.perProjectInfos.get(project);
 			if (info != null) {
 				this.perProjectInfos.remove(project);
 			}
@@ -2145,7 +2141,7 @@ public class JavaModelManager implements ISaveParticipant {
 	public void resetProjectOptions(JavaProject javaProject) {
 		synchronized(this.perProjectInfos) { // use the perProjectInfo collection as its own lock
 			IProject project = javaProject.getProject();
-			PerProjectInfo info= (PerProjectInfo) this.perProjectInfos.get(project);
+			PerProjectInfo info= this.perProjectInfos.get(project);
 			if (info != null) {
 				info.options = null;
 			}
@@ -2158,7 +2154,7 @@ public class JavaModelManager implements ISaveParticipant {
 	public void resetProjectPreferences(JavaProject javaProject) {
 		synchronized(this.perProjectInfos) { // use the perProjectInfo collection as its own lock
 			IProject project = javaProject.getProject();
-			PerProjectInfo info= (PerProjectInfo) this.perProjectInfos.get(project);
+			PerProjectInfo info= this.perProjectInfos.get(project);
 			if (info != null) {
 				info.preferences = null;
 			}
@@ -2250,11 +2246,11 @@ public class JavaModelManager implements ISaveParticipant {
 			
 			// variables
 			out.writeInt(this.variables.size());
-			Iterator variableNames = this.variables.keySet().iterator();
+			Iterator<String> variableNames = this.variables.keySet().iterator();
 			while (variableNames.hasNext()) {
-				String variableName = (String) variableNames.next();
+				String variableName = variableNames.next();
 				out.writeUTF(variableName);
-				IPath path = (IPath) this.variables.get(variableName);
+				IPath path = this.variables.get(variableName);
 				out.writeUTF(path == null ? CP_ENTRY_IGNORE : path.toPortableString());
 			}
 			
@@ -2265,16 +2261,15 @@ public class JavaModelManager implements ISaveParticipant {
 			for (int i = 0; i < length; i++) {
 			    IJavaProject project = projects[i];
 				// clone while iterating (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=59638)
-				Map projectContainers = containerClone(project);
+			    Map<IPath, IClasspathContainer> projectContainers = containerClone(project);
 				out.writeUTF(project.getElementName());
 				if (projectContainers == null) {
 					out.writeInt(0);
 					continue;
 				}
-				HashMap containersToSave = new HashMap();
-				for (Iterator iterator = projectContainers.keySet().iterator(); iterator.hasNext();) {
-				    IPath containerPath = (IPath) iterator.next();
-				    IClasspathContainer container = (IClasspathContainer) projectContainers.get(containerPath);
+				HashMap<IPath, String> containersToSave = new HashMap<IPath, String>();
+				for (IPath containerPath : projectContainers.keySet()) {
+				    IClasspathContainer container = projectContainers.get(containerPath);
 					String containerString = null;
 					try {
 						if (container == null) {
@@ -2298,11 +2293,11 @@ public class JavaModelManager implements ISaveParticipant {
 						containersToSave.put(containerPath, containerString);
 				}
 				out.writeInt(containersToSave.size());
-				Iterator iterator = containersToSave.keySet().iterator();
+				Iterator<IPath> iterator = containersToSave.keySet().iterator();
 				while (iterator.hasNext()) {
-					IPath containerPath = (IPath) iterator.next();
+					IPath containerPath = iterator.next();
 					out.writeUTF(containerPath.toPortableString());
-					String containerString = (String) containersToSave.get(containerPath);
+					String containerString = containersToSave.get(containerPath);
 					out.writeInt(containerString.length());
 					out.writeBytes(containerString);
 				}
@@ -2354,21 +2349,21 @@ public class JavaModelManager implements ISaveParticipant {
 			return;
 		}
 	
-		ArrayList vStats= null; // lazy initialized
-		ArrayList values = null;
+		ArrayList<IStatus> vStats= null; // lazy initialized
+		ArrayList<PerProjectInfo> values = null;
 		synchronized(this.perProjectInfos) {
-			values = new ArrayList(this.perProjectInfos.values());
+			values = new ArrayList<PerProjectInfo>(this.perProjectInfos.values());
 		}
 		if (values != null) {
-			Iterator iterator = values.iterator();
+			Iterator<PerProjectInfo> iterator = values.iterator();
 			while (iterator.hasNext()) {
 				try {
-					PerProjectInfo info = (PerProjectInfo) iterator.next();
+					PerProjectInfo info = iterator.next();
 					saveState(info, context);
 					info.rememberExternalLibTimestamps();
 				} catch (CoreException e) {
 					if (vStats == null)
-						vStats= new ArrayList();
+						vStats= new ArrayList<IStatus>();
 					vStats.add(e.getStatus());
 				}
 			}
@@ -2405,7 +2400,7 @@ public class JavaModelManager implements ISaveParticipant {
 		} else {
 			// remove projects which are already mentionned in java builder order
 			int javaCount = javaBuildOrder.length;
-			HashMap newSet = new HashMap(javaCount); // create a set for fast check
+			HashMap<String, String> newSet = new HashMap<String, String>(javaCount); // create a set for fast check
 			for (int i = 0; i < javaCount; i++){
 				newSet.put(javaBuildOrder[i], javaBuildOrder[i]);
 			}
@@ -2459,7 +2454,7 @@ public class JavaModelManager implements ISaveParticipant {
 		}
 	}
 	
-	public void setOptions(Hashtable newOptions) {
+	public void setOptions(Hashtable<String,String> newOptions) {
 		
 		try {
 			IEclipsePreferences defaultPreferences = getDefaultPreferences();
@@ -2473,7 +2468,7 @@ public class JavaModelManager implements ISaveParticipant {
 					String key = (String)keys.nextElement();
 					if (!this.optionNames.contains(key)) continue; // unrecognized option
 					if (key.equals(JavaCore.CORE_ENCODING)) continue; // skipped, contributed by resource prefs
-					String value = (String)newOptions.get(key);
+					String value = newOptions.get(key);
 					String defaultValue = defaultPreferences.get(key, null);
 					if (defaultValue != null && defaultValue.equals(value)) {
 						instancePreferences.remove(key);
@@ -2487,7 +2482,7 @@ public class JavaModelManager implements ISaveParticipant {
 			instancePreferences.flush();
 			
 			// update cache
-			this.optionsCache = newOptions==null ? null : new Hashtable(newOptions);
+			this.optionsCache = newOptions==null ? null : new Hashtable<String,String>(newOptions);
 		} catch (BackingStoreException e) {
 			// ignore
 		}
@@ -2591,11 +2586,11 @@ public class JavaModelManager implements ISaveParticipant {
 		
 	public synchronized IPath variableGet(String variableName){
 		// check initialization in progress first
-		HashSet initializations = variableInitializationInProgress();
+		HashSet<String> initializations = variableInitializationInProgress();
 		if (initializations.contains(variableName)) {
 			return VARIABLE_INITIALIZATION_IN_PROGRESS;
 		}
-		return (IPath)this.variables.get(variableName);
+		return this.variables.get(variableName);
 	}
 
 	/*
@@ -2621,7 +2616,7 @@ public class JavaModelManager implements ISaveParticipant {
 		int varLength = variableNames.length;
 		
 		// gather classpath information for updating
-		final HashMap affectedProjectClasspaths = new HashMap(5);
+		final HashMap<JavaProject, IClasspathEntry[]> affectedProjectClasspaths = new HashMap<JavaProject, IClasspathEntry[]>(5);
 		IJavaModel model = getJavaModel();
 	
 		// filter out unmodified variables
@@ -2711,12 +2706,12 @@ public class JavaModelManager implements ISaveParticipant {
 					new IWorkspaceRunnable() {
 						public void run(IProgressMonitor progressMonitor) throws CoreException {
 							// propagate classpath change
-							Iterator projectsToUpdate = affectedProjectClasspaths.keySet().iterator();
+							Iterator<JavaProject> projectsToUpdate = affectedProjectClasspaths.keySet().iterator();
 							while (projectsToUpdate.hasNext()) {
 			
 								if (progressMonitor != null && progressMonitor.isCanceled()) return;
 			
-								JavaProject affectedProject = (JavaProject) projectsToUpdate.next();
+								JavaProject affectedProject = projectsToUpdate.next();
 
 								if (CP_RESOLVE_VERBOSE){
 									Util.verbose(
@@ -2731,7 +2726,7 @@ public class JavaModelManager implements ISaveParticipant {
 										SetClasspathOperation.DO_NOT_SET_OUTPUT,
 										null, // don't call beginTask on the monitor (see http://bugs.eclipse.org/bugs/show_bug.cgi?id=3717)
 										canChangeResources, 
-										(IClasspathEntry[]) affectedProjectClasspaths.get(affectedProject),
+										affectedProjectClasspaths.get(affectedProject),
 										false, // updating - no need for early validation
 										false); // updating - no need to save
 							}
@@ -2759,10 +2754,10 @@ public class JavaModelManager implements ISaveParticipant {
 	/*
 	 * Returns the set of variable names that are being initialized in the current thread.
 	 */
-	private HashSet variableInitializationInProgress() {
-		HashSet initializations = (HashSet)this.variableInitializationInProgress.get();
+	private HashSet<String> variableInitializationInProgress() {
+		HashSet<String> initializations = this.variableInitializationInProgress.get();
 		if (initializations == null) {
-			initializations = new HashSet();
+			initializations = new HashSet<String>();
 			this.variableInitializationInProgress.set(initializations);
 		}
 		return initializations;
@@ -2771,10 +2766,10 @@ public class JavaModelManager implements ISaveParticipant {
 	public synchronized String[] variableNames(){
 		int length = this.variables.size();
 		String[] result = new String[length];
-		Iterator vars = this.variables.keySet().iterator();
+		Iterator<String> vars = this.variables.keySet().iterator();
 		int index = 0;
 		while (vars.hasNext()) {
-			result[index++] = (String) vars.next();
+			result[index++] = vars.next();
 		}
 		return result;
 	}
@@ -2782,7 +2777,7 @@ public class JavaModelManager implements ISaveParticipant {
 	public synchronized void variablePut(String variableName, IPath variablePath){		
 
 		// set/unset the initialization in progress
-		HashSet initializations = variableInitializationInProgress();
+		HashSet<String> initializations = variableInitializationInProgress();
 		if (variablePath == VARIABLE_INITIALIZATION_IN_PROGRESS) {
 			initializations.add(variableName);
 			
