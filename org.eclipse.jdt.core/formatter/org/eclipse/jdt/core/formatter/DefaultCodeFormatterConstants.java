@@ -3142,7 +3142,7 @@ public class DefaultCodeFormatterConstants {
 	 * @return the Eclipse 2.1 settings
 	 * @since 3.0
 	 */
-	public static Map getEclipse21Settings() {
+	public static Map<String,String> getEclipse21Settings() {
 		return DefaultCodeFormatterOptions.getDefaultSettings().getMap();
 	}
 
@@ -3152,7 +3152,7 @@ public class DefaultCodeFormatterConstants {
 	 * @return the Eclipse default settings
 	 * @since 3.1
 	 */
-	public static Map getEclipseDefaultSettings() {
+	public static Map<String,String> getEclipseDefaultSettings() {
 		return DefaultCodeFormatterOptions.getEclipseDefaultSettings().getMap();
 	}
 
@@ -3216,7 +3216,7 @@ public class DefaultCodeFormatterConstants {
 	 * @return the settings according to the Java conventions
 	 * @since 3.0
 	 */
-	public static Map getJavaConventionsSettings() {
+	public static Map<String,String> getJavaConventionsSettings() {
 		return DefaultCodeFormatterOptions.getJavaConventionsSettings().getMap();
 	}
 	/**
