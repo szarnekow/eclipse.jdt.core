@@ -31,7 +31,6 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.codeassist.SelectionEngine;
 import org.eclipse.jdt.internal.compiler.Compiler;
-import org.eclipse.jdt.internal.compiler.util.WeakHashSet;
 import org.eclipse.jdt.internal.compiler.util.WeakHashSetOfCharArray;
 import org.eclipse.jdt.internal.core.builder.JavaBuilder;
 import org.eclipse.jdt.internal.core.hierarchy.TypeHierarchy;
@@ -42,6 +41,7 @@ import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.eclipse.jdt.internal.core.search.processing.JobManager;
 import org.eclipse.jdt.internal.core.util.Messages;
 import org.eclipse.jdt.internal.core.util.Util;
+import org.eclipse.jdt.internal.core.util.WeakHashSet;
 import org.eclipse.jdt.internal.formatter.DefaultCodeFormatter;
 import org.osgi.service.prefs.BackingStoreException;
 import org.w3c.dom.Element;
@@ -95,7 +95,7 @@ public class JavaModelManager implements ISaveParticipant {
 	 * Pools of symbols used in the Java model.
 	 * Used as a replacement for String#intern() that could prevent garbage collection of strings on some VMs.
 	 */
-	private WeakHashSet stringSymbols = new WeakHashSet(5);
+	private WeakHashSet<String> stringSymbols = new WeakHashSet<String>(5);
 	private WeakHashSetOfCharArray charArraySymbols = new WeakHashSetOfCharArray(5);
 
 	public final static String CP_VARIABLE_PREFERENCES_PREFIX = JavaCore.PLUGIN_ID+".classpathVariable."; //$NON-NLS-1$

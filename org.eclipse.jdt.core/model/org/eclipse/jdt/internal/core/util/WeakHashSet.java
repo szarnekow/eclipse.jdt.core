@@ -8,18 +8,18 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.jdt.internal.compiler.util;
+package org.eclipse.jdt.internal.core.util;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 
 /**
  * A hashset whose values can be garbage collected.
  */
-public class WeakHashSet {
+public class WeakHashSet<E> {
 	
-	public class HashableWeakReference extends WeakReference {
+	public static class HashableWeakReference<R> extends WeakReference<R> {
 		public int hashCode;
-		public HashableWeakReference(Object referent, ReferenceQueue queue) {
+		public HashableWeakReference(R referent, ReferenceQueue<? super R> queue) {
 			super(referent, queue);
 			this.hashCode = referent.hashCode();
 		}
@@ -34,16 +34,16 @@ public class WeakHashSet {
 			return this.hashCode;
 		}
 		public String toString() {
-			Object referent = get();
+			R referent = get();
 			if (referent == null) return "[hashCode=" + this.hashCode + "] <referent was garbage collected>"; //$NON-NLS-1$  //$NON-NLS-2$
 			return "[hashCode=" + this.hashCode + "] " + referent.toString(); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 	
-	HashableWeakReference[] values;
+	HashableWeakReference<E>[] values;
 	public int elementSize; // number of elements in the table
 	int threshold;
-	ReferenceQueue referenceQueue = new ReferenceQueue();	
+	ReferenceQueue<E> referenceQueue = new ReferenceQueue<E>();	
 	
 	public WeakHashSet() {
 		this(5);
@@ -55,7 +55,9 @@ public class WeakHashSet {
 		int extraRoom = (int) (size * 1.75f);
 		if (this.threshold == extraRoom)
 			extraRoom++;
-		this.values = new HashableWeakReference[extraRoom];
+		@SuppressWarnings("unchecked") // generic array creation
+		HashableWeakReference<E>[] refs = new HashableWeakReference[extraRoom];
+		this.values = refs;
 	}
 	
 	/*
@@ -63,34 +65,34 @@ public class WeakHashSet {
 	 * If an object that is equals to the given object already exists, do nothing.
 	 * Returns the existing object or the new object if not found.
 	 */
-	public Object add(Object obj) {
+	public E add(E element) {
 		cleanupGarbageCollectedValues();
-		int index = (obj.hashCode() & 0x7FFFFFFF) % this.values.length;
-		HashableWeakReference currentValue;
+		int index = (element.hashCode() & 0x7FFFFFFF) % this.values.length;
+		HashableWeakReference<E> currentValue;
 		while ((currentValue = this.values[index]) != null) {
-			Object referent;
-			if (obj.equals(referent = currentValue.get())) {
+			E referent;
+			if (element.equals(referent = currentValue.get())) {
 				return referent;
 			}
 			index = (index + 1) % this.values.length;
 		}
-		this.values[index] = new HashableWeakReference(obj, this.referenceQueue);
+		this.values[index] = new HashableWeakReference<E>(element, this.referenceQueue);
 
 		// assumes the threshold is never equal to the size of the table
 		if (++this.elementSize > this.threshold)
 			rehash();
 		
-		return obj;
+		return element;
 	}
 		
-	private void addValue(HashableWeakReference value) {
-		Object obj = value.get();
-		if (obj == null) return;
+	private void addValue(HashableWeakReference<E> value) {
+		E element = value.get();
+		if (element == null) return;
 		int valuesLength = this.values.length;
 		int index = (value.hashCode & 0x7FFFFFFF) % valuesLength;
-		HashableWeakReference currentValue;
+		HashableWeakReference<E> currentValue;
 		while ((currentValue = this.values[index]) != null) {
-			if (obj.equals(currentValue.get())) {
+			if (element.equals(currentValue.get())) {
 				return;
 			}
 			index = (index + 1) % valuesLength;
@@ -103,12 +105,12 @@ public class WeakHashSet {
 	}
 	
 	private void cleanupGarbageCollectedValues() {
-		HashableWeakReference toBeRemoved;
-		while ((toBeRemoved = (HashableWeakReference) this.referenceQueue.poll()) != null) {
+		HashableWeakReference<? extends E> toBeRemoved;
+		while ((toBeRemoved = (HashableWeakReference<? extends E>)this.referenceQueue.poll()) != null) {
 			int hashCode = toBeRemoved.hashCode;
 			int valuesLength = this.values.length;
 			int index = (hashCode & 0x7FFFFFFF) % valuesLength;
-			HashableWeakReference currentValue;
+			HashableWeakReference<E> currentValue;
 			while ((currentValue = this.values[index]) != null) {
 				if (currentValue == toBeRemoved) {
 					// replace the value at index with the last value with the same hash
@@ -126,22 +128,22 @@ public class WeakHashSet {
 		}
 	}
 	
-	public boolean contains(Object obj) {
-		return get(obj) != null;
+	public boolean contains(E element) {
+		return get(element) != null;
 	}
 	
 	/*
 	 * Return the object that is in this set and that is equals to the given object.
 	 * Return null if not found.
 	 */
-	public Object get(Object obj) {
+	public E get(E element) {
 		cleanupGarbageCollectedValues();
 		int valuesLength = this.values.length;
-		int index = (obj.hashCode() & 0x7FFFFFFF) % valuesLength;
-		HashableWeakReference currentValue;
+		int index = (element.hashCode() & 0x7FFFFFFF) % valuesLength;
+		HashableWeakReference<E> currentValue;
 		while ((currentValue = this.values[index]) != null) {
-			Object referent;
-			if (obj.equals(referent = currentValue.get())) {
+			E referent;
+			if (element.equals(referent = currentValue.get())) {
 				return referent;
 			}
 			index = (index + 1) % valuesLength;
@@ -150,13 +152,12 @@ public class WeakHashSet {
 	}
 		
 	private void rehash() {
-		WeakHashSet newHashSet = new WeakHashSet(this.elementSize * 2);		// double the number of expected elements
+		WeakHashSet<E> newHashSet = new WeakHashSet<E>(this.elementSize * 2);		// double the number of expected elements
 		newHashSet.referenceQueue = this.referenceQueue;
-		HashableWeakReference currentValue;
-		for (int i = 0, length = this.values.length; i < length; i++)
-			if ((currentValue = this.values[i]) != null)
+		for (HashableWeakReference<E> currentValue : this.values) {
+			if (currentValue != null)
 				newHashSet.addValue(currentValue);
-
+		}
 		this.values = newHashSet.values;
 		this.threshold = newHashSet.threshold;
 		this.elementSize = newHashSet.elementSize;
@@ -166,14 +167,14 @@ public class WeakHashSet {
 	 * Removes the object that is in this set and that is equals to the given object.
 	 * Return the object that was in the set, or null if not found.
 	 */
-	public Object remove(Object obj) {
+	public E remove(E element) {
 		cleanupGarbageCollectedValues();
 		int valuesLength = this.values.length;
-		int index = (obj.hashCode() & 0x7FFFFFFF) % valuesLength;
-		HashableWeakReference currentValue;
+		int index = (element.hashCode() & 0x7FFFFFFF) % valuesLength;
+		HashableWeakReference<E> currentValue;
 		while ((currentValue = this.values[index]) != null) {
-			Object referent;
-			if (obj.equals(referent = currentValue.get())) {
+			E referent;
+			if (element.equals(referent = currentValue.get())) {
 				this.elementSize--;
 				this.values[index] = null;
 				rehash();
@@ -190,12 +191,11 @@ public class WeakHashSet {
 
 	public String toString() {
 		StringBuffer buffer = new StringBuffer("{"); //$NON-NLS-1$
-		for (int i = 0, length = this.values.length; i < length; i++) {
-			HashableWeakReference value = this.values[i];
+		for (HashableWeakReference<E> value : this.values) {
 			if (value != null) {
-				Object ref = value.get();
-				if (ref != null) {
-					buffer.append(ref.toString());
+				E referent = value.get();
+				if (referent != null) {
+					buffer.append(referent.toString());
 					buffer.append(", "); //$NON-NLS-1$
 				}
 			}
