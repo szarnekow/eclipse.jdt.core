@@ -156,14 +156,14 @@ public class HandleFactory {
 	/**
 	 * Returns a handle denoting the class member identified by its scope.
 	 */
-	public IJavaElement createElement(ClassScope scope, ICompilationUnit unit, HashSet existingElements, HashMap knownScopes) {
+	public IJavaElement createElement(ClassScope scope, ICompilationUnit unit, HashSet<IJavaElement> existingElements, HashMap<Scope, IJavaElement> knownScopes) {
 		return createElement(scope, scope.referenceContext.sourceStart, unit, existingElements, knownScopes);
 	}
 	/**
 	 * Create handle by adding child to parent obtained by recursing into parent scopes.
 	 */
-	private IJavaElement createElement(Scope scope, int elementPosition, ICompilationUnit unit, HashSet existingElements, HashMap knownScopes) {
-		IJavaElement newElement = (IJavaElement)knownScopes.get(scope);
+	private IJavaElement createElement(Scope scope, int elementPosition, ICompilationUnit unit, HashSet<IJavaElement> existingElements, HashMap<Scope, IJavaElement> knownScopes) {
+		IJavaElement newElement = knownScopes.get(scope);
 		if (newElement != null) return newElement;
 	
 		switch(scope.kind) {

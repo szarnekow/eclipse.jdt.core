@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -355,8 +356,8 @@ private void rememberAllTypes(CompilationUnitDeclaration parsedUnit, org.eclipse
 	}
 	if (includeLocalTypes && parsedUnit.localTypes != null) {
 		HandleFactory factory = new HandleFactory();
-		HashSet existingElements = new HashSet(parsedUnit.localTypeCount);
-		HashMap knownScopes = new HashMap(parsedUnit.localTypeCount);
+		HashSet<IJavaElement> existingElements = new HashSet<IJavaElement>(parsedUnit.localTypeCount);
+		HashMap<Scope, IJavaElement> knownScopes = new HashMap<Scope, IJavaElement>(parsedUnit.localTypeCount);
 		for (int i = 0; i < parsedUnit.localTypeCount; i++) {
 			LocalTypeBinding localType = parsedUnit.localTypes[i];
 			ClassScope classScope = localType.scope;
