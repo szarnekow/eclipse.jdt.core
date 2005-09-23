@@ -44,7 +44,7 @@ import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 	private static String compilerClass = "org.eclipse.jdt.internal.compiler.batch.Main"; //$NON-NLS-1$
 	String logFileName;
-	Map customDefaultOptions;
+	Map<String,String> customDefaultOptions;
 	
 	/**
 	 * Performs a compile using the JDT batch compiler
@@ -73,10 +73,12 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 		}
 	}
 	
-	
+	@Override
 	protected Commandline setupJavacCommand() throws BuildException {
 		Commandline cmd = new Commandline();
-		this.customDefaultOptions = new CompilerOptions().getMap();
+		@SuppressWarnings("unchecked") // compiler kernel cannot migrate to 1.5 source level
+		Map<String,String> optionsMap = new CompilerOptions().getMap();
+		this.customDefaultOptions = optionsMap;
 
 		/*
 		 * This option is used to never exit at the end of the ant task. 
@@ -117,14 +119,14 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
         Class javacClass = Javac.class;
         Method getSourcepathMethod = null;
         try {
-	        getSourcepathMethod = javacClass.getMethod("getSourcepath", null); //$NON-NLS-1$
+	        getSourcepathMethod = javacClass.getMethod("getSourcepath"); //$NON-NLS-1$
         } catch(NoSuchMethodException e) {
         	// if not found, then we cannot use this method (ant 1.5)
         }
         Path compileSourcePath = null;
         if (getSourcepathMethod != null) {
 	 		try {
-				compileSourcePath = (Path) getSourcepathMethod.invoke(this.attributes, null);
+				compileSourcePath = (Path) getSourcepathMethod.invoke(this.attributes);
 			} catch (IllegalAccessException e) {
 				// should never happen
 			} catch (InvocationTargetException e) {
@@ -167,7 +169,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 	        // This is done to improve the compatibility to ant 1.5
 	        Method getDebugLevelMethod = null;
 	        try {
-		        getDebugLevelMethod = javacClass.getMethod("getDebugLevel", null); //$NON-NLS-1$
+		        getDebugLevelMethod = javacClass.getMethod("getDebugLevel"); //$NON-NLS-1$
 	        } catch(NoSuchMethodException e) {
 	        	// if not found, then we cannot use this method (ant 1.5)
 	        	// debug level is only available with ant 1.5.x
@@ -175,7 +177,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
      	    String debugLevel = null;
 	        if (getDebugLevelMethod != null) {
 				try {
-					debugLevel = (String) getDebugLevelMethod.invoke(this.attributes, null);
+					debugLevel = (String) getDebugLevelMethod.invoke(this.attributes);
 				} catch (IllegalAccessException e) {
 					// should never happen
 				} catch (InvocationTargetException e) {
@@ -216,7 +218,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
         // This is done to improve the compatibility to ant 1.5
         Method getCurrentCompilerArgsMethod = null;
         try {
-	        getCurrentCompilerArgsMethod = javacClass.getMethod("getCurrentCompilerArgs", null); //$NON-NLS-1$
+	        getCurrentCompilerArgsMethod = javacClass.getMethod("getCurrentCompilerArgs"); //$NON-NLS-1$
         } catch(NoSuchMethodException e) {
         	// if not found, then we cannot use this method (ant 1.5)
         	// debug level is only available with ant 1.5.x
@@ -224,7 +226,7 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
  	    String[] compilerArgs = null;
         if (getCurrentCompilerArgsMethod != null) {
 			try {
-				compilerArgs = (String[]) getCurrentCompilerArgsMethod.invoke(this.attributes, null);
+				compilerArgs = (String[]) getCurrentCompilerArgsMethod.invoke(this.attributes);
 			} catch (IllegalAccessException e) {
 				// should never happen
 			} catch (InvocationTargetException e) {
@@ -237,14 +239,8 @@ public class JDTCompilerAdapter extends DefaultCompilerAdapter {
 		 */
 		if (this.attributes.getNowarn()) {
 	        // disable all warnings
-			Object[] entries = this.customDefaultOptions.entrySet().toArray();
-			for (int i = 0, max = entries.length; i < max; i++) {
-				Map.Entry entry = (Map.Entry) entries[i];
-				if (!(entry.getKey() instanceof String))
-					continue;
-				if (!(entry.getValue() instanceof String))
-					continue;
-				if (((String) entry.getValue()).equals(CompilerOptions.WARNING)) {
+			for (Map.Entry<String,String> entry : this.customDefaultOptions.entrySet()) {
+				if (entry.getValue().equals(CompilerOptions.WARNING)) {
 					this.customDefaultOptions.put(entry.getKey(), CompilerOptions.IGNORE);
 				}
 			}
