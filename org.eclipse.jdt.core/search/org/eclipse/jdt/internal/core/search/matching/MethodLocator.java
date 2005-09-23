@@ -32,7 +32,7 @@ protected boolean isDeclarationOfReferencedMethodsPattern;
 public char[][][] allSuperDeclaringTypeNames;
 
 //method declarations which parameters verification fail
-private HashMap methodDeclarationsWithInvalidParam = new HashMap();
+private HashMap<ASTNode, Boolean> methodDeclarationsWithInvalidParam = new HashMap<ASTNode, Boolean>();
 
 public MethodLocator(MethodPattern pattern) {
 	super(pattern);
@@ -44,7 +44,7 @@ public MethodLocator(MethodPattern pattern) {
  * Clear caches
  */
 protected void clear() {
-	this.methodDeclarationsWithInvalidParam = new HashMap();
+	this.methodDeclarationsWithInvalidParam = new HashMap<ASTNode, Boolean>();
 }
 public void initializePolymorphicSearch(MatchLocator locator) {
 	try {
@@ -444,7 +444,7 @@ public SearchMatch newDeclarationMatch(ASTNode reference, IJavaElement element, 
 		// If method parameters verification was not valid, then try to see if method arguments can match a method in hierarchy
 		if (this.methodDeclarationsWithInvalidParam.containsKey(reference)) {
 			// First see if this reference has already been resolved => report match if validated
-			Boolean report = (Boolean) this.methodDeclarationsWithInvalidParam.get(reference);
+			Boolean report = this.methodDeclarationsWithInvalidParam.get(reference);
 			if (report != null) {
 				if (report.booleanValue()) {
 					return super.newDeclarationMatch(reference, element, elementBinding, accuracy, length, locator);
