@@ -61,7 +61,7 @@ public class BindingKeyResolver extends BindingKeyParser {
 	BlockScope scope;
 	TypeBinding typeBinding;
 	TypeDeclaration typeDeclaration;
-	ArrayList types = new ArrayList();
+	ArrayList<BindingKeyParser> types = new ArrayList<BindingKeyParser>();
 	int rank = 0;
 	
 	int wildcardRank;
@@ -467,7 +467,7 @@ public class BindingKeyResolver extends BindingKeyParser {
 			BindingKeyResolver resolver = (BindingKeyResolver) this.types.get(i);
 			arguments[i] = (TypeBinding) resolver.compilerBinding;
 		}
-		this.types = new ArrayList();
+		this.types = new ArrayList<BindingKeyParser>();
 		return arguments;
 	}
 	 
