@@ -121,6 +121,7 @@ public class JavaProject
 	 * @see <a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=59258">bug 59258</a>
 	 * TODO (frederic) set visibility from public to private
 	 */
+	@Deprecated
 	public static final String PREF_FILENAME = ".jprefs";  //$NON-NLS-1$
 	
 	/*
@@ -233,7 +234,7 @@ public class JavaProject
 	 * @param preferredClasspaths Map
 	 * @throws JavaModelException
 	 */
-	public static void updateAllCycleMarkers(Map preferredClasspaths) throws JavaModelException {
+	public static void updateAllCycleMarkers(Map<IJavaProject,IClasspathEntry[]> preferredClasspaths) throws JavaModelException {
 
 		//long start = System.currentTimeMillis();
 
@@ -242,11 +243,11 @@ public class JavaProject
 		int length = rscProjects.length;
 		JavaProject[] projects = new JavaProject[length];
 				
-		HashSet cycleParticipants = new HashSet();
-		HashSet traversed = new HashSet();
+		HashSet<IPath> cycleParticipants = new HashSet<IPath>();
+		HashSet<IPath> traversed = new HashSet<IPath>();
 		
 		// compute cycle participants
-		ArrayList prereqChain = new ArrayList();
+		ArrayList<IPath> prereqChain = new ArrayList<IPath>();
 		for (int i = 0; i < length; i++){
 			if (hasJavaNature(rscProjects[i])) {
 				JavaProject project = (projects[i] = (JavaProject)JavaCore.create(rscProjects[i]));
@@ -321,7 +322,7 @@ public class JavaProject
 	/**
 	 * @see Openable
 	 */
-	protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
+	protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map<IJavaElement,Object> newElements, IResource underlyingResource) throws JavaModelException {
 	
 		// check whether the java project can be opened
 		if (!underlyingResource.isAccessible()) {
@@ -2728,19 +2729,17 @@ public class JavaProject
 	/**
 	 * @see org.eclipse.jdt.core.IJavaProject#setOptions(Map)
 	 */
-	public void setOptions(Map newOptions) {
+	public void setOptions(Map<String,String> newOptions) {
 
 		IEclipsePreferences projectPreferences = getEclipsePreferences();
 		try {
 			if (newOptions == null){
 				projectPreferences.clear();
 			} else {
-				Iterator keys = newOptions.keySet().iterator();
-				while (keys.hasNext()){
-					String key = (String)keys.next();
+				for (String key : newOptions.keySet()) {
 					if (!JavaModelManager.getJavaModelManager().optionNames.contains(key)) continue; // unrecognized option
 					// no filtering for encoding (custom encoding for project is allowed)
-					String value = (String)newOptions.get(key);
+					String value = newOptions.get(key);
 					projectPreferences.put(key, value);
 				}
 				
@@ -2956,18 +2955,18 @@ public class JavaProject
 	 * @param preferredClasspaths Map
 	 */
 	public void updateCycleParticipants(
-			ArrayList prereqChain, 
-			HashSet cycleParticipants, 
+			ArrayList<IPath> prereqChain, 
+			HashSet<IPath> cycleParticipants, 
 			IWorkspaceRoot workspaceRoot,
-			HashSet traversed,
-			Map preferredClasspaths){
+			HashSet<IPath> traversed,
+			Map<IJavaProject,IClasspathEntry[]> preferredClasspaths){
 
 		IPath path = this.getPath();
 		prereqChain.add(path);
 		traversed.add(path);
 		try {
 			IClasspathEntry[] classpath = null;
-			if (preferredClasspaths != null) classpath = (IClasspathEntry[])preferredClasspaths.get(this);
+			if (preferredClasspaths != null) classpath = preferredClasspaths.get(this);
 			if (classpath == null) classpath = getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/);
 			for (int i = 0, length = classpath.length; i < length; i++) {
 				IClasspathEntry entry = classpath[i];

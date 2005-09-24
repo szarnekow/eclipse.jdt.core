@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.jdt.internal.core;
 
-import java.util.*;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,7 +63,7 @@ public void bufferChanged(BufferChangedEvent event) {
  * if successful, or false if an error is encountered while determining
  * the structure of this element.
  */
-protected abstract boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException;
+protected abstract boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map<IJavaElement,Object> newElements, IResource underlyingResource) throws JavaModelException;
 /*
  * Returns whether this element can be removed from the Java model cache to make space.
  */
@@ -271,6 +270,7 @@ public IBuffer getBuffer() throws JavaModelException {
  * Answers the buffer factory to use for creating new buffers
  * @deprecated
  */
+@Deprecated
 public IBufferFactory getBufferFactory(){
 	return getBufferManager().getDefaultBufferFactory();
 }
@@ -347,9 +347,9 @@ public boolean hasUnsavedChanges() throws JavaModelException{
 		elementType == PACKAGE_FRAGMENT_ROOT ||
 		elementType == JAVA_PROJECT ||
 		elementType == JAVA_MODEL) { // fix for 1FWNMHH
-		Enumeration openBuffers= getBufferManager().getOpenBuffers();
+		Enumeration<IBuffer> openBuffers= getBufferManager().getOpenBuffers();
 		while (openBuffers.hasMoreElements()) {
-			IBuffer buffer= (IBuffer)openBuffers.nextElement();
+			IBuffer buffer= openBuffers.nextElement();
 			if (buffer.hasUnsavedChanges()) {
 				IJavaElement owner= (IJavaElement)buffer.getOwner();
 				if (isAncestorOf(owner)) {
@@ -401,13 +401,11 @@ public void makeConsistent(IProgressMonitor monitor) throws JavaModelException {
 	JavaModelManager manager = JavaModelManager.getJavaModelManager();
 	boolean hadTemporaryCache = manager.hasTemporaryCache();
 	try {
-		HashMap newElements = manager.getTemporaryCache();
+		HashMap<IJavaElement,Object> newElements = manager.getTemporaryCache();
 		openWhenClosed(newElements, monitor);
 		if (newElements.get(this) == null) {
 			// close any buffer that was opened for the new elements
-			Iterator iterator = newElements.keySet().iterator();
-			while (iterator.hasNext()) {
-				IJavaElement element = (IJavaElement)iterator.next();
+			for (IJavaElement element : newElements.keySet()) {
 				if (element instanceof Openable) {
 					((Openable)element).closeBuffer();
 				}
@@ -443,7 +441,7 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 /**
  * Open the parent element if necessary.
  */
-protected void openParent(Object childInfo, HashMap newElements, IProgressMonitor pm) throws JavaModelException {
+protected void openParent(Object childInfo, HashMap<IJavaElement,Object> newElements, IProgressMonitor pm) throws JavaModelException {
 
 	Openable openableParent = (Openable)getOpenableParent();
 	if (openableParent != null && !openableParent.isOpen()){
