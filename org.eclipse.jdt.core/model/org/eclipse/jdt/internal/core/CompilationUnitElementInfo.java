@@ -32,12 +32,12 @@ public class CompilationUnitElementInfo extends OpenableElementInfo {
 	 * The positions of annotations for each element in this compilation unit.
 	 * A map from IJavaElement to long[]
 	 */
-	public HashMap annotationPositions;
+	public HashMap<IJavaElement, long[]> annotationPositions;
 	
 public void addAnnotationPositions(IJavaElement handle, long[] positions) {
 	if (positions == null) return;
 	if (this.annotationPositions == null)
-		this.annotationPositions = new HashMap();
+		this.annotationPositions = new HashMap<IJavaElement, long[]>();
 	this.annotationPositions.put(handle, positions);
 }
 /**

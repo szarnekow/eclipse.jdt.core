@@ -59,10 +59,10 @@ public class SourceElementParser extends CommentRecorderParser {
  * An ast visitor that visits local type declarations.
  */
 public class LocalDeclarationVisitor extends ASTVisitor {
-	ArrayList declaringTypes;
+	ArrayList<TypeDeclaration> declaringTypes;
 	public void pushDeclaringType(TypeDeclaration declaringType) {
 		if (this.declaringTypes == null) {
-			this.declaringTypes = new ArrayList();
+			this.declaringTypes = new ArrayList<TypeDeclaration>();
 		}
 		this.declaringTypes.add(declaringType);
 	}
@@ -73,7 +73,7 @@ public class LocalDeclarationVisitor extends ASTVisitor {
 		if (this.declaringTypes == null) return null;
 		int size = this.declaringTypes.size();
 		if (size == 0) return null;
-		return (TypeDeclaration) this.declaringTypes.get(size-1);
+		return this.declaringTypes.get(size-1);
 	}
 	public boolean visit(TypeDeclaration typeDeclaration, BlockScope scope) {
 		notifySourceElementRequestor(typeDeclaration, sourceType == null, peekDeclaringType());

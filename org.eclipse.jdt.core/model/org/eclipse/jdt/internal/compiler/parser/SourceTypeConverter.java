@@ -60,7 +60,7 @@ public class SourceTypeConverter implements CompilerModifiers {
 	private ProblemReporter problemReporter;
 	private ICompilationUnit cu;
 	private char[] source;
-	private HashMap annotationPositions;
+	private HashMap<IJavaElement, long[]> annotationPositions;
 	private boolean has1_5Compliance;
 	
 	int namePos;
@@ -550,7 +550,7 @@ public class SourceTypeConverter implements CompilerModifiers {
 	private Annotation[] convertAnnotations(JavaElement element) {
 		if (this.annotationPositions == null) return null;
 		char[] cuSource = getSource();
-		long[] positions = (long[]) this.annotationPositions.get(element);
+		long[] positions = this.annotationPositions.get(element);
 		if (positions == null) return null;
 		int length = positions.length;
 		Annotation[] annotations = new Annotation[length];
