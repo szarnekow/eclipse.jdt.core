@@ -26,7 +26,7 @@ import org.eclipse.jdt.internal.compiler.parser.NLSTag;
 import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 
-@SuppressWarnings("all") // class copied from internal Scanner that is 1.3 compliant
+@SuppressWarnings("all") // class copied from internal Scanner that is 1.3 compliant (see the real warnings there)
 public class PublicScanner implements IScanner, ITerminalSymbols {
 	
 	//public int newIdentCount = 0;
