@@ -32,7 +32,7 @@ public class CompilationUnitStructureRequestor extends ReferenceInfoAdapter impl
 	/**
 	 * The handle to the compilation unit being parsed
 	 */
-	protected ICompilationUnit unit;
+	protected CompilationUnit unit;
 
 	/**
 	 * The info object for the compilation unit being parsed
@@ -50,7 +50,7 @@ public class CompilationUnitStructureRequestor extends ReferenceInfoAdapter impl
 	 * the parser. Keys are handles, values are corresponding
 	 * info objects.
 	 */
-	protected Map newElements;
+	protected Map<IJavaElement, Object> newElements;
 
 	/**
 	 * Stack of parent scope info objects. The info on the
@@ -58,14 +58,14 @@ public class CompilationUnitStructureRequestor extends ReferenceInfoAdapter impl
 	 * For example, when we locate a method, the parent info object
 	 * will be the type the method is contained in.
 	 */
-	protected Stack infoStack;
+	protected Stack<JavaElementInfo> infoStack;
 
 	/**
 	 * Stack of parent handles, corresponding to the info stack. We
 	 * keep both, since info objects do not have back pointers to
 	 * handles.
 	 */
-	protected Stack handleStack;
+	protected Stack<JavaElement> handleStack;
 
 	/**
 	 * The number of references reported thus far. Used to
@@ -94,7 +94,7 @@ public class CompilationUnitStructureRequestor extends ReferenceInfoAdapter impl
 	protected HashtableOfObject typeRefCache;
 	protected HashtableOfObject unknownRefCache;
 
-protected CompilationUnitStructureRequestor(ICompilationUnit unit, CompilationUnitElementInfo unitInfo, Map newElements) {
+protected CompilationUnitStructureRequestor(CompilationUnit unit, CompilationUnitElementInfo unitInfo, Map<IJavaElement, Object> newElements) {
 	this.unit = unit;
 	this.unitInfo = unitInfo;
 	this.newElements = newElements;
@@ -103,8 +103,8 @@ protected CompilationUnitStructureRequestor(ICompilationUnit unit, CompilationUn
  * @see ISourceElementRequestor
  */
 public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
-	JavaElementInfo parentInfo = (JavaElementInfo) this.infoStack.peek();
-	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+	JavaElementInfo parentInfo = this.infoStack.peek();
+	JavaElement parentHandle= this.handleStack.peek();
 	if (!(parentHandle.getElementType() == IJavaElement.COMPILATION_UNIT)) {
 		Assert.isTrue(false); // Should not happen
 	}
@@ -145,8 +145,8 @@ public void acceptLineSeparatorPositions(int[] positions) {
  */
 public void acceptPackage(int declarationStart, int declarationEnd, char[] name) {
 
-		JavaElementInfo parentInfo = (JavaElementInfo) this.infoStack.peek();
-		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+		JavaElementInfo parentInfo = this.infoStack.peek();
+		JavaElement parentHandle= this.handleStack.peek();
 		PackageDeclaration handle = null;
 		
 		if (parentHandle.getElementType() == IJavaElement.COMPILATION_UNIT) {
@@ -191,8 +191,8 @@ public void acceptProblem(IProblem problem) {
  * @see ISourceElementRequestor
  */
 public void enterCompilationUnit() {
-	this.infoStack = new Stack();
-	this.handleStack= new Stack();
+	this.infoStack = new Stack<JavaElementInfo>();
+	this.handleStack= new Stack<JavaElement>();
 	this.infoStack.push(this.unitInfo);
 	this.handleStack.push(this.unit);
 }
@@ -208,7 +208,7 @@ public void enterConstructor(MethodInfo methodInfo) {
 public void enterField(FieldInfo fieldInfo) {
 
 	SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
-	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+	JavaElement parentHandle= this.handleStack.peek();
 	SourceField handle = null;
 	if (parentHandle.getElementType() == IJavaElement.TYPE) {
 		String fieldName = JavaModelManager.getJavaModelManager().intern(new String(fieldInfo.name));
@@ -241,8 +241,8 @@ public void enterField(FieldInfo fieldInfo) {
 public void enterInitializer(
 	int declarationSourceStart,
 	int modifiers) {
-		JavaElementInfo parentInfo = (JavaElementInfo) this.infoStack.peek();
-		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+		JavaElementInfo parentInfo = this.infoStack.peek();
+		JavaElement parentHandle= this.handleStack.peek();
 		Initializer handle = null;
 		
 		if (parentHandle.getElementType() == IJavaElement.TYPE) {
@@ -269,7 +269,7 @@ public void enterInitializer(
 public void enterMethod(MethodInfo methodInfo) {
 
 	SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
-	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+	JavaElement parentHandle= this.handleStack.peek();
 	SourceMethod handle = null;
 
 	// translate nulls to empty arrays
@@ -335,8 +335,8 @@ public void enterMethod(MethodInfo methodInfo) {
  */
 public void enterType(TypeInfo typeInfo) {
 
-	JavaElementInfo parentInfo = (JavaElementInfo) this.infoStack.peek();
-	JavaElement parentHandle= (JavaElement) this.handleStack.peek();
+	JavaElementInfo parentInfo = this.infoStack.peek();
+	JavaElement parentHandle= this.handleStack.peek();
 	String nameString= new String(typeInfo.name);
 	SourceType handle = handle = new SourceType(parentHandle, nameString); //NB: occurenceCount is computed in resolveDuplicates
 	resolveDuplicates(handle);
@@ -369,8 +369,8 @@ public void enterType(TypeInfo typeInfo) {
 	}
 }
 protected void enterTypeParameter(TypeParameterInfo typeParameterInfo) {
-	JavaElementInfo parentInfo = (JavaElementInfo) this.infoStack.peek();
-	JavaElement parentHandle = (JavaElement) this.handleStack.peek();
+	JavaElementInfo parentInfo = this.infoStack.peek();
+	JavaElement parentHandle = this.handleStack.peek();
 	String nameString = new String(typeParameterInfo.name);
 	TypeParameter handle = handle = new TypeParameter(parentHandle, nameString); //NB: occurenceCount is computed in resolveDuplicates
 	resolveDuplicates(handle);
