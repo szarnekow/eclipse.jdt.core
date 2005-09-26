@@ -61,7 +61,7 @@ import org.eclipse.jdt.internal.core.util.Messages;
 public class CopyElementsOperation extends MultiOperation implements SuffixConstants {
 
 	
-	private Map sources = new HashMap();
+	private Map<IJavaElement, String> sources = new HashMap<IJavaElement, String>();
 /**
  * When executed, this operation will copy the given elements to the
  * given containers.  The elements and destination containers must be in
@@ -129,7 +129,7 @@ protected JavaModelOperation getNestedOperation(IJavaElement element) {
  * Returns the cached source for this element or compute it if not already cached.
  */
 private String getSourceFor(IJavaElement element) throws JavaModelException {
-	String source = (String) this.sources.get(element);
+	String source = this.sources.get(element);
 	if (source == null && element instanceof IMember) {
 		source = ((IMember)element).getSource();
 		this.sources.put(element, source);

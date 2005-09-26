@@ -72,7 +72,7 @@ protected void executeOperation() throws JavaModelException {
 	beginTask(Messages.operation_createPackageFragmentProgress, this.pkgName.length); 
 	IContainer parentFolder = (IContainer) root.getResource();
 	String[] sideEffectPackageName = CharOperation.NO_STRINGS; 
-	ArrayList results = new ArrayList(this.pkgName.length);
+	ArrayList<IPackageFragment> results = new ArrayList<IPackageFragment>(this.pkgName.length);
 	char[][] inclusionPatterns = root.fullInclusionPatternChars();
 	char[][] exclusionPatterns = root.fullExclusionPatternChars();
 	int i;

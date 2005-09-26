@@ -121,7 +121,7 @@ protected ASTNode generateElementAST(ASTRewrite rewriter, IDocument document, IC
 }
 private String removeIndentAndNewLines(String code, IDocument document, ICompilationUnit cu) {
 	IJavaProject project = cu.getJavaProject();
-	Map options = project.getOptions(true/*inherit JavaCore options*/);
+	Map<String, String> options = project.getOptions(true/*inherit JavaCore options*/);
 	int tabWidth = Indents.getTabWidth(options);
 	int indentWidth = Indents.getIndentWidth(options, tabWidth);
 	int indent = Indents.computeIndentUnits(code, tabWidth, indentWidth);

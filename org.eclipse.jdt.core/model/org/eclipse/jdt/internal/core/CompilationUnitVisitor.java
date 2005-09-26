@@ -70,7 +70,7 @@ public class CompilationUnitVisitor extends Compiler {
 	public CompilationUnitVisitor(
 		INameEnvironment environment,
 		IErrorHandlingPolicy policy,
-		Map settings,
+		Map<String, String> settings,
 		ICompilerRequestor requestor,
 		IProblemFactory problemFactory) {
 

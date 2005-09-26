@@ -49,7 +49,7 @@ public class DeleteElementsOperation extends MultiOperation {
 	 * values are <code>IRegion</code>s of elements to be processed in each
 	 * compilation unit.
 	 */ 
-	protected Map childrenToRemove;
+	protected Map<ICompilationUnit, IRegion> childrenToRemove;
 	/**
 	 * The <code>ASTParser</code> used to manipulate the source code of
 	 * <code>ICompilationUnit</code>.
@@ -110,7 +110,7 @@ public class DeleteElementsOperation extends MultiOperation {
 	 * duplicates specified in elements to be processed.
 	 */
 	protected void groupElements() throws JavaModelException {
-		childrenToRemove = new HashMap(1);
+		childrenToRemove = new HashMap<ICompilationUnit, IRegion>(1);
 		int uniqueCUs = 0;
 		for (int i = 0, length = elementsToProcess.length; i < length; i++) {
 			IJavaElement e = elementsToProcess[i];
@@ -118,7 +118,7 @@ public class DeleteElementsOperation extends MultiOperation {
 			if (cu == null) {
 				throw new JavaModelException(new JavaModelStatus(IJavaModelStatusConstants.READ_ONLY, e));
 			} else {
-				IRegion region = (IRegion) childrenToRemove.get(cu);
+				IRegion region = childrenToRemove.get(cu);
 				if (region == null) {
 					region = new Region();
 					childrenToRemove.put(cu, region);
@@ -128,10 +128,10 @@ public class DeleteElementsOperation extends MultiOperation {
 			}
 		}
 		elementsToProcess = new IJavaElement[uniqueCUs];
-		Iterator iter = childrenToRemove.keySet().iterator();
+		Iterator<ICompilationUnit> iter = childrenToRemove.keySet().iterator();
 		int i = 0;
 		while (iter.hasNext()) {
-			elementsToProcess[i++] = (IJavaElement) iter.next();
+			elementsToProcess[i++] = iter.next();
 		}
 	}
 	/**
@@ -146,7 +146,7 @@ public class DeleteElementsOperation extends MultiOperation {
 		int numberOfImports = cu.getImports().length;
 	
 		JavaElementDelta delta = new JavaElementDelta(cu);
-		IJavaElement[] cuElements = ((IRegion) childrenToRemove.get(cu)).getElements();
+		IJavaElement[] cuElements = childrenToRemove.get(cu).getElements();
 		for (int i = 0, length = cuElements.length; i < length; i++) {
 			IJavaElement e = cuElements[i];
 			if (e.exists()) {
@@ -181,7 +181,7 @@ public class DeleteElementsOperation extends MultiOperation {
 	 * @see MultiOperation
 	 */
 	protected void verify(IJavaElement element) throws JavaModelException {
-		IJavaElement[] children = ((IRegion) childrenToRemove.get(element)).getElements();
+		IJavaElement[] children = childrenToRemove.get(element).getElements();
 		for (int i = 0; i < children.length; i++) {
 			IJavaElement child = children[i];
 			if (child.getCorrespondingResource() != null)
