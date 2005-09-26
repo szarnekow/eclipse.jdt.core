@@ -58,6 +58,7 @@ protected void closing(Object info) throws JavaModelException {
  * @see IType#codeComplete(char[], int, int, char[][], char[][], int[], boolean, ICompletionRequestor)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(char[] snippet,int insertion,int position,char[][] localVariableTypeNames,char[][] localVariableNames,int[] localVariableModifiers,boolean isStatic,ICompletionRequestor requestor) throws JavaModelException {
 	codeComplete(snippet, insertion, position, localVariableTypeNames, localVariableNames, localVariableModifiers, isStatic, requestor, DefaultWorkingCopyOwner.PRIMARY);
 }
@@ -66,6 +67,7 @@ public void codeComplete(char[] snippet,int insertion,int position,char[][] loca
  * @see IType#codeComplete(char[], int, int, char[][], char[][], int[], boolean, ICompletionRequestor, WorkingCopyOwner)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(char[] snippet,int insertion,int position,char[][] localVariableTypeNames,char[][] localVariableNames,int[] localVariableModifiers,boolean isStatic,ICompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
 	if (requestor == null) {
 		throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
@@ -170,7 +172,7 @@ public IJavaElement[] getChildren() throws JavaModelException {
 		boolean hadTemporaryCache = manager.hasTemporaryCache();
 		try {
 			Object info = manager.getInfo(this);
-			HashMap newElements = manager.getTemporaryCache();
+			HashMap<IJavaElement, Object> newElements = manager.getTemporaryCache();
 			cfi.readBinaryChildren(newElements, (IBinaryType)info);
 			if (!hadTemporaryCache) {
 				manager.putInfos(this, newElements);
@@ -254,7 +256,7 @@ public IField getField(String fieldName) {
  * @see IType#getFields()
  */
 public IField[] getFields() throws JavaModelException {
-	ArrayList list = getChildrenOfType(FIELD);
+	ArrayList<IJavaElement> list = getChildrenOfType(FIELD);
 	int size;
 	if ((size = list.size()) == 0) {
 		return NO_FIELDS;
@@ -316,7 +318,7 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 		case JEM_METHOD:
 			if (!memento.hasMoreTokens()) return this;
 			String selector = memento.nextToken();
-			ArrayList params = new ArrayList();
+			ArrayList<String> params = new ArrayList<String>();
 			nextParam: while (memento.hasMoreTokens()) {
 				token = memento.nextToken();
 				switch (token.charAt(0)) {
@@ -407,7 +409,7 @@ public IMethod getMethod(String selector, String[] parameterTypeSignatures) {
  * @see IType#getMethods()
  */
 public IMethod[] getMethods() throws JavaModelException {
-	ArrayList list = getChildrenOfType(METHOD);
+	ArrayList<IJavaElement> list = getChildrenOfType(METHOD);
 	int size;
 	if ((size = list.size()) == 0) {
 		return NO_METHODS;
@@ -509,7 +511,7 @@ public String[] getSuperInterfaceTypeSignatures() throws JavaModelException {
 	IBinaryType info = (IBinaryType) getElementInfo();
 	char[] genericSignature = info.getGenericSignature();
 	if (genericSignature != null) {
-		ArrayList interfaces = new ArrayList();
+		ArrayList<String> interfaces = new ArrayList<String>();
 		int signatureLength = genericSignature.length;
 		// skip type parameters
 		int index = 0;
@@ -612,7 +614,7 @@ public String getTypeQualifiedName(char enclosingTypeSeparator) {
  * @see IType#getTypes()
  */
 public IType[] getTypes() throws JavaModelException {
-	ArrayList list = getChildrenOfType(TYPE);
+	ArrayList<IJavaElement> list = getChildrenOfType(TYPE);
 	int size;
 	if ((size = list.size()) == 0) {
 		return NO_TYPES;
@@ -729,6 +731,7 @@ public ITypeHierarchy newSupertypeHierarchy(
  * @see IType#newSupertypeHierarchy(IWorkingCopy[], IProgressMonitor)
  * @deprecated
  */
+@Deprecated
 public ITypeHierarchy newSupertypeHierarchy(
 	IWorkingCopy[] workingCopies,
 	IProgressMonitor monitor)
@@ -802,6 +805,7 @@ public ITypeHierarchy newTypeHierarchy(IJavaProject project, WorkingCopyOwner ow
  * @see IType#newTypeHierarchy(IProgressMonitor monitor)
  * @deprecated
  */
+@Deprecated
 public ITypeHierarchy newTypeHierarchy(IProgressMonitor monitor) throws JavaModelException {
 	return newTypeHierarchy((IWorkingCopy[])null, monitor);
 }
@@ -821,6 +825,7 @@ public ITypeHierarchy newTypeHierarchy(
  * @see IType#newTypeHierarchy(IWorkingCopy[], IProgressMonitor)
  * @deprecated
  */
+@Deprecated
 public ITypeHierarchy newTypeHierarchy(
 	IWorkingCopy[] workingCopies,
 	IProgressMonitor monitor)

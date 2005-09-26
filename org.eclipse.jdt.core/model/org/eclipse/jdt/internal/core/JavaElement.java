@@ -184,12 +184,12 @@ public abstract class JavaElement extends PlatformObject implements IJavaElement
 	 *
 	 * @param type - one of the JEM_* constants defined by JavaElement
 	 */
-	public ArrayList getChildrenOfType(int type) throws JavaModelException {
+	public ArrayList<IJavaElement> getChildrenOfType(int type) throws JavaModelException {
 		IJavaElement[] children = getChildren();
 		int size = children.length;
-		ArrayList list = new ArrayList(size);
+		ArrayList<IJavaElement> list = new ArrayList<IJavaElement>(size);
 		for (int i = 0; i < size; ++i) {
-			JavaElement elt = (JavaElement)children[i];
+			IJavaElement elt = children[i];
 			if (elt.getElementType() == type) {
 				list.add(elt);
 			}
