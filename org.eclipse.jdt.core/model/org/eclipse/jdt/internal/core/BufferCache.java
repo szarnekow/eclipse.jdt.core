@@ -37,8 +37,8 @@ public BufferCache(int size, int overflow) {
  * <p>NOTE: this triggers an external removal of this buffer
  * by closing the buffer.
  */
-protected boolean close(LRUCacheEntry entry) {
-	IBuffer buffer= (IBuffer) entry._fValue;
+protected boolean close(LRUCacheEntry<IOpenable, IBuffer> entry) {
+	IBuffer buffer= entry._fValue;
 	
 	// prevent buffer that have unsaved changes or working copy buffer to be removed
 	// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=39311

@@ -26,17 +26,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.IBuffer;
-import org.eclipse.jdt.core.IClassFile;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaModelMarker;
-import org.eclipse.jdt.core.IJavaModelStatusConstants;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IParent;
-import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
@@ -74,7 +63,7 @@ protected ClassFile(PackageFragment parent, String name) {
  * @see Openable
  * @see Signature
  */
-protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
+protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map<IJavaElement, Object> newElements, IResource underlyingResource) throws JavaModelException {
 	// check whether the class file can be opened
 	IStatus status = validateClassFile();
 	if (!status.isOK()) throw newJavaModelException(status);
@@ -98,6 +87,7 @@ protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, 
  * @see ICodeAssist#codeComplete(int, ICompletionRequestor)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(int offset, ICompletionRequestor requestor) throws JavaModelException {
 	codeComplete(offset, requestor, DefaultWorkingCopyOwner.PRIMARY);
 }
@@ -105,6 +95,7 @@ public void codeComplete(int offset, ICompletionRequestor requestor) throws Java
  * @see ICodeAssist#codeComplete(int, ICompletionRequestor, WorkingCopyOwner)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(int offset, ICompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
 	if (requestor == null) {
 		throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
