@@ -426,9 +426,9 @@ public class ChangeCollector {
 	
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		Iterator iterator = this.changes.entrySet().iterator();
+		Iterator<Map.Entry<IJavaElement, SimpleDelta>> iterator = this.changes.entrySet().iterator();
 		while (iterator.hasNext()) {
-			Map.Entry entry = (Map.Entry)iterator.next();
+			Map.Entry<IJavaElement, SimpleDelta> entry = iterator.next();
 			buffer.append(((JavaElement)entry.getKey()).toDebugString());
 			buffer.append(entry.getValue());
 			if (iterator.hasNext()) {

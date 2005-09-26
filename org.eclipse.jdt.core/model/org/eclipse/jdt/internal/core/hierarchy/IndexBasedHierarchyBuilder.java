@@ -386,12 +386,12 @@ private String[] determinePossibleSubTypes(final HashSet<String> localTypes, IPr
 		if (monitor != null) monitor.done();
 	}
 
-	HashSet paths = collector.paths;
+	HashSet<String> paths = collector.paths;
 	int length = paths.size();
 	String[] result = new String[length];
 	int count = 0;
-	for (Iterator iter = paths.iterator(); iter.hasNext();) {
-		result[count++] = (String) iter.next();
+	for (Iterator<String> iter = paths.iterator(); iter.hasNext();) {
+		result[count++] = iter.next();
 	} 
 	return result;
 }

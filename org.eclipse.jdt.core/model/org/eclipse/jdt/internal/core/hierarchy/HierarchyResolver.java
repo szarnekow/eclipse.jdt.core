@@ -81,7 +81,7 @@ public class HierarchyResolver implements ITypeRequestor {
 	private int typeIndex;
 	private IGenericType[] typeModels;
 	
-public HierarchyResolver(INameEnvironment nameEnvironment, Map settings, HierarchyBuilder builder, IProblemFactory problemFactory) {
+public HierarchyResolver(INameEnvironment nameEnvironment, Map<String, String> settings, HierarchyBuilder builder, IProblemFactory problemFactory) {
 	// create a problem handler with the 'exit after all problems' handling policy
 	this.options = new CompilerOptions(settings);
 	IErrorHandlingPolicy policy = DefaultErrorHandlingPolicies.exitAfterAllProblems();
@@ -504,7 +504,7 @@ public void resolve(IGenericType suppliedType) {
  * @param localTypes
  * @param monitor
  */
-public void resolve(Openable[] openables, HashSet localTypes, IProgressMonitor monitor) {
+public void resolve(Openable[] openables, HashSet<String> localTypes, IProgressMonitor monitor) {
 	try {
 		int openablesLength = openables.length;
 		CompilationUnitDeclaration[] parsedUnits = new CompilationUnitDeclaration[openablesLength];
