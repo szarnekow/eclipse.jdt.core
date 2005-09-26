@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.WorkingCopyOwner;
  * TODO remove when removing IBufferFactory
  * @deprecated
  */
+@Deprecated
 public class BufferFactoryWrapper extends WorkingCopyOwner {
 
 	public org.eclipse.jdt.core.IBufferFactory factory;
