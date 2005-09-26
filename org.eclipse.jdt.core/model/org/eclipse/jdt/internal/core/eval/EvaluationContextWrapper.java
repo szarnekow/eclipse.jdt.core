@@ -18,14 +18,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IImportDeclaration;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaModelMarker;
-import org.eclipse.jdt.core.IJavaModelStatusConstants;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.eval.ICodeSnippetRequestor;
 import org.eclipse.jdt.core.eval.IEvaluationContext;
@@ -34,12 +26,6 @@ import org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.core.*;
-import org.eclipse.jdt.internal.core.BinaryType;
-import org.eclipse.jdt.internal.core.ClassFile;
-import org.eclipse.jdt.internal.core.JavaModelStatus;
-import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.internal.core.SelectionRequestor;
-import org.eclipse.jdt.internal.core.SourceMapper;
 import org.eclipse.jdt.internal.core.builder.NameEnvironment;
 import org.eclipse.jdt.internal.core.builder.ProblemFactory;
 import org.eclipse.jdt.internal.eval.EvaluationContext;
@@ -84,6 +70,7 @@ protected void checkBuilderState() {
  * @see org.eclipse.jdt.core.eval.IEvaluationContext#codeComplete(String, int, ICompletionRequestor)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(String codeSnippet, int position, ICompletionRequestor requestor) throws JavaModelException {
 	codeComplete(codeSnippet, position, requestor, DefaultWorkingCopyOwner.PRIMARY);
 }
@@ -91,6 +78,7 @@ public void codeComplete(String codeSnippet, int position, ICompletionRequestor 
  * @see org.eclipse.jdt.core.eval.IEvaluationContext#codeComplete(String, int, ICompletionRequestor, WorkingCopyOwner)
  * @deprecated
  */
+@Deprecated
 public void codeComplete(String codeSnippet, int position, ICompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
 	if (requestor == null) {
 		throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
@@ -375,6 +363,7 @@ public void validateImports(ICodeSnippetRequestor requestor) {
  * @see IEvaluationContext#codeComplete(String, int, ICodeCompletionRequestor)
  * @deprecated - use codeComplete(String, int, ICompletionRequestor) instead
  */
+@Deprecated
 public void codeComplete(String codeSnippet, int position, final org.eclipse.jdt.core.ICodeCompletionRequestor requestor) throws JavaModelException {
 
 	if (requestor == null){

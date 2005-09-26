@@ -641,7 +641,7 @@ public class SourceTypeConverter implements CompilerModifiers {
 		int identCount = 1;
 		int dim = 0;
 		int nameFragmentStart = this.namePos, nameFragmentEnd = -1;
-		ArrayList fragments = null;
+		ArrayList<Object[] > fragments = null;
 		typeLoop: while (this.namePos < length) {
 			char currentChar = typeName[this.namePos];
 			switch (currentChar) {
@@ -703,7 +703,7 @@ public class SourceTypeConverter implements CompilerModifiers {
 					// convert 1.5 specific constructs only if compliance is 1.5 or above
 					if (!this.has1_5Compliance) 
 						break typeLoop;
-					if (fragments == null) fragments = new ArrayList(2);
+					if (fragments == null) fragments = new ArrayList<Object[]>(2);
 					nameFragmentEnd = this.namePos-1;
 					char[][] identifiers = CharOperation.splitOn('.', typeName, nameFragmentStart, this.namePos);
 					fragments.add(identifiers);
@@ -797,7 +797,7 @@ public class SourceTypeConverter implements CompilerModifiers {
 	}
 	
 	private TypeReference[] decodeTypeArguments(char[] typeName, int length, int start, int end) {
-		ArrayList argumentList = new ArrayList(1);
+		ArrayList<TypeReference> argumentList = new ArrayList<TypeReference>(1);
 		int count = 0;
 		argumentsLoop: while (this.namePos < length) {
 			TypeReference argument = decodeType(typeName, length, start, end);
