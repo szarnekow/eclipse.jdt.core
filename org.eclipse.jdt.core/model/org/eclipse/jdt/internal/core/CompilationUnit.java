@@ -83,7 +83,7 @@ public void becomeWorkingCopy(IProblemRequestor problemRequestor, IProgressMonit
 		operation.runOperation(monitor);
 	}
 }
-protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
+protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map<IJavaElement, Object> newElements, IResource underlyingResource) throws JavaModelException {
 
 	// check if this compilation unit can be opened
 	if (!isWorkingCopy()) { // no check is done on root kind or exclusion pattern for working copies
@@ -111,7 +111,7 @@ protected boolean buildStructure(OpenableElementInfo info, final IProgressMonito
 	IJavaProject project = getJavaProject();
 	boolean computeProblems = JavaProject.hasJavaNature(project.getProject()) && perWorkingCopyInfo != null && perWorkingCopyInfo.isActive();
 	IProblemFactory problemFactory = new DefaultProblemFactory();
-	Map options = project.getOptions(true);
+	Map<String, String> options = project.getOptions(true);
 	if (!computeProblems) {
 		// disable task tags checking to speed up parsing
 		options.put(JavaCore.COMPILER_TASK_TAGS, ""); //$NON-NLS-1$
@@ -450,7 +450,7 @@ public boolean exists() {
  * @see ICompilationUnit#findElements(IJavaElement)
  */
 public IJavaElement[] findElements(IJavaElement element) {
-	ArrayList children = new ArrayList();
+	ArrayList<IJavaElement> children = new ArrayList<IJavaElement>();
 	while (element != null && element.getElementType() != IJavaElement.COMPILATION_UNIT) {
 		children.add(element);
 		element = element.getParent();
@@ -547,15 +547,15 @@ public ICompilationUnit findWorkingCopy(WorkingCopyOwner workingCopyOwner) {
  * @see ICompilationUnit#getAllTypes()
  */
 public IType[] getAllTypes() throws JavaModelException {
-	IJavaElement[] types = getTypes();
+	IType[] types = getTypes();
 	int i;
-	ArrayList allTypes = new ArrayList(types.length);
-	ArrayList typesToTraverse = new ArrayList(types.length);
+	ArrayList<IType> allTypes = new ArrayList<IType>(types.length);
+	ArrayList<IType> typesToTraverse = new ArrayList<IType>(types.length);
 	for (i = 0; i < types.length; i++) {
 		typesToTraverse.add(types[i]);
 	}
 	while (!typesToTraverse.isEmpty()) {
-		IType type = (IType) typesToTraverse.get(0);
+		IType type = typesToTraverse.get(0);
 		typesToTraverse.remove(type);
 		allTypes.add(type);
 		types = type.getTypes();
@@ -731,7 +731,7 @@ public IPackageDeclaration getPackageDeclaration(String pkg) {
  * @see ICompilationUnit#getPackageDeclarations()
  */
 public IPackageDeclaration[] getPackageDeclarations() throws JavaModelException {
-	ArrayList list = getChildrenOfType(PACKAGE_DECLARATION);
+	ArrayList<IJavaElement> list = getChildrenOfType(PACKAGE_DECLARATION);
 	IPackageDeclaration[] array= new IPackageDeclaration[list.size()];
 	list.toArray(array);
 	return array;
@@ -810,7 +810,7 @@ public IType getType(String typeName) {
  * @see ICompilationUnit#getTypes()
  */
 public IType[] getTypes() throws JavaModelException {
-	ArrayList list = getChildrenOfType(TYPE);
+	ArrayList<IJavaElement> list = getChildrenOfType(TYPE);
 	IType[] array= new IType[list.size()];
 	list.toArray(array);
 	return array;
@@ -1024,7 +1024,7 @@ protected IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelE
 	
 	return buffer;
 }
-protected void openParent(Object childInfo, HashMap newElements, IProgressMonitor pm) throws JavaModelException {
+protected void openParent(Object childInfo, HashMap<IJavaElement, Object> newElements, IProgressMonitor pm) throws JavaModelException {
 	if (!isWorkingCopy())
 		super.openParent(childInfo, newElements, pm);
 	// don't open parent for a working copy to speed up the first becomeWorkingCopy
