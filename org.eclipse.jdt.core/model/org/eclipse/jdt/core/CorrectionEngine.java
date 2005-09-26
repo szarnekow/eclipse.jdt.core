@@ -86,7 +86,7 @@ public class CorrectionEngine implements ProblemReasons {
 	 *		set of options used to configure the code correction engine.
 	 * 		CURRENTLY THERE IS NO CORRECTION SPECIFIC SETTINGS.
 	 */
-	public CorrectionEngine(Map setting) {
+	public CorrectionEngine(Map<String,String> setting) {
 		// settings ignored for now
 	}
 	
