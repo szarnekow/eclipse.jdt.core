@@ -803,8 +803,8 @@ public class Util {
 						}
 						if (path != null) {
 							jar = JavaModelManager.getJavaModelManager().getZipFile(path);
-							for (Enumeration e= jar.entries(); e.hasMoreElements();) {
-								ZipEntry member= (ZipEntry) e.nextElement();
+							for (Enumeration<? extends ZipEntry> e= jar.entries(); e.hasMoreElements();) {
+								ZipEntry member= e.nextElement();
 								String entryName= member.getName();
 								if (org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(entryName)) {
 									reader = ClassFileReader.read(jar, entryName);
@@ -1083,14 +1083,14 @@ public class Util {
 				ParameterizedType parameterizedType = (ParameterizedType) type;
 				getFullyQualifiedName(parameterizedType.getType(), buffer);
 				buffer.append('<');
-				Iterator iterator = parameterizedType.typeArguments().iterator();
+				Iterator<Type> iterator = parameterizedType.typeArguments().iterator();
 				boolean isFirst = true;
 				while (iterator.hasNext()) {
 					if (!isFirst)
 						buffer.append(',');
 					else
 						isFirst = false;
-					Type typeArgument = (Type) iterator.next();
+					Type typeArgument = iterator.next();
 					getFullyQualifiedName(typeArgument, buffer);
 				}
 				buffer.append('>');

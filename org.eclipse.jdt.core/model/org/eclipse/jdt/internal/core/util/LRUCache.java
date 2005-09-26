@@ -167,7 +167,7 @@ public class LRUCache<K, V> implements Cloneable {
 	public void flush() {
 
 		fCurrentSpace = 0;
-		LRUCacheEntry entry = fEntryQueueTail; // Remember last entry
+		LRUCacheEntry<K, V> entry = fEntryQueueTail; // Remember last entry
 		fEntryTable = new Hashtable<K, LRUCacheEntry<K, V>>();  // Clear it out
 		fEntryQueue = fEntryQueueTail = null;  
 		while (entry != null) {  // send deletion notifications in LRU order
@@ -330,7 +330,7 @@ public class LRUCache<K, V> implements Cloneable {
 	 * fallen off the bottom of the LRU queue.  
 	 * Subclasses could over-ride this to implement a persistent cache below the LRU cache.
 	 */
-	protected void privateNotifyDeletionFromCache(LRUCacheEntry entry) {
+	protected void privateNotifyDeletionFromCache(LRUCacheEntry<K, V> entry) {
 		// Default is NOP.
 	}
 	/**

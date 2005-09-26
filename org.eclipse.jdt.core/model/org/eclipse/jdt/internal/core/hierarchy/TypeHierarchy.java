@@ -364,7 +364,7 @@ public boolean exists() {
  * through the list.
  */
 public void fireChange() {
-	ArrayList listeners = this.changeListeners;
+	ArrayList<ITypeHierarchyChangedListener> listeners = this.changeListeners;
 	if (listeners == null) {
 		return;
 	}
@@ -375,9 +375,9 @@ public void fireChange() {
 		}
 	}
 	// clone so that a listener cannot have a side-effect on this list when being notified
-	listeners = (ArrayList)listeners.clone();
+	listeners = new ArrayList<ITypeHierarchyChangedListener>(listeners);
 	for (int i= 0; i < listeners.size(); i++) {
-		final ITypeHierarchyChangedListener listener= (ITypeHierarchyChangedListener)listeners.get(i);
+		final ITypeHierarchyChangedListener listener= listeners.get(i);
 		Platform.run(new ISafeRunnable() {
 			public void handleException(Throwable exception) {
 				Util.log(exception, "Exception occurred in listener of Type hierarchy change notification"); //$NON-NLS-1$
@@ -401,8 +401,8 @@ private static byte[] flagsToBytes(Integer flags){
 public IType[] getAllClasses() {
 
 	TypeVector classes = this.rootClasses.copy();
-	for (Iterator iter = this.classToSuperclass.keySet().iterator(); iter.hasNext();){
-		classes.add((IType)iter.next());
+	for (Iterator<IType> iter = this.classToSuperclass.keySet().iterator(); iter.hasNext();){
+		classes.add(iter.next());
 	}
 	return classes.elements();
 }
@@ -544,10 +544,10 @@ public IType[] getExtendingInterfaces(IType type) {
  * @see #getExtendingInterfaces
  */
 private IType[] getExtendingInterfaces0(IType extendedInterface) {
-	Iterator iter = this.typeToSuperInterfaces.keySet().iterator();
+	Iterator<IType> iter = this.typeToSuperInterfaces.keySet().iterator();
 	ArrayList<IType> interfaceList = new ArrayList<IType>();
 	while (iter.hasNext()) {
-		IType type = (IType) iter.next();
+		IType type = iter.next();
 		if (!this.isInterface(type)) {
 			continue;
 		}
@@ -580,10 +580,10 @@ public IType[] getImplementingClasses(IType type) {
  */
 private IType[] getImplementingClasses0(IType interfce) {
 	
-	Iterator iter = this.typeToSuperInterfaces.keySet().iterator();
+	Iterator<IType> iter = this.typeToSuperInterfaces.keySet().iterator();
 	ArrayList<IType> iMenters = new ArrayList<IType>();
 	while (iter.hasNext()) {
-		IType type = (IType) iter.next();
+		IType type = iter.next();
 		if (this.isInterface(type)) {
 			continue;
 		}
@@ -1281,7 +1281,7 @@ public synchronized void refresh(IProgressMonitor monitor) throws JavaModelExcep
  * @see ITypeHierarchy
  */
 public synchronized void removeTypeHierarchyChangedListener(ITypeHierarchyChangedListener listener) {
-	ArrayList listeners = this.changeListeners;
+	ArrayList<ITypeHierarchyChangedListener> listeners = this.changeListeners;
 	if (listeners == null) {
 		return;
 	}
@@ -1538,8 +1538,8 @@ private void toString(StringBuffer buffer, IType type, int indent, boolean ascen
  * name is the given simple name.
  */
 boolean hasSupertype(String simpleName) {
-	for(Iterator iter = this.classToSuperclass.values().iterator(); iter.hasNext();){
-		IType superType = (IType)iter.next();
+	for(Iterator<IType> iter = this.classToSuperclass.values().iterator(); iter.hasNext();){
+		IType superType = iter.next();
 		if (superType.getElementName().equals(simpleName)) {
 			return true;
 		}

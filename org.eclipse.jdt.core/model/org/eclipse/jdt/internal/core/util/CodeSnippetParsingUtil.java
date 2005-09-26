@@ -47,11 +47,11 @@ public class CodeSnippetParsingUtil {
 		return new RecordedParsingInformation(problems, compilationResult.lineSeparatorPositions, parser.getCommentsPositions());
 	}
 
-	public ASTNode[] parseClassBodyDeclarations(char[] source, Map settings, boolean recordParsingInformation) {
+	public ASTNode[] parseClassBodyDeclarations(char[] source, Map<String, String> settings, boolean recordParsingInformation) {
 		return parseClassBodyDeclarations(source, 0, source.length, settings, recordParsingInformation);
 	}	
 
-	public ASTNode[] parseClassBodyDeclarations(char[] source, int offset, int length, Map settings, boolean recordParsingInformation) {
+	public ASTNode[] parseClassBodyDeclarations(char[] source, int offset, int length, Map<String, String> settings, boolean recordParsingInformation) {
 		if (source == null) {
 			throw new IllegalArgumentException();
 		}
@@ -79,7 +79,7 @@ public class CodeSnippetParsingUtil {
 		return result;
 	}
 
-	public CompilationUnitDeclaration parseCompilationUnit(char[] source, Map settings, boolean recordParsingInformation) {
+	public CompilationUnitDeclaration parseCompilationUnit(char[] source, Map<String, String> settings, boolean recordParsingInformation) {
 		if (source == null) {
 			throw new IllegalArgumentException();
 		}
@@ -126,11 +126,11 @@ public class CodeSnippetParsingUtil {
 		return compilationUnitDeclaration;
 	}
 
-	public Expression parseExpression(char[] source, Map settings, boolean recordParsingInformation) {
+	public Expression parseExpression(char[] source, Map<String, String> settings, boolean recordParsingInformation) {
 		return parseExpression(source, 0, source.length, settings, recordParsingInformation);
 	}
 	
-	public Expression parseExpression(char[] source, int offset, int length, Map settings, boolean recordParsingInformation) {
+	public Expression parseExpression(char[] source, int offset, int length, Map<String, String> settings, boolean recordParsingInformation) {
 		
 		if (source == null) {
 			throw new IllegalArgumentException();
@@ -158,11 +158,11 @@ public class CodeSnippetParsingUtil {
 		return result;
 	}
 
-	public ConstructorDeclaration parseStatements(char[] source, Map settings, boolean recordParsingInformation) {
+	public ConstructorDeclaration parseStatements(char[] source, Map<String, String> settings, boolean recordParsingInformation) {
 		return parseStatements(source, 0, source.length, settings, recordParsingInformation);
 	}
 	
-	public ConstructorDeclaration parseStatements(char[] source, int offset, int length, Map settings, boolean recordParsingInformation) {
+	public ConstructorDeclaration parseStatements(char[] source, int offset, int length, Map<String, String> settings, boolean recordParsingInformation) {
 		if (source == null) {
 			throw new IllegalArgumentException();
 		}
