@@ -251,7 +251,7 @@ public void closed(IJavaElement element) {
  */
 protected JavaElementDelta createDeltaTree(IJavaElement element, JavaElementDelta delta) {
 	JavaElementDelta childDelta = delta;
-	ArrayList ancestors= getAncestors(element);
+	ArrayList<IJavaElement> ancestors= getAncestors(element);
 	if (ancestors == null) {
 		if (this.equalsAndSameParent(delta.getElement(), getElement())) { // handle case of two jars that can be equals but not in the same project
 			// the element being changed is the root element
@@ -262,7 +262,7 @@ protected JavaElementDelta createDeltaTree(IJavaElement element, JavaElementDelt
 		}
 	} else {
 		for (int i = 0, size = ancestors.size(); i < size; i++) {
-			IJavaElement ancestor = (IJavaElement) ancestors.get(i);
+			IJavaElement ancestor = ancestors.get(i);
 			JavaElementDelta ancestorDelta = new JavaElementDelta(ancestor);
 			ancestorDelta.addAffectedChild(childDelta);
 			childDelta = ancestorDelta;
@@ -318,12 +318,12 @@ public IJavaElementDelta[] getAffectedChildren() {
  * element is not a descendant of the root of this tree, <code>null</code>
  * is returned.
  */
-private ArrayList getAncestors(IJavaElement element) {
+private ArrayList<IJavaElement> getAncestors(IJavaElement element) {
 	IJavaElement parent = element.getParent();
 	if (parent == null) {
 		return null;
 	}
-	ArrayList parents = new ArrayList();
+	ArrayList<IJavaElement> parents = new ArrayList<IJavaElement>();
 	while (!parent.equals(this.changedElement)) {
 		parents.add(parent);
 		parent = parent.getParent();
@@ -348,7 +348,7 @@ protected IJavaElementDelta[] getChildrenOfType(int type) {
 	if (length == 0) {
 		return new IJavaElementDelta[] {};
 	}
-	ArrayList children= new ArrayList(length);
+	ArrayList<IJavaElementDelta> children= new ArrayList<IJavaElementDelta>(length);
 	for (int i = 0; i < length; i++) {
 		if (fAffectedChildren[i].getKind() == type) {
 			children.add(fAffectedChildren[i]);

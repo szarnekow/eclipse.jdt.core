@@ -199,7 +199,7 @@ public void delete(
  * 
  * @exception JavaModelException  The resource associated with this package fragment root does not exist
  */
-protected boolean computeChildren(OpenableElementInfo info, Map newElements) throws JavaModelException {
+protected boolean computeChildren(OpenableElementInfo info, Map<IJavaElement, Object> newElements) throws JavaModelException {
 	// Note the children are not opened (so not added to newElements) for a regular package fragment root
 	// Howver they are opened for a Jar package fragment root (see JarPackageFragmentRoot#computeChildren)
 	try {
