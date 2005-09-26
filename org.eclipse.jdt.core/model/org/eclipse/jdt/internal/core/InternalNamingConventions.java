@@ -37,7 +37,7 @@ public class InternalNamingConventions {
 				true/*taskCaseSensitive*/);
 	}
 	public static void suggestArgumentNames(IJavaProject javaProject, char[] packageName, char[] qualifiedTypeName, int dim, char[][] excludedNames, INamingRequestor requestor) {
-		Map options = javaProject.getOptions(true);
+		Map<String, String> options = javaProject.getOptions(true);
 		CompilerOptions compilerOptions = new CompilerOptions(options);
 		AssistOptions assistOptions = new AssistOptions(options);
 
@@ -54,7 +54,7 @@ public class InternalNamingConventions {
 	public static void suggestFieldNames(IJavaProject javaProject, char[] packageName, char[] qualifiedTypeName, int dim, int modifiers, char[][] excludedNames, INamingRequestor requestor) {
 		boolean isStatic = Flags.isStatic(modifiers);
 		
-		Map options = javaProject.getOptions(true);
+		Map<String, String> options = javaProject.getOptions(true);
 		CompilerOptions compilerOptions = new CompilerOptions(options);
 		AssistOptions assistOptions = new AssistOptions(options);
 
@@ -69,7 +69,7 @@ public class InternalNamingConventions {
 			requestor);
 	}
 	public static void suggestLocalVariableNames(IJavaProject javaProject, char[] packageName, char[] qualifiedTypeName, int dim, char[][] excludedNames, INamingRequestor requestor) {
-		Map options = javaProject.getOptions(true);
+		Map<String, String> options = javaProject.getOptions(true);
 		CompilerOptions compilerOptions = new CompilerOptions(options);
 		AssistOptions assistOptions = new AssistOptions(options);
 
