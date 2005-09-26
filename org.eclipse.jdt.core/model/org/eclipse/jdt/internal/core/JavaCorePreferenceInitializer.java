@@ -32,10 +32,10 @@ public class JavaCorePreferenceInitializer extends AbstractPreferenceInitializer
 	public void initializeDefaultPreferences() {
 
 		// Get options names set
-		HashSet optionNames = JavaModelManager.getJavaModelManager().optionNames;
+		HashSet<String> optionNames = JavaModelManager.getJavaModelManager().optionNames;
 		
 		// Compiler settings
-		Map defaultOptionsMap = new CompilerOptions().getMap(); // compiler defaults
+		@SuppressWarnings("unchecked") Map<String, String> defaultOptionsMap = new CompilerOptions().getMap(); // compiler defaults
 		
 		// Override some compiler defaults
 		defaultOptionsMap.put(JavaCore.COMPILER_LOCAL_VARIABLE_ATTR, JavaCore.GENERATE);
@@ -64,10 +64,10 @@ public class JavaCorePreferenceInitializer extends AbstractPreferenceInitializer
 		optionNames.add(JavaCore.CORE_ENCODING);
 
 		// Formatter settings
-		Map codeFormatterOptionsMap = DefaultCodeFormatterConstants.getEclipseDefaultSettings(); // code formatter defaults
-		for (Iterator iter = codeFormatterOptionsMap.entrySet().iterator(); iter.hasNext();) {
-			Map.Entry entry = (Map.Entry) iter.next();
-			String optionName = (String) entry.getKey();
+		Map<String, String> codeFormatterOptionsMap = DefaultCodeFormatterConstants.getEclipseDefaultSettings(); // code formatter defaults
+		for (Iterator<Map.Entry<String, String>> iter = codeFormatterOptionsMap.entrySet().iterator(); iter.hasNext();) {
+			Map.Entry<String, String> entry = iter.next();
+			String optionName = entry.getKey();
 			defaultOptionsMap.put(optionName, entry.getValue());
 			optionNames.add(optionName);
 		}
@@ -88,10 +88,10 @@ public class JavaCorePreferenceInitializer extends AbstractPreferenceInitializer
 		
 		// Store default values to default preferences
 	 	IEclipsePreferences defaultPreferences = new DefaultScope().getNode(JavaCore.PLUGIN_ID);
-		for (Iterator iter = defaultOptionsMap.entrySet().iterator(); iter.hasNext();) {
-			Map.Entry entry = (Map.Entry) iter.next();
-			String optionName = (String) entry.getKey();
-			defaultPreferences.put(optionName, (String)entry.getValue());
+		for (Iterator<Map.Entry<String, String>> iter = defaultOptionsMap.entrySet().iterator(); iter.hasNext();) {
+			Map.Entry<String, String> entry = iter.next();
+			String optionName =entry.getKey();
+			defaultPreferences.put(optionName, entry.getValue());
 			optionNames.add(optionName);
 		}
 	}
