@@ -40,11 +40,11 @@ protected JarPackageFragment(PackageFragmentRoot root, String[] names) {
  * Compute the children of this package fragment. Children of jar package fragments
  * can only be IClassFile (representing .class files).
  */
-protected boolean computeChildren(OpenableElementInfo info, ArrayList entryNames) {
+protected boolean computeChildren(OpenableElementInfo info, ArrayList<String> entryNames) {
 	if (entryNames != null && entryNames.size() > 0) {
-		ArrayList vChildren = new ArrayList();
-		for (Iterator iter = entryNames.iterator(); iter.hasNext();) {
-			String child = (String) iter.next();
+		ArrayList<IClassFile> vChildren = new ArrayList<IClassFile>();
+		for (Iterator<String> iter = entryNames.iterator(); iter.hasNext();) {
+			String child = iter.next();
 			IClassFile classFile = getClassFile(child);
 			vChildren.add(classFile);
 		}
@@ -106,7 +106,7 @@ protected Object createElementInfo() {
 /*
  * @see JavaElement#generateInfos
  */
-protected void generateInfos(Object info, HashMap newElements, IProgressMonitor pm) throws JavaModelException {
+protected void generateInfos(Object info, HashMap<IJavaElement, Object> newElements, IProgressMonitor pm) throws JavaModelException {
 	// Open my jar: this creates all the pkg infos
 	Openable openableParent = (Openable)this.parent;
 	if (!openableParent.isOpen()) {
@@ -117,7 +117,7 @@ protected void generateInfos(Object info, HashMap newElements, IProgressMonitor 
  * @see org.eclipse.jdt.core.IPackageFragment
  */
 public IClassFile[] getClassFiles() throws JavaModelException {
-	ArrayList list = getChildrenOfType(CLASS_FILE);
+	ArrayList<IJavaElement> list = getChildrenOfType(CLASS_FILE);
 	IClassFile[] array= new IClassFile[list.size()];
 	list.toArray(array);
 	return array;
