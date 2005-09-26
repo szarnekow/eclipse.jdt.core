@@ -25,6 +25,8 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.core.util.Util;
 
+import org.eclipse.jdt.internal.core.DeltaProcessor.RootInfo;
+
 /**
  * Keep the global states used during Java element delta processing.
  */
@@ -46,39 +48,39 @@ public class DeltaProcessingState implements IResourceChangeListener {
 	/*
 	 * The delta processor for the current thread.
 	 */
-	private ThreadLocal deltaProcessors = new ThreadLocal();
+	private ThreadLocal<DeltaProcessor> deltaProcessors = new ThreadLocal<DeltaProcessor>();
 	
 	/* A table from IPath (from a classpath entry) to RootInfo */
-	public HashMap roots = new HashMap();
+	public HashMap<IPath, RootInfo> roots = new HashMap<IPath, RootInfo>();
 	
 	/* A table from IPath (from a classpath entry) to ArrayList of RootInfo
 	 * Used when an IPath corresponds to more than one root */
-	public HashMap otherRoots = new HashMap();
+	public HashMap<IPath, ArrayList<RootInfo>> otherRoots = new HashMap<IPath, ArrayList<RootInfo>>();
 	
 	/* A table from IPath (from a classpath entry) to RootInfo
 	 * from the last time the delta processor was invoked. */
-	public HashMap oldRoots = new HashMap();
+	public HashMap<IPath, RootInfo> oldRoots = new HashMap<IPath, RootInfo>();
 	
 	/* A table from IPath (from a classpath entry) to ArrayList of RootInfo
 	 * from the last time the delta processor was invoked.
 	 * Used when an IPath corresponds to more than one root */
-	public HashMap oldOtherRoots = new HashMap();
+	public HashMap<IPath, ArrayList<RootInfo>> oldOtherRoots = new HashMap<IPath, ArrayList<RootInfo>>();
 	
 	/* A table from IPath (a source attachment path from a classpath entry) to IPath (a root path) */
-	public HashMap sourceAttachments = new HashMap();
+	public HashMap<IPath, IPath> sourceAttachments = new HashMap<IPath, IPath>();
 	
 	/* A table from IJavaProject to IJavaProject[] (the list of direct dependent of the key) */
-	public HashMap projectDependencies = new HashMap();
+	public HashMap<IJavaProject, IJavaProject[]> projectDependencies = new HashMap<IJavaProject, IJavaProject[]>();
 
 	/* Whether the roots tables should be recomputed */
 	public boolean rootsAreStale = true;
 	
 	/* Threads that are currently running initializeRoots() */
-	private Set initializingThreads = Collections.synchronizedSet(new HashSet());	
+	private Set<Thread> initializingThreads = Collections.synchronizedSet(new HashSet<Thread>());	
 	
 	public Hashtable<IPath, Long> externalTimeStamps;
 	
-	public HashMap projectUpdates = new HashMap();
+	public HashMap<JavaProject, ProjectUpdateInfo> projectUpdates = new HashMap<JavaProject, ProjectUpdateInfo>();
 
 	public static class ProjectUpdateInfo {
 		JavaProject project;
@@ -103,12 +105,12 @@ public class DeltaProcessingState implements IResourceChangeListener {
 				 
 				IProject[] projectReferences = description.getDynamicReferences();
 				
-				HashSet oldReferences = new HashSet(projectReferences.length);
+				HashSet<String> oldReferences = new HashSet<String>(projectReferences.length);
 				for (int i = 0; i < projectReferences.length; i++){
 					String projectName = projectReferences[i].getName();
 					oldReferences.add(projectName);
 				}
-				HashSet newReferences = (HashSet)oldReferences.clone();
+				HashSet<String> newReferences = new HashSet<String>(oldReferences);
 		
 				for (int i = 0; i < oldRequired.length; i++){
 					String projectName = oldRequired[i];
@@ -119,7 +121,7 @@ public class DeltaProcessingState implements IResourceChangeListener {
 					newReferences.add(projectName);
 				}
 		
-				Iterator iter;
+				Iterator<String> iter;
 				int newSize = newReferences.size();
 				
 				checkIdentity: {
@@ -137,7 +139,7 @@ public class DeltaProcessingState implements IResourceChangeListener {
 				int index = 0;
 				iter = newReferences.iterator();
 				while (iter.hasNext()){
-					requiredProjectNames[index++] = (String)iter.next();
+					requiredProjectNames[index++] = iter.next();
 				}
 				Util.sort(requiredProjectNames); // ensure that if changed, the order is consistent
 				
@@ -204,7 +206,7 @@ public class DeltaProcessingState implements IResourceChangeListener {
 	}
 
 	public DeltaProcessor getDeltaProcessor() {
-		DeltaProcessor deltaProcessor = (DeltaProcessor)this.deltaProcessors.get();
+		DeltaProcessor deltaProcessor = this.deltaProcessors.get();
 		if (deltaProcessor != null) return deltaProcessor;
 		deltaProcessor = new DeltaProcessor(this, JavaModelManager.getJavaModelManager());
 		this.deltaProcessors.set(deltaProcessor);
@@ -228,10 +230,10 @@ public class DeltaProcessingState implements IResourceChangeListener {
 	public void initializeRoots() {
 		
 		// recompute root infos only if necessary
-		HashMap newRoots = null;
-		HashMap newOtherRoots = null;
-		HashMap newSourceAttachments = null;
-		HashMap newProjectDependencies = null;
+		HashMap<IPath, RootInfo> newRoots = null;
+		HashMap<IPath, ArrayList<RootInfo>> newOtherRoots = null;
+		HashMap<IPath, IPath> newSourceAttachments = null;
+		HashMap<IJavaProject, IJavaProject[]> newProjectDependencies = null;
 		if (this.rootsAreStale) {
 			Thread currentThread = Thread.currentThread();
 			boolean addedCurrentThread = false;			
@@ -245,10 +247,10 @@ public class DeltaProcessingState implements IResourceChangeListener {
 				// ensure that containers are initialized in one batch
 				JavaModelManager.getJavaModelManager().batchContainerInitializations = true;
 
-				newRoots = new HashMap();
-				newOtherRoots = new HashMap();
-				newSourceAttachments = new HashMap();
-				newProjectDependencies = new HashMap();
+				newRoots = new HashMap<IPath, RootInfo>();
+				newOtherRoots = new HashMap<IPath, ArrayList<RootInfo>>();
+				newSourceAttachments = new HashMap<IPath, IPath>();
+				newProjectDependencies = new HashMap<IJavaProject, IJavaProject[]>();
 		
 				IJavaModel model = JavaModelManager.getJavaModelManager().getJavaModel();
 				IJavaProject[] projects;
@@ -271,7 +273,7 @@ public class DeltaProcessingState implements IResourceChangeListener {
 						IClasspathEntry entry = classpath[j];
 						if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
 							IJavaProject key = model.getJavaProject(entry.getPath().segment(0)); // TODO (jerome) reuse handle
-							IJavaProject[] dependents = (IJavaProject[]) newProjectDependencies.get(key);
+							IJavaProject[] dependents = newProjectDependencies.get(key);
 							if (dependents == null) {
 								dependents = new IJavaProject[] {project};
 							} else {
@@ -286,14 +288,14 @@ public class DeltaProcessingState implements IResourceChangeListener {
 						// root path
 						IPath path = entry.getPath();
 						if (newRoots.get(path) == null) {
-							newRoots.put(path, new DeltaProcessor.RootInfo(project, path, ((ClasspathEntry)entry).fullInclusionPatternChars(), ((ClasspathEntry)entry).fullExclusionPatternChars(), entry.getEntryKind()));
+							newRoots.put(path, new RootInfo(project, path, ((ClasspathEntry)entry).fullInclusionPatternChars(), ((ClasspathEntry)entry).fullExclusionPatternChars(), entry.getEntryKind()));
 						} else {
-							ArrayList rootList = (ArrayList)newOtherRoots.get(path);
+							ArrayList<RootInfo> rootList = newOtherRoots.get(path);
 							if (rootList == null) {
-								rootList = new ArrayList();
+								rootList = new ArrayList<RootInfo>();
 								newOtherRoots.put(path, rootList);
 							}
-							rootList.add(new DeltaProcessor.RootInfo(project, path, ((ClasspathEntry)entry).fullInclusionPatternChars(), ((ClasspathEntry)entry).fullExclusionPatternChars(), entry.getEntryKind()));
+							rootList.add(new RootInfo(project, path, ((ClasspathEntry)entry).fullInclusionPatternChars(), ((ClasspathEntry)entry).fullExclusionPatternChars(), entry.getEntryKind()));
 						}
 						
 						// source attachment path
@@ -339,7 +341,7 @@ public class DeltaProcessingState implements IResourceChangeListener {
 	public synchronized void recordProjectUpdate(ProjectUpdateInfo newInfo) {
 	    
 	    JavaProject project = newInfo.project;
-	    ProjectUpdateInfo oldInfo = (ProjectUpdateInfo) this.projectUpdates.get(project);
+	    ProjectUpdateInfo oldInfo = this.projectUpdates.get(project);
 	    if (oldInfo != null) { // refresh new classpath information
 	        oldInfo.newRawPath = newInfo.newRawPath;
 	        oldInfo.newResolvedPath = newInfo.newResolvedPath;
@@ -480,11 +482,11 @@ public class DeltaProcessingState implements IResourceChangeListener {
 		try {
 			out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(timestamps)));
 			out.writeInt(this.externalTimeStamps.size());
-			Iterator keys = this.externalTimeStamps.keySet().iterator();
+			Iterator<IPath> keys = this.externalTimeStamps.keySet().iterator();
 			while (keys.hasNext()) {
-				IPath key = (IPath) keys.next();
+				IPath key = keys.next();
 				out.writeUTF(key.toPortableString());
-				Long timestamp = (Long) this.externalTimeStamps.get(key);
+				Long timestamp = this.externalTimeStamps.get(key);
 				out.writeLong(timestamp.longValue());
 			}
 		} catch (IOException e) {
@@ -505,8 +507,8 @@ public class DeltaProcessingState implements IResourceChangeListener {
 	 * Update the roots that are affected by the addition or the removal of the given container resource.
 	 */
 	public synchronized void updateRoots(IPath containerPath, IResourceDelta containerDelta, DeltaProcessor deltaProcessor) {
-		Map updatedRoots;
-		Map otherUpdatedRoots;
+		Map<IPath, RootInfo> updatedRoots;
+		Map<IPath, ArrayList<RootInfo>> otherUpdatedRoots;
 		if (containerDelta.getKind() == IResourceDelta.REMOVED) {
 			updatedRoots = this.oldRoots;
 			otherUpdatedRoots = this.oldOtherRoots;
@@ -514,23 +516,23 @@ public class DeltaProcessingState implements IResourceChangeListener {
 			updatedRoots = this.roots;
 			otherUpdatedRoots = this.otherRoots;
 		}
-		Iterator iterator = updatedRoots.keySet().iterator();
+		Iterator<IPath> iterator = updatedRoots.keySet().iterator();
 		while (iterator.hasNext()) {
-			IPath path = (IPath)iterator.next();
+			IPath path = iterator.next();
 			if (containerPath.isPrefixOf(path) && !containerPath.equals(path)) {
 				IResourceDelta rootDelta = containerDelta.findMember(path.removeFirstSegments(1));
 				if (rootDelta == null) continue;
-				DeltaProcessor.RootInfo rootInfo = (DeltaProcessor.RootInfo)updatedRoots.get(path);
+				RootInfo rootInfo = updatedRoots.get(path);
 	
 				if (!rootInfo.project.getPath().isPrefixOf(path)) { // only consider roots that are not included in the container
 					deltaProcessor.updateCurrentDeltaAndIndex(rootDelta, IJavaElement.PACKAGE_FRAGMENT_ROOT, rootInfo);
 				}
 				
-				ArrayList rootList = (ArrayList)otherUpdatedRoots.get(path);
+				ArrayList<RootInfo> rootList = otherUpdatedRoots.get(path);
 				if (rootList != null) {
-					Iterator otherProjects = rootList.iterator();
+					Iterator<RootInfo> otherProjects = rootList.iterator();
 					while (otherProjects.hasNext()) {
-						rootInfo = (DeltaProcessor.RootInfo)otherProjects.next();
+						rootInfo = otherProjects.next();
 						if (!rootInfo.project.getPath().isPrefixOf(path)) { // only consider roots that are not included in the container
 							deltaProcessor.updateCurrentDeltaAndIndex(rootDelta, IJavaElement.PACKAGE_FRAGMENT_ROOT, rootInfo);
 						}
