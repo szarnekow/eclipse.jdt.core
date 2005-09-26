@@ -35,7 +35,7 @@ import org.eclipse.jdt.internal.core.util.Util;
  */
 public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	
-	public final static ArrayList EMPTY_LIST = new ArrayList();
+	public final static ArrayList<String> EMPTY_LIST = new ArrayList<String>();
 	
 	/**
 	 * The path to the jar file
@@ -68,9 +68,9 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 	 * by the path of class files contained in the jar of this package fragment root.
 	 * Has the side effect of opening the package fragment children.
 	 */
-	protected boolean computeChildren(OpenableElementInfo info, Map newElements) throws JavaModelException {
+	protected boolean computeChildren(OpenableElementInfo info, Map<IJavaElement, Object> newElements) throws JavaModelException {
 		
-		ArrayList vChildren= new ArrayList();
+		ArrayList<JarPackageFragment> vChildren= new ArrayList<JarPackageFragment>();
 		final int JAVA = 0;
 		final int NON_JAVA = 1;
 		ZipFile jar= null;
@@ -80,10 +80,10 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 			HashtableOfArrayToObject packageFragToTypes= new HashtableOfArrayToObject();
 	
 			// always create the default package
-			packageFragToTypes.put(CharOperation.NO_STRINGS, new ArrayList[] { EMPTY_LIST, EMPTY_LIST });
+			packageFragToTypes.put(CharOperation.NO_STRINGS, new ArrayList<?>[] { EMPTY_LIST, EMPTY_LIST });
 	
-			for (Enumeration e= jar.entries(); e.hasMoreElements();) {
-				ZipEntry member= (ZipEntry) e.nextElement();
+			for (Enumeration<? extends ZipEntry> e= jar.entries(); e.hasMoreElements();) {
+				ZipEntry member= e.nextElement();
 				String entryName= member.getName();
 	
 				if (member.isDirectory()) {
@@ -97,12 +97,12 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 					String[] pkgName = initPackageFragToTypes(packageFragToTypes, entryName, lastSeparator);
 
 					// add classfile info amongst children
-					ArrayList[] children = (ArrayList[]) packageFragToTypes.get(pkgName);
+					@SuppressWarnings("unchecked") ArrayList<String>[] children = (ArrayList<String>[]) packageFragToTypes.get(pkgName);
 					if (org.eclipse.jdt.internal.compiler.util.Util.isClassFileName(entryName)) {
-						if (children[JAVA] == EMPTY_LIST) children[JAVA] = new ArrayList();
+						if (children[JAVA] == EMPTY_LIST) children[JAVA] = new ArrayList<String>();
 						children[JAVA].add(fileName);
 					} else {
-						if (children[NON_JAVA] == EMPTY_LIST) children[NON_JAVA] = new ArrayList();
+						if (children[NON_JAVA] == EMPTY_LIST) children[NON_JAVA] = new ArrayList<String>();
 						children[NON_JAVA].add(fileName);
 					}
 				}
@@ -113,7 +113,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 				String[] pkgName = (String[]) packageFragToTypes.keyTable[i];
 				if (pkgName == null) continue;
 				
-				ArrayList[] entries= (ArrayList[]) packageFragToTypes.get(pkgName);
+				@SuppressWarnings("unchecked") ArrayList<String>[] entries= (ArrayList<String>[]) packageFragToTypes.get(pkgName);
 				JarPackageFragment packFrag= (JarPackageFragment) getPackageFragment(pkgName);
 				JarPackageFragmentInfo fragInfo= new JarPackageFragmentInfo();
 				int resLength= entries[NON_JAVA].size();
@@ -247,7 +247,7 @@ public class JarPackageFragmentRoot extends PackageFragmentRoot {
 		for (int i = existingLength; i < length; i++) {
 			System.arraycopy(existing, 0, existing = new String[i+1], 0, i);
 			existing[i] = manager.intern(pkgName[i]);
-			packageFragToTypes.put(existing, new ArrayList[] { EMPTY_LIST, EMPTY_LIST });
+			packageFragToTypes.put(existing, new ArrayList<?>[] { EMPTY_LIST, EMPTY_LIST });
 		}
 		
 		return existing;
