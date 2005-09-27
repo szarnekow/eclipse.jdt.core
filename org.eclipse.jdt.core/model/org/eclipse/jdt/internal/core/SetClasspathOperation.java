@@ -186,13 +186,13 @@ public class SetClasspathOperation extends JavaModelOperation {
 	/**
 	 * Recursively adds all subfolders of <code>folder</code> to the given collection.
 	 */
-	protected void collectAllSubfolders(IFolder folder, ArrayList collection) throws JavaModelException {
+	protected void collectAllSubfolders(IFolder folder, ArrayList<IFolder> collection) throws JavaModelException {
 		try {
 			IResource[] members= folder.members();
 			for (int i = 0, max = members.length; i < max; i++) {
 				IResource r= members[i];
 				if (r.getType() == IResource.FOLDER) {
-					collection.add(r);
+					collection.add((IFolder) r);
 					collectAllSubfolders((IFolder)r, collection);
 				}
 			}	
@@ -207,8 +207,8 @@ public class SetClasspathOperation extends JavaModelOperation {
 	 * location. The collection is empty if no package fragments are
 	 * affected.
 	 */
-	protected ArrayList determineAffectedPackageFragments(IPath location) throws JavaModelException {
-		ArrayList fragments = new ArrayList();
+	protected ArrayList<IPackageFragment> determineAffectedPackageFragments(IPath location) throws JavaModelException {
+		ArrayList<IPackageFragment> fragments = new ArrayList<IPackageFragment>();
 	
 		// see if this will cause any package fragments to be affected
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -227,13 +227,13 @@ public class SetClasspathOperation extends JavaModelOperation {
 					IPackageFragmentRoot[] roots = project.computePackageFragmentRoots(classpath[i]);
 					PackageFragmentRoot root = (PackageFragmentRoot) roots[0];
 					// now the output location becomes a package fragment - along with any subfolders
-					ArrayList folders = new ArrayList();
+					ArrayList<IFolder> folders = new ArrayList<IFolder>();
 					folders.add(folder);
 					collectAllSubfolders(folder, folders);
-					Iterator elements = folders.iterator();
+					Iterator<IFolder> elements = folders.iterator();
 					int segments = path.segmentCount();
 					while (elements.hasNext()) {
-						IFolder f = (IFolder) elements.next();
+						IFolder f = elements.next();
 						IPath relativePath = f.getFullPath().removeFirstSegments(segments);
 						String[] pkgName = relativePath.segments();
 						IPackageFragment pkg = root.getPackageFragment(pkgName);
@@ -316,7 +316,7 @@ public class SetClasspathOperation extends JavaModelOperation {
 		int newLength = newResolvedPath.length;
 			
 		final IndexManager indexManager = manager.getIndexManager();
-		Map oldRoots = null;
+		Map<IPath, IPackageFragmentRoot> oldRoots = null;
 		IPackageFragmentRoot[] roots = null;
 		if (project.isOpen()) {
 			try {
@@ -325,13 +325,13 @@ public class SetClasspathOperation extends JavaModelOperation {
 				// ignore
 			}
 		} else {
-			Map allRemovedRoots ;
+			Map<IJavaProject, IPackageFragmentRoot[]> allRemovedRoots ;
 			if ((allRemovedRoots = manager.getDeltaProcessor().removedRoots) != null) {
-		 		roots = (IPackageFragmentRoot[]) allRemovedRoots.get(project);
+		 		roots = allRemovedRoots.get(project);
 			}
 		}
 		if (roots != null) {
-			oldRoots = new HashMap();
+			oldRoots = new HashMap<IPath, IPackageFragmentRoot>();
 			for (int i = 0; i < roots.length; i++) {
 				IPackageFragmentRoot root = roots[i];
 				oldRoots.put(root.getPath(), root);
@@ -350,7 +350,7 @@ public class SetClasspathOperation extends JavaModelOperation {
 
 				IPackageFragmentRoot[] pkgFragmentRoots = null;
 				if (oldRoots != null) {
-					IPackageFragmentRoot oldRoot = (IPackageFragmentRoot)  oldRoots.get(oldResolvedPath[i].getPath());
+					IPackageFragmentRoot oldRoot = oldRoots.get(oldResolvedPath[i].getPath());
 					if (oldRoot != null) { // use old root if any (could be none if entry wasn't bound)
 						pkgFragmentRoots = new IPackageFragmentRoot[] { oldRoot };
 					}
@@ -358,7 +358,7 @@ public class SetClasspathOperation extends JavaModelOperation {
 				if (pkgFragmentRoots == null) {
 					try {
 						ObjectVector accumulatedRoots = new ObjectVector();
-						HashSet rootIDs = new HashSet(5);
+						HashSet<String> rootIDs = new HashSet<String>(5);
 						rootIDs.add(project.rootID());
 						project.computePackageFragmentRoots(
 							oldResolvedPath[i], 
@@ -751,10 +751,10 @@ public class SetClasspathOperation extends JavaModelOperation {
 		// see if this will cause any package fragments to be added
 		boolean deltaToFire= false;
 		JavaElementDelta delta = newJavaElementDelta();
-		ArrayList added= determineAffectedPackageFragments(oldLocation);
-		Iterator iter = added.iterator();
+		ArrayList<IPackageFragment> added= determineAffectedPackageFragments(oldLocation);
+		Iterator<IPackageFragment> iter = added.iterator();
 		while (iter.hasNext()){
-			IPackageFragment frag= (IPackageFragment)iter.next();
+			IPackageFragment frag= iter.next();
 			((IPackageFragmentRoot)frag.getParent()).close();
 			if (!Util.isExcluded(frag)) {
 				delta.added(frag);
@@ -763,10 +763,10 @@ public class SetClasspathOperation extends JavaModelOperation {
 		}
 	
 		// see if this will cause any package fragments to be removed
-		ArrayList removed= determineAffectedPackageFragments(this.newOutputLocation);
+		ArrayList<IPackageFragment> removed= determineAffectedPackageFragments(this.newOutputLocation);
 		iter = removed.iterator();
 		while (iter.hasNext()){
-			IPackageFragment frag= (IPackageFragment)iter.next();
+			IPackageFragment frag= iter.next();
 			((IPackageFragmentRoot)frag.getParent()).close(); 
 			if (!Util.isExcluded(frag)) {
 				delta.removed(frag);
