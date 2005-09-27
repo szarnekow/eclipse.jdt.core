@@ -95,7 +95,7 @@ public class SearchableEnvironment
 			
 			if (this.checkAccessRestrictions && (isBinary || !type.getJavaProject().equals(this.project))) {
 				PackageFragmentRoot root = (PackageFragmentRoot)type.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
-				ClasspathEntry entry = (ClasspathEntry) this.nameLookup.rootToResolvedEntries.get(root);
+				ClasspathEntry entry = this.nameLookup.rootToResolvedEntries.get(root);
 				if (entry != null) { // reverse map always contains resolved CP entry
 					AccessRuleSet accessRuleSet = entry.getAccessRuleSet();
 					if (accessRuleSet != null) {

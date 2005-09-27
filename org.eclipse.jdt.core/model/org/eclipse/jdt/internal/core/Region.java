@@ -27,14 +27,14 @@ public class Region implements IRegion {
 	 * A collection of the top level elements
 	 * that have been added to the region
 	 */
-	protected ArrayList fRootElements;
+	protected ArrayList<IJavaElement> fRootElements;
 /**
  * Creates an empty region.
  *
  * @see IRegion
  */
 public Region() {
-	fRootElements = new ArrayList(1);
+	fRootElements = new ArrayList<IJavaElement>(1);
 }
 /**
  * @see IRegion#add(IJavaElement)
@@ -53,10 +53,10 @@ public void add(IJavaElement element) {
 public boolean contains(IJavaElement element) {
 	
 	int size = fRootElements.size();
-	ArrayList parents = getAncestors(element);
+	ArrayList<IJavaElement> parents = getAncestors(element);
 	
 	for (int i = 0; i < size; i++) {
-		IJavaElement aTop = (IJavaElement) fRootElements.get(i);
+		IJavaElement aTop = fRootElements.get(i);
 		if (aTop.equals(element)) {
 			return true;
 		}
@@ -74,8 +74,8 @@ public boolean contains(IJavaElement element) {
  * in bottom-up order.
  *
  */
-private ArrayList getAncestors(IJavaElement element) {
-	ArrayList parents = new ArrayList();
+private ArrayList<IJavaElement> getAncestors(IJavaElement element) {
+	ArrayList<IJavaElement> parents = new ArrayList<IJavaElement>();
 	IJavaElement parent = element.getParent();
 	while (parent != null) {
 		parents.add(parent);
@@ -91,7 +91,7 @@ public IJavaElement[] getElements() {
 	int size= fRootElements.size();
 	IJavaElement[] roots= new IJavaElement[size];
 	for (int i = 0; i < size; i++) {
-		roots[i]= (IJavaElement) fRootElements.get(i);
+		roots[i]= fRootElements.get(i);
 	}
 
 	return roots;
@@ -112,9 +112,9 @@ public boolean remove(IJavaElement element) {
  */
 private void removeAllChildren(IJavaElement element) {
 	if (element instanceof IParent) {
-		ArrayList newRootElements = new ArrayList();
+		ArrayList<IJavaElement> newRootElements = new ArrayList<IJavaElement>();
 		for (int i = 0, size = fRootElements.size(); i < size; i++) {
-			IJavaElement currentRoot = (IJavaElement)fRootElements.get(i);
+			IJavaElement currentRoot = fRootElements.get(i);
 			//walk the current root hierarchy
 			IJavaElement parent = currentRoot.getParent();
 			boolean isChild= false;

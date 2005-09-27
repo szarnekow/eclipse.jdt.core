@@ -81,7 +81,7 @@ public class ReconcileWorkingCopyOperation extends JavaModelOperation {
 							problemRequestor.endReporting();
 							if (progressMonitor != null) progressMonitor.worked(1);
 							if (this.createAST && unit != null) {
-								Map options = workingCopy.getJavaProject().getOptions(true);
+								Map<String, String> options = workingCopy.getJavaProject().getOptions(true);
 								this.ast = AST.convertCompilationUnit(this.astLevel, unit, contents, options, true/*isResolved*/, workingCopy, this.progressMonitor);
 								if (progressMonitor != null) progressMonitor.worked(1);
 							}

@@ -138,9 +138,9 @@ public void attachSource(IPath sourcePath, IPath rootPath, IProgressMonitor moni
 				oldMapper.close();
 			}
 			BufferManager manager= BufferManager.getDefaultBufferManager();
-			Enumeration openBuffers= manager.getOpenBuffers();
+			Enumeration<IBuffer> openBuffers= manager.getOpenBuffers();
 			while (openBuffers.hasMoreElements()) {
-				IBuffer buffer= (IBuffer) openBuffers.nextElement();
+				IBuffer buffer= openBuffers.nextElement();
 				IOpenable possibleMember= buffer.getOwner();
 				if (isAncestorOf((IJavaElement) possibleMember)) {
 					buffer.close();
@@ -163,7 +163,7 @@ public void attachSource(IPath sourcePath, IPath rootPath, IProgressMonitor moni
 /**
  * @see Openable
  */
-protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
+protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map<IJavaElement, Object> newElements, IResource underlyingResource) throws JavaModelException {
 	
 	// check whether this pkg fragment root can be opened
 	IStatus status = validateOnClasspath();
@@ -207,7 +207,7 @@ protected boolean computeChildren(OpenableElementInfo info, Map<IJavaElement, Ob
 		// is actually the package fragment root)
 		IResource underlyingResource = getResource();
 		if (underlyingResource.getType() == IResource.FOLDER || underlyingResource.getType() == IResource.PROJECT) {
-			ArrayList vChildren = new ArrayList(5);
+			ArrayList<IJavaElement> vChildren = new ArrayList<IJavaElement>(5);
 			IContainer rootFolder = (IContainer) underlyingResource;
 			char[][] inclusionPatterns = fullInclusionPatternChars();
 			char[][] exclusionPatterns = fullExclusionPatternChars();
@@ -230,7 +230,7 @@ protected boolean computeChildren(OpenableElementInfo info, Map<IJavaElement, Ob
  * 
  * @exception JavaModelException  The resource associated with this package fragment does not exist
  */
-protected void computeFolderChildren(IContainer folder, boolean isIncluded, String[] pkgName, ArrayList vChildren, char[][] inclusionPatterns, char[][] exclusionPatterns) throws JavaModelException {
+protected void computeFolderChildren(IContainer folder, boolean isIncluded, String[] pkgName, ArrayList<IJavaElement> vChildren, char[][] inclusionPatterns, char[][] exclusionPatterns) throws JavaModelException {
 
 	if (isIncluded) {
 	    IPackageFragment pkg = getPackageFragment(pkgName);
@@ -592,7 +592,7 @@ public IClasspathEntry getRawClasspathEntry() throws JavaModelException {
 	project.getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/); // force the reverse rawEntry cache to be populated
 	JavaModelManager.PerProjectInfo perProjectInfo = project.getPerProjectInfo();
 	if (perProjectInfo != null && perProjectInfo.resolvedPathToRawEntries != null) {
-		rawEntry = (IClasspathEntry) perProjectInfo.resolvedPathToRawEntries.get(this.getPath());
+		rawEntry = perProjectInfo.resolvedPathToRawEntries.get(this.getPath());
 	}
 	return rawEntry;
 }

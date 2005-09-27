@@ -55,7 +55,7 @@ protected PackageFragment(PackageFragmentRoot root, String[] names) {
 /**
  * @see Openable
  */
-protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
+protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map<IJavaElement, Object> newElements, IResource underlyingResource) throws JavaModelException {
 
 	// check whether this pkg can be opened
 	if (!underlyingResource.isAccessible()) throw newNotPresentException();
@@ -63,7 +63,7 @@ protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, 
 	int kind = getKind();
 
 	// add compilation units/class files from resources
-	HashSet vChildren = new HashSet();
+	HashSet<IJavaElement> vChildren = new HashSet<IJavaElement>();
 	try {
 	    PackageFragmentRoot root = getPackageFragmentRoot();
 		char[][] inclusionPatterns = root.fullInclusionPatternChars();
@@ -178,7 +178,7 @@ public IClassFile[] getClassFiles() throws JavaModelException {
 		return NO_CLASSFILES;
 	}
 	
-	ArrayList list = getChildrenOfType(CLASS_FILE);
+	ArrayList<IJavaElement> list = getChildrenOfType(CLASS_FILE);
 	IClassFile[] array= new IClassFile[list.size()];
 	list.toArray(array);
 	return array;
@@ -201,7 +201,7 @@ public ICompilationUnit[] getCompilationUnits() throws JavaModelException {
 		return NO_COMPILATION_UNITS;
 	}
 	
-	ArrayList list = getChildrenOfType(COMPILATION_UNIT);
+	ArrayList<IJavaElement> list = getChildrenOfType(COMPILATION_UNIT);
 	ICompilationUnit[] array= new ICompilationUnit[list.size()];
 	list.toArray(array);
 	return array;
