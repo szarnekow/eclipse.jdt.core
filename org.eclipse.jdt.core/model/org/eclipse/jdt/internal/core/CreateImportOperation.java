@@ -68,9 +68,9 @@ protected StructuralPropertyDescriptor getChildPropertyDescriptor(ASTNode parent
 }
 protected ASTNode generateElementAST(ASTRewrite rewriter, IDocument document, ICompilationUnit cu) throws JavaModelException {
 	// ensure no duplicate
-	Iterator imports = this.cuAST.imports().iterator();
+	Iterator<ImportDeclaration> imports = this.cuAST.imports().iterator();
 	while (imports.hasNext()) {
-		ImportDeclaration importDeclaration = (ImportDeclaration) imports.next();
+		ImportDeclaration importDeclaration = imports.next();
 		if (this.importName.equals(importDeclaration.getName().getFullyQualifiedName())) {
 			//no new import was generated
 			this.creationOccurred = false;

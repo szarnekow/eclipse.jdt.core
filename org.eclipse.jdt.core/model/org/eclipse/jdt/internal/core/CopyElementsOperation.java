@@ -162,7 +162,7 @@ protected void processElement(IJavaElement element) throws JavaModelException {
 		return;
 	}
 	if (createElementInCUOperation) {
-		IJavaElement sibling = (IJavaElement) this.insertBeforeElements.get(element);
+		IJavaElement sibling = this.insertBeforeElements.get(element);
 		if (sibling != null) {
 			((CreateElementInCUOperation) op).setRelativePosition(sibling, CreateElementInCUOperation.INSERT_BEFORE);
 		} else

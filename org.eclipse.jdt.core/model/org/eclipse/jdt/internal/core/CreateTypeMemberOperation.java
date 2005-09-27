@@ -24,6 +24,7 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -159,9 +160,9 @@ protected String generateSyntaxIncorrectAST() {
 	parser.setSource(buff.toString().toCharArray());
 	CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 	TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().iterator().next();
-	List bodyDeclarations = typeDeclaration.bodyDeclarations();
+	List<BodyDeclaration> bodyDeclarations = typeDeclaration.bodyDeclarations();
 	if (bodyDeclarations.size() != 0)
-		this.createdNode = (ASTNode) bodyDeclarations.iterator().next();
+		this.createdNode = bodyDeclarations.iterator().next();
 	return buff.toString();
 }
 /**

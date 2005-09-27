@@ -57,13 +57,13 @@ protected String[] convertASTMethodTypesToSignatures() {
 	if (this.parameterTypes == null) {
 		if (this.createdNode != null) {
 			MethodDeclaration methodDeclaration = (MethodDeclaration) this.createdNode;
-			List parameters = methodDeclaration.parameters();
+			List<SingleVariableDeclaration> parameters = methodDeclaration.parameters();
 			int size = parameters.size();
 			this.parameterTypes = new String[size];
-			Iterator iterator = parameters.iterator();
+			Iterator<SingleVariableDeclaration> iterator = parameters.iterator();
 			// convert the AST types to signatures
 			for (int i = 0; i < size; i++) {
-				SingleVariableDeclaration parameter = (SingleVariableDeclaration) iterator.next();
+				SingleVariableDeclaration parameter = iterator.next();
 				String typeSig = Util.getSignature(parameter.getType());
 				int extraDimensions = parameter.getExtraDimensions();
 				if (methodDeclaration.isVarargs() && i == size-1)
