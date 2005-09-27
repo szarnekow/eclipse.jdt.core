@@ -24,7 +24,6 @@ import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -52,7 +51,7 @@ import org.eclipse.text.edits.TextEdit;
  */
 public class SortElementsOperation extends JavaModelOperation {
 	
-	Comparator comparator;
+	Comparator<BodyDeclaration> comparator;
 	int[] positions;
     int apiLevel;
 	
@@ -64,7 +63,7 @@ public class SortElementsOperation extends JavaModelOperation {
 	 * @param positions
 	 * @param comparator
 	 */
-	public SortElementsOperation(int level, IJavaElement[] elements, int[] positions, Comparator comparator) {
+	public SortElementsOperation(int level, IJavaElement[] elements, int[] positions, Comparator<BodyDeclaration> comparator) {
 		super(elements);
 		this.comparator = comparator;
         this.positions = positions;
@@ -117,49 +116,49 @@ public class SortElementsOperation extends JavaModelOperation {
 		org.eclipse.jdt.core.dom.CompilationUnit domUnit = (org.eclipse.jdt.core.dom.CompilationUnit) parser.createAST(null);
 		domUnit.accept(new ASTVisitor() {
 			public boolean visit(org.eclipse.jdt.core.dom.CompilationUnit compilationUnit) {
-				List types = compilationUnit.types();
-				for (Iterator iter = types.iterator(); iter.hasNext();) {
-					AbstractTypeDeclaration typeDeclaration = (AbstractTypeDeclaration) iter.next();
+				List<AbstractTypeDeclaration> types = compilationUnit.types();
+				for (Iterator<AbstractTypeDeclaration> iter = types.iterator(); iter.hasNext();) {
+					AbstractTypeDeclaration typeDeclaration = iter.next();
 					typeDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, new Integer(typeDeclaration.getStartPosition()));
 				}
 				return true;
 			}
 			public boolean visit(AnnotationTypeDeclaration annotationTypeDeclaration) {
-				List bodyDeclarations = annotationTypeDeclaration.bodyDeclarations();
-				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
-					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
+				List<BodyDeclaration> bodyDeclarations = annotationTypeDeclaration.bodyDeclarations();
+				for (Iterator<BodyDeclaration> iter = bodyDeclarations.iterator(); iter.hasNext();) {
+					BodyDeclaration bodyDeclaration = iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, new Integer(bodyDeclaration.getStartPosition()));
 				}
 				return true;
 			}
 
 			public boolean visit(AnonymousClassDeclaration anonymousClassDeclaration) {
-				List bodyDeclarations = anonymousClassDeclaration.bodyDeclarations();
-				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
-					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
+				List<BodyDeclaration> bodyDeclarations = anonymousClassDeclaration.bodyDeclarations();
+				for (Iterator<BodyDeclaration> iter = bodyDeclarations.iterator(); iter.hasNext();) {
+					BodyDeclaration bodyDeclaration = iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, new Integer(bodyDeclaration.getStartPosition()));
 				}
 				return true;
 			}
 			
 			public boolean visit(TypeDeclaration typeDeclaration) {
-				List bodyDeclarations = typeDeclaration.bodyDeclarations();
-				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
-					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
+				List<BodyDeclaration> bodyDeclarations = typeDeclaration.bodyDeclarations();
+				for (Iterator<BodyDeclaration> iter = bodyDeclarations.iterator(); iter.hasNext();) {
+					BodyDeclaration bodyDeclaration = iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, new Integer(bodyDeclaration.getStartPosition()));
 				}
 				return true;
 			}
 
 			public boolean visit(EnumDeclaration enumDeclaration) {
-				List bodyDeclarations = enumDeclaration.bodyDeclarations();
-				for (Iterator iter = bodyDeclarations.iterator(); iter.hasNext();) {
-					BodyDeclaration bodyDeclaration = (BodyDeclaration) iter.next();
+				List<BodyDeclaration> bodyDeclarations = enumDeclaration.bodyDeclarations();
+				for (Iterator<BodyDeclaration> iter = bodyDeclarations.iterator(); iter.hasNext();) {
+					BodyDeclaration bodyDeclaration = iter.next();
 					bodyDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, new Integer(bodyDeclaration.getStartPosition()));
 				}
-				List enumConstants = enumDeclaration.enumConstants();
-				for (Iterator iter = enumConstants.iterator(); iter.hasNext();) {
-					EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) iter.next();
+				List<EnumConstantDeclaration> enumConstants = enumDeclaration.enumConstants();
+				for (Iterator<EnumConstantDeclaration> iter = enumConstants.iterator(); iter.hasNext();) {
+					EnumConstantDeclaration enumConstantDeclaration = iter.next();
 					enumConstantDeclaration.setProperty(CompilationUnitSorter.RELATIVE_ORDER, new Integer(enumConstantDeclaration.getStartPosition()));
 				}				
 				return true;
@@ -181,28 +180,28 @@ public class SortElementsOperation extends JavaModelOperation {
 		domUnit.accept(new ASTVisitor() {
 			public boolean visit(org.eclipse.jdt.core.dom.CompilationUnit compilationUnit) {
 				ListRewrite listRewrite = rewriter.getListRewrite(compilationUnit, org.eclipse.jdt.core.dom.CompilationUnit.TYPES_PROPERTY);
-				List types = compilationUnit.types();
+				List<AbstractTypeDeclaration> types = compilationUnit.types();
 				final int length = types.size();
 				if (length > 1) {
-					final List myCopy = new ArrayList();
+					final List<AbstractTypeDeclaration> myCopy = new ArrayList<AbstractTypeDeclaration>();
 					myCopy.addAll(types);
 					Collections.sort(myCopy, SortElementsOperation.this.comparator);
 					for (int i = 0; i < length; i++) {
-						listRewrite.replace((ASTNode) types.get(i), rewriter.createMoveTarget((ASTNode) myCopy.get(i)), null);
+						listRewrite.replace(types.get(i), rewriter.createMoveTarget(myCopy.get(i)), null);
 					}
 				}
 				return true;
 			}
 			public boolean visit(AnnotationTypeDeclaration annotationTypeDeclaration) {
 				ListRewrite listRewrite = rewriter.getListRewrite(annotationTypeDeclaration, AnnotationTypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-				List bodyDeclarations = annotationTypeDeclaration.bodyDeclarations();
+				List<BodyDeclaration> bodyDeclarations = annotationTypeDeclaration.bodyDeclarations();
 				final int length = bodyDeclarations.size();
 				if (length > 1) {
-					final List myCopy = new ArrayList();
+					final List<BodyDeclaration> myCopy = new ArrayList<BodyDeclaration>();
 					myCopy.addAll(bodyDeclarations);
 					Collections.sort(myCopy, SortElementsOperation.this.comparator);
 					for (int i = 0; i < length; i++) {
-						listRewrite.replace((ASTNode) bodyDeclarations.get(i), rewriter.createMoveTarget((ASTNode) myCopy.get(i)), null);
+						listRewrite.replace(bodyDeclarations.get(i), rewriter.createMoveTarget(myCopy.get(i)), null);
 					}
 				}
 				return true;
@@ -210,14 +209,14 @@ public class SortElementsOperation extends JavaModelOperation {
 
 			public boolean visit(AnonymousClassDeclaration anonymousClassDeclaration) {
 				ListRewrite listRewrite = rewriter.getListRewrite(anonymousClassDeclaration, AnonymousClassDeclaration.BODY_DECLARATIONS_PROPERTY);
-				List bodyDeclarations = anonymousClassDeclaration.bodyDeclarations();
+				List<BodyDeclaration> bodyDeclarations = anonymousClassDeclaration.bodyDeclarations();
 				final int length = bodyDeclarations.size();
 				if (length > 1) {
-					final List myCopy = new ArrayList();
+					final List<BodyDeclaration> myCopy = new ArrayList<BodyDeclaration>();
 					myCopy.addAll(bodyDeclarations);
 					Collections.sort(myCopy, SortElementsOperation.this.comparator);
 					for (int i = 0; i < length; i++) {
-						listRewrite.replace((ASTNode) bodyDeclarations.get(i), rewriter.createMoveTarget((ASTNode) myCopy.get(i)), null);
+						listRewrite.replace(bodyDeclarations.get(i), rewriter.createMoveTarget(myCopy.get(i)), null);
 					}
 				}
 				return true;
@@ -225,14 +224,14 @@ public class SortElementsOperation extends JavaModelOperation {
 			
 			public boolean visit(TypeDeclaration typeDeclaration) {
 				ListRewrite listRewrite = rewriter.getListRewrite(typeDeclaration, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-				List bodyDeclarations = typeDeclaration.bodyDeclarations();
+				List<BodyDeclaration> bodyDeclarations = typeDeclaration.bodyDeclarations();
 				final int length = bodyDeclarations.size();
 				if (length > 1) {
-					final List myCopy = new ArrayList();
+					final List<BodyDeclaration> myCopy = new ArrayList<BodyDeclaration>();
 					myCopy.addAll(bodyDeclarations);
 					Collections.sort(myCopy, SortElementsOperation.this.comparator);
 					for (int i = 0; i < length; i++) {
-						listRewrite.replace((ASTNode) bodyDeclarations.get(i), rewriter.createMoveTarget((ASTNode) myCopy.get(i)), null);
+						listRewrite.replace(bodyDeclarations.get(i), rewriter.createMoveTarget(myCopy.get(i)), null);
 					}
 				}
 				return true;
@@ -240,25 +239,25 @@ public class SortElementsOperation extends JavaModelOperation {
 
 			public boolean visit(EnumDeclaration enumDeclaration) {
 				ListRewrite listRewrite = rewriter.getListRewrite(enumDeclaration, EnumDeclaration.BODY_DECLARATIONS_PROPERTY);
-				List bodyDeclarations = enumDeclaration.bodyDeclarations();
+				List<BodyDeclaration> bodyDeclarations = enumDeclaration.bodyDeclarations();
 				int length = bodyDeclarations.size();
 				if (length > 1) {
-					final List myCopy = new ArrayList();
+					final List<BodyDeclaration> myCopy = new ArrayList<BodyDeclaration>();
 					myCopy.addAll(bodyDeclarations);
 					Collections.sort(myCopy, SortElementsOperation.this.comparator);
 					for (int i = 0; i < length; i++) {
-						listRewrite.replace((ASTNode) bodyDeclarations.get(i), rewriter.createMoveTarget((ASTNode) myCopy.get(i)), null);
+						listRewrite.replace(bodyDeclarations.get(i), rewriter.createMoveTarget(myCopy.get(i)), null);
 					}
 				}
 				listRewrite = rewriter.getListRewrite(enumDeclaration, EnumDeclaration.ENUM_CONSTANTS_PROPERTY);
-				List enumConstants = enumDeclaration.enumConstants();
+				List<EnumConstantDeclaration> enumConstants = enumDeclaration.enumConstants();
 				length = enumConstants.size();
 				if (length > 1) {
-					final List myCopy = new ArrayList();
+					final List<EnumConstantDeclaration> myCopy = new ArrayList<EnumConstantDeclaration>();
 					myCopy.addAll(enumConstants);
 					Collections.sort(myCopy, SortElementsOperation.this.comparator);
 					for (int i = 0; i < length; i++) {
-						listRewrite.replace((ASTNode) enumConstants.get(i), rewriter.createMoveTarget((ASTNode) myCopy.get(i)), null);
+						listRewrite.replace(enumConstants.get(i), rewriter.createMoveTarget(myCopy.get(i)), null);
 					}
 				}
 				return true;
