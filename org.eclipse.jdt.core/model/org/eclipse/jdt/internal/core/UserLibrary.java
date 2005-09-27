@@ -101,7 +101,7 @@ public class UserLibrary {
 		OutputStreamWriter writer = new OutputStreamWriter(s, "UTF8"); //$NON-NLS-1$
 		XMLWriter xmlWriter = new XMLWriter(writer, null/*use the workspace line delimiter*/, true/*print XML version*/);
 		
-		HashMap library = new HashMap();
+		HashMap<String, Object> library = new HashMap<String, Object>();
 		library.put(TAG_VERSION, String.valueOf(CURRENT_VERSION));
 		library.put(TAG_SYSTEMLIBRARY, String.valueOf(this.isSystemLibrary));
 		xmlWriter.printTag(TAG_USERLIBRARY, library, true, true, false);
@@ -109,7 +109,7 @@ public class UserLibrary {
 		for (int i = 0; i < this.entries.length; ++i) {
 			ClasspathEntry cpEntry = (ClasspathEntry) this.entries[i];
 		
-			HashMap archive = new HashMap();
+			HashMap<String, Object> archive = new HashMap<String, Object>();
 			archive.put(TAG_PATH, cpEntry.getPath().toString());
 			IPath sourceAttach= cpEntry.getSourceAttachmentPath();
 			if (sourceAttach != null)
@@ -167,7 +167,7 @@ public class UserLibrary {
 		NodeList list= cpElement.getChildNodes();
 		int length = list.getLength();
 		
-		ArrayList res= new ArrayList(length);
+		ArrayList<IClasspathEntry> res= new ArrayList<IClasspathEntry>(length);
 		for (int i = 0; i < length; ++i) {
 			Node node = list.item(i);
 			
@@ -189,7 +189,7 @@ public class UserLibrary {
 			}
 		}
 		
-		IClasspathEntry[] entries= (IClasspathEntry[]) res.toArray(new IClasspathEntry[res.size()]);
+		IClasspathEntry[] entries= res.toArray(new IClasspathEntry[res.size()]);
 		
 		return new UserLibrary(entries, isSystem);
 	}
