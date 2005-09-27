@@ -154,7 +154,7 @@ protected void matchLevelAndReportImportRef(ImportReference importRef, Binding b
 protected void matchReportImportRef(ImportReference importRef, Binding binding, IJavaElement element, int accuracy, MatchLocator locator) throws CoreException {
 	if (this.isDeclarationOfReferencedTypesPattern) {
 		if ((element = findElement(element, accuracy)) != null) {
-			SimpleSet knownTypes = ((DeclarationOfReferencedTypesPattern) this.pattern).knownTypes; 
+			SimpleSet<IType> knownTypes = ((DeclarationOfReferencedTypesPattern) this.pattern).knownTypes; 
 			while (binding instanceof ReferenceBinding) {
 				ReferenceBinding typeBinding = (ReferenceBinding) binding;
 				reportDeclaration(typeBinding, 1, locator, knownTypes);
@@ -433,7 +433,7 @@ void matchReportReference(Expression expr, int lastIndex, TypeBinding refBinding
 protected int referenceType() {
 	return IJavaElement.TYPE;
 }
-protected void reportDeclaration(ASTNode reference, IJavaElement element, MatchLocator locator, SimpleSet knownTypes) throws CoreException {
+protected void reportDeclaration(ASTNode reference, IJavaElement element, MatchLocator locator, SimpleSet<IType> knownTypes) throws CoreException {
 	int maxType = -1;
 	TypeBinding typeBinding = null;
 	if (reference instanceof TypeReference) {
@@ -482,7 +482,7 @@ protected void reportDeclaration(ASTNode reference, IJavaElement element, MatchL
 	typeBinding = typeBinding.erasure();
 	reportDeclaration((ReferenceBinding) typeBinding, maxType, locator, knownTypes);
 }
-protected void reportDeclaration(ReferenceBinding typeBinding, int maxType, MatchLocator locator, SimpleSet knownTypes) throws CoreException {
+protected void reportDeclaration(ReferenceBinding typeBinding, int maxType, MatchLocator locator, SimpleSet<IType> knownTypes) throws CoreException {
 	IType type = locator.lookupType(typeBinding);
 	if (type == null) return; // case of a secondary type
 

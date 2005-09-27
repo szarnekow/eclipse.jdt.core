@@ -10,19 +10,20 @@
  *******************************************************************************/
 package org.eclipse.jdt.internal.core.search.matching;
 
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.core.util.SimpleSet;
 
 public class DeclarationOfAccessedFieldsPattern extends FieldPattern {
 
 protected IJavaElement enclosingElement;
-protected SimpleSet knownFields;
+protected SimpleSet<IField> knownFields;
 
 public DeclarationOfAccessedFieldsPattern(IJavaElement enclosingElement) {
 	super(false, true, true, null, null, null, null, null, R_PATTERN_MATCH);
 
 	this.enclosingElement = enclosingElement;
-	this.knownFields = new SimpleSet();
+	this.knownFields = new SimpleSet<IField>();
 	((InternalSearchPattern)this).mustResolve = true;
 }
 }

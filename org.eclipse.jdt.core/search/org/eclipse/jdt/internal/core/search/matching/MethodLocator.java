@@ -475,7 +475,7 @@ public SearchMatch newDeclarationMatch(ASTNode reference, IJavaElement element, 
 protected int referenceType() {
 	return IJavaElement.METHOD;
 }
-protected void reportDeclaration(MethodBinding methodBinding, MatchLocator locator, SimpleSet knownMethods) throws CoreException {
+protected void reportDeclaration(MethodBinding methodBinding, MatchLocator locator, SimpleSet<IMethod> knownMethods) throws CoreException {
 	ReferenceBinding declaringClass = methodBinding.declaringClass;
 	IType type = locator.lookupType(declaringClass);
 	if (type == null) return; // case of a secondary type

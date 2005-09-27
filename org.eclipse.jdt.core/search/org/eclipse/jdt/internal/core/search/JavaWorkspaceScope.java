@@ -12,6 +12,7 @@ package org.eclipse.jdt.internal.core.search;
 
 import java.util.HashSet;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaElementDelta;
@@ -81,7 +82,7 @@ public void initialize(int size) {
 		IJavaProject[] projects = JavaModelManager.getJavaModelManager().getJavaModel().getJavaProjects();
 		for (int i = 0, length = projects.length; i < length; i++) {
 			int includeMask = SOURCES | APPLICATION_LIBRARIES | SYSTEM_LIBRARIES;
-			add((JavaProject) projects[i], null, includeMask, new HashSet(length*2, 1), null);
+			add((JavaProject) projects[i], null, includeMask, new HashSet<IProject>(length*2, 1), null);
 		}
 	} catch (JavaModelException ignored) {
 		// ignore

@@ -121,7 +121,7 @@ public static boolean canSeeFocus(IJavaElement focus, JavaProject javaProject, I
 private void initializeIndexLocations() {
 	IPath[] projectsAndJars = this.searchScope.enclosingProjectsAndJars();
 	IndexManager manager = JavaModelManager.getJavaModelManager().getIndexManager();
-	SimpleSet locations = new SimpleSet();
+	SimpleSet<String> locations = new SimpleSet<String>();
 	IJavaElement focus = MatchLocator.projectOrJarFocus(this.pattern);
 	if (focus == null) {
 		for (int i = 0; i < projectsAndJars.length; i++)
@@ -131,9 +131,9 @@ private void initializeIndexLocations() {
 			// find the projects from projectsAndJars that see the focus then walk those projects looking for the jars from projectsAndJars
 			int length = projectsAndJars.length;
 			JavaProject[] projectsCanSeeFocus = new JavaProject[length];
-			SimpleSet visitedProjects = new SimpleSet(length);
+			SimpleSet<JavaProject> visitedProjects = new SimpleSet<JavaProject>(length);
 			int projectIndex = 0;
-			SimpleSet jarsToCheck = new SimpleSet(length);
+			SimpleSet<IPath> jarsToCheck = new SimpleSet<IPath>(length);
 			IClasspathEntry[] focusEntries = null;
 			if (this.pattern != null && MatchLocator.isPolymorphicSearch(this.pattern)) { // isPolymorphicSearch
 				JavaProject focusProject = focus instanceof JarPackageFragmentRoot ? (JavaProject) focus.getParent() : (JavaProject) focus;

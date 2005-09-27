@@ -38,7 +38,7 @@ import org.eclipse.jdt.internal.core.util.Util;
  */
 public class JavaSearchScope extends AbstractSearchScope {
 	
-	private ArrayList elements;
+	private ArrayList<IMember> members;
 
 	/* The paths of the resources in this search scope 
 	    (or the classpath entries' paths if the resources are projects) 
@@ -82,7 +82,7 @@ private void addEnclosingProjectOrJar(IPath path) {
  * Add java project all fragment roots to current java search scope.
  * @see #add(JavaProject, IPath, int, HashSet, IClasspathEntry)
  */
-public void add(JavaProject project, int includeMask, HashSet visitedProject) throws JavaModelException {
+public void add(JavaProject project, int includeMask, HashSet<IProject> visitedProject) throws JavaModelException {
 	add(project, null, includeMask, visitedProject, null);
 }
 /**
@@ -96,7 +96,7 @@ public void add(JavaProject project, int includeMask, HashSet visitedProject) th
  * @param referringEntry Project raw entry in referring project classpath
  * @throws JavaModelException May happen while getting java model info 
  */
-void add(JavaProject javaProject, IPath pathToAdd, int includeMask, HashSet visitedProjects, IClasspathEntry referringEntry) throws JavaModelException {
+void add(JavaProject javaProject, IPath pathToAdd, int includeMask, HashSet<IProject> visitedProjects, IClasspathEntry referringEntry) throws JavaModelException {
 	IProject project = javaProject.getProject();
 	if (!project.isAccessible() || !visitedProjects.add(project)) return;
 
@@ -123,7 +123,7 @@ void add(JavaProject javaProject, IPath pathToAdd, int includeMask, HashSet visi
 			case IClasspathEntry.CPE_LIBRARY:
 				IClasspathEntry rawEntry = null;
 				if (perProjectInfo != null && perProjectInfo.resolvedPathToRawEntries != null) {
-					rawEntry = (IClasspathEntry) perProjectInfo.resolvedPathToRawEntries.get(entry.getPath());
+					rawEntry = perProjectInfo.resolvedPathToRawEntries.get(entry.getPath());
 				}
 				if (rawEntry == null) break;
 				switch (rawEntry.getEntryKind()) {
@@ -186,7 +186,7 @@ public void add(IJavaElement element) throws JavaModelException {
 			// a workspace sope should be used
 			break; 
 		case IJavaElement.JAVA_PROJECT:
-			add((JavaProject)element, null, includeMask, new HashSet(2), null);
+			add((JavaProject)element, null, includeMask, new HashSet<IProject>(2), null);
 			break;
 		case IJavaElement.PACKAGE_FRAGMENT_ROOT:
 			IPackageFragmentRoot root = (IPackageFragmentRoot)element;
@@ -221,10 +221,10 @@ public void add(IJavaElement element) throws JavaModelException {
 		default:
 			// remember sub-cu (or sub-class file) java elements
 			if (element instanceof IMember) {
-				if (this.elements == null) {
-					this.elements = new ArrayList();
+				if (this.members == null) {
+					this.members = new ArrayList<IMember>();
 				}
-				this.elements.add(element);
+				this.members.add((IMember)element);
 			}
 			root = (IPackageFragmentRoot) element.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
 			String relativePath;
@@ -386,13 +386,11 @@ private boolean encloses(String enclosingPath, String path, int index) {
  * @see IJavaSearchScope#encloses(IJavaElement)
  */
 public boolean encloses(IJavaElement element) {
-	if (this.elements != null) {
-		for (int i = 0, length = this.elements.size(); i < length; i++) {
-			IJavaElement scopeElement = (IJavaElement)this.elements.get(i);
+	if (this.members != null) {
+		for (IMember member : this.members) {
 			IJavaElement searchedElement = element;
 			while (searchedElement != null) {
-				if (searchedElement.equals(scopeElement))
-					return true;
+				if (searchedElement.equals(member)) return true;
 				searchedElement = searchedElement.getParent();
 			}
 		}
@@ -497,8 +495,8 @@ public void processDelta(IJavaElementDelta delta) {
 		case IJavaElementDelta.REMOVED:
 			IJavaElement element = delta.getElement();
 			if (this.encloses(element)) {
-				if (this.elements != null) {
-					this.elements.remove(element);
+				if (this.members != null) {
+					this.members.remove(element);
 				} 
 				IPath path = null;
 				switch (element.getElementType()) {
@@ -541,10 +539,10 @@ private void rehash() {
 
 public String toString() {
 	StringBuffer result = new StringBuffer("JavaSearchScope on "); //$NON-NLS-1$
-	if (this.elements != null) {
+	if (this.members != null) {
 		result.append("["); //$NON-NLS-1$
-		for (int i = 0, length = this.elements.size(); i < length; i++) {
-			JavaElement element = (JavaElement)this.elements.get(i);
+		for (int i = 0, length = this.members.size(); i < length; i++) {
+			JavaElement element = (JavaElement)this.members.get(i);
 			result.append("\n\t"); //$NON-NLS-1$
 			result.append(element.toStringWithAncestors());
 		}

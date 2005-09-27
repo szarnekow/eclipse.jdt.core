@@ -11,18 +11,19 @@
 package org.eclipse.jdt.internal.core.search.matching;
 
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.core.util.SimpleSet;
 
 public class DeclarationOfReferencedTypesPattern extends TypeReferencePattern {
 
-protected SimpleSet knownTypes;
+protected SimpleSet<IType> knownTypes;
 protected IJavaElement enclosingElement;
 
 public DeclarationOfReferencedTypesPattern(IJavaElement enclosingElement) {
 	super(null, null, R_PATTERN_MATCH);
 
 	this.enclosingElement = enclosingElement;
-	this.knownTypes = new SimpleSet();
+	this.knownTypes = new SimpleSet<IType>();
 	((InternalSearchPattern)this).mustResolve = true;
 }
 }

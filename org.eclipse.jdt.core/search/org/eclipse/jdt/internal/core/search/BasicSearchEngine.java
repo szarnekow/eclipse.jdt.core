@@ -129,7 +129,7 @@ public class BasicSearchEngine {
 	 */
 	public static IJavaSearchScope createJavaSearchScope(IJavaElement[] elements, int includeMask) {
 		JavaSearchScope scope = new JavaSearchScope();
-		HashSet visitedProjects = new HashSet(2);
+		HashSet<IProject> visitedProjects = new HashSet<IProject>(2);
 		for (int i = 0, length = elements.length; i < length; i++) {
 			IJavaElement element = elements[i];
 			if (element != null) {
@@ -266,13 +266,11 @@ public class BasicSearchEngine {
 				if (copies == null) {
 					copies = this.workingCopies;
 				} else {
-					HashMap pathToCUs = new HashMap();
-					for (int i = 0, length = copies.length; i < length; i++) {
-						ICompilationUnit unit = copies[i];
+					HashMap<IPath, ICompilationUnit> pathToCUs = new HashMap<IPath, ICompilationUnit>();
+					for (ICompilationUnit unit : copies) {
 						pathToCUs.put(unit.getPath(), unit);
 					}
-					for (int i = 0, length = this.workingCopies.length; i < length; i++) {
-						ICompilationUnit unit = this.workingCopies[i];
+					for (ICompilationUnit unit: this.workingCopies) {
 						pathToCUs.put(unit.getPath(), unit);
 					}
 					int length = pathToCUs.size();
@@ -524,11 +522,10 @@ public class BasicSearchEngine {
 			typeSuffix,
 			matchRule);
 		
-		final HashSet workingCopyPaths = new HashSet();
+		final HashSet<String> workingCopyPaths = new HashSet<String>();
 		ICompilationUnit[] copies = getWorkingCopies();
 		if (copies != null) {
-			for (int i = 0, length = copies.length; i < length; i++) {
-				ICompilationUnit workingCopy = copies[i];
+			for (ICompilationUnit workingCopy : copies) {
 				workingCopyPaths.add(workingCopy.getPath().toString());
 			}
 		}
@@ -748,11 +745,10 @@ public class BasicSearchEngine {
 		}
 		final MultiTypeDeclarationPattern pattern = new MultiTypeDeclarationPattern(qualifications, typeNames, typeSuffix, matchRule);
 
-		final HashSet workingCopyPaths = new HashSet();
+		final HashSet<String> workingCopyPaths = new HashSet<String>();
 		ICompilationUnit[] copies = getWorkingCopies();
 		if (copies != null) {
-			for (int i = 0, length = copies.length; i < length; i++) {
-				ICompilationUnit workingCopy = copies[i];
+			for (ICompilationUnit workingCopy : copies) {
 				workingCopyPaths.add(workingCopy.getPath().toString());
 			}
 		}

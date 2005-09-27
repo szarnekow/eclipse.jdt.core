@@ -26,18 +26,18 @@ MemoryIndex() {
 	this.docsToReferences = new SimpleLookupTable(7);
 	this.allWords = new SimpleWordSet(7);
 }
-void addDocumentNames(String substring, SimpleSet results) {
+void addDocumentNames(String substring, SimpleSet<String> results) {
 	// assumed the disk index already skipped over documents which have been added/changed/deleted
 	Object[] paths = this.docsToReferences.keyTable;
 	Object[] referenceTables = this.docsToReferences.valueTable;
 	if (substring == null) { // add all new/changed documents
 		for (int i = 0, l = referenceTables.length; i < l; i++)
 			if (referenceTables[i] != null)
-				results.add(paths[i]);
+				results.add((String)paths[i]);
 	} else {
 		for (int i = 0, l = referenceTables.length; i < l; i++)
 			if (referenceTables[i] != null && ((String) paths[i]).startsWith(substring, 0))
-				results.add(paths[i]);
+				results.add((String)paths[i]);
 	}
 }
 void addIndexEntry(char[] category, char[] key, String documentName) {

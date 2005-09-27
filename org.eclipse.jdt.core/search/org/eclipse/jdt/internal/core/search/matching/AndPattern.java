@@ -31,7 +31,7 @@ public void findIndexMatches(Index index, IndexQueryRequestor requestor, SearchP
 	if (progressMonitor != null && progressMonitor.isCanceled()) throw new OperationCanceledException();
 
 	this.resetQuery();
-	SimpleSet intersectedNames = null;
+	SimpleSet<String> intersectedNames = null;
 	try {
 		index.startQuery();
 		do {
@@ -40,7 +40,7 @@ public void findIndexMatches(Index index, IndexQueryRequestor requestor, SearchP
 			if (entries == null) return;
 
 			SearchPattern decodedResult = pattern.getBlankPattern();
-			SimpleSet newIntersectedNames = new SimpleSet(3);
+			SimpleSet<String> newIntersectedNames = new SimpleSet<String>(3);
 			for (int i = 0, l = entries.length; i < l; i++) {
 				if (progressMonitor != null && progressMonitor.isCanceled()) throw new OperationCanceledException();
 
@@ -68,10 +68,10 @@ public void findIndexMatches(Index index, IndexQueryRequestor requestor, SearchP
 	if (intersectedNames == null) return;
 
 	String containerPath = index.containerPath;
-	Object[] names = intersectedNames.values;
-	for (int i = 0, l = names.length; i < l; i++)
-		if (names[i] != null)
-			((InternalSearchPattern) this).acceptMatch((String) names[i], containerPath, null/*no pattern*/, requestor, participant, scope); // AndPatterns cannot provide the decoded result
+	for (Object name:intersectedNames.values) {
+		if (name != null)
+			((InternalSearchPattern) this).acceptMatch((String) name, containerPath, null/*no pattern*/, requestor, participant, scope); // AndPatterns cannot provide the decoded result
+	}
 }
 /**
  * Returns whether another query must be done.

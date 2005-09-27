@@ -17,7 +17,7 @@ public class EntryResult {
 
 private char[] word;
 private HashtableOfObject[] documentTables;
-private SimpleSet documentNames;
+private SimpleSet<String> documentNames;
 
 public EntryResult(char[] word, HashtableOfObject table) {
 	this.word = word;
@@ -26,7 +26,7 @@ public EntryResult(char[] word, HashtableOfObject table) {
 }
 public void addDocumentName(String documentName) {
 	if (this.documentNames == null)
-		this.documentNames = new SimpleSet(3);
+		this.documentNames = new SimpleSet<String>(3);
 	this.documentNames.add(documentName);
 }
 public void addDocumentTable(HashtableOfObject table) {
@@ -61,16 +61,10 @@ public String[] getDocumentNames(Index index) throws java.io.IOException {
 		}
 	}
 
-	if (this.documentNames == null)
+	if (this.documentNames == null || this.documentNames.elementSize == 0) {
 		return new String[0];
-
-	String[] names = new String[this.documentNames.elementSize];
-	int count = 0;
-	Object[] values = this.documentNames.values;
-	for (int i = 0, l = values.length; i < l; i++)
-		if (values[i] != null)
-			names[count++] = (String) values[i];
-	return names;
+	}
+	return this.documentNames.values();
 }
 public boolean isEmpty() {
 	return this.documentTables == null && this.documentNames == null;

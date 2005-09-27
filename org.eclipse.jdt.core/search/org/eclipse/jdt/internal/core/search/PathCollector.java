@@ -11,7 +11,6 @@
 package org.eclipse.jdt.internal.core.search;
 
 import java.util.HashSet;
-import java.util.Iterator;
 
 import org.eclipse.jdt.core.search.SearchParticipant;
 import org.eclipse.jdt.core.search.SearchPattern;
@@ -23,7 +22,7 @@ import org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 public class PathCollector extends IndexQueryRequestor {
 	
 	/* a set of resource paths */
-	public HashSet paths = new HashSet(5);
+	public HashSet<String> paths = new HashSet<String>(5);
 	
 	/* (non-Javadoc)
 	 * @seeIndexQueryRequestor#acceptIndexMatch(IndexRecord, SearchParticipant, SearchPattern)
@@ -38,10 +37,6 @@ public class PathCollector extends IndexQueryRequestor {
 	 */
 	public String[] getPaths() {
 		String[] result = new String[this.paths.size()];
-		int i = 0;
-		for (Iterator iter = this.paths.iterator(); iter.hasNext();) {
-			result[i++] = (String)iter.next();
-		}
-		return result;
+		return this.paths.toArray(result);
 	}
 }

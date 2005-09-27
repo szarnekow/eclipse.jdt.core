@@ -127,9 +127,9 @@ class AddJarFileToIndex extends IndexRequest {
 					SimpleLookupTable indexedFileNames = new SimpleLookupTable(max == 0 ? 33 : max + 11);
 					for (int i = 0; i < max; i++)
 						indexedFileNames.put(paths[i], DELETED);
-					for (Enumeration e = zip.entries(); e.hasMoreElements();) {
+					for (Enumeration<? extends ZipEntry> e = zip.entries(); e.hasMoreElements();) {
 						// iterate each entry to index it
-						ZipEntry ze = (ZipEntry) e.nextElement();
+						ZipEntry ze = e.nextElement();
 						String zipEntryName = ze.getName();
 						if (Util.isClassFileName(zipEntryName))
 							indexedFileNames.put(zipEntryName, EXISTS);
@@ -164,7 +164,7 @@ class AddJarFileToIndex extends IndexRequest {
 					return false;
 				}
 
-				for (Enumeration e = zip.entries(); e.hasMoreElements();) {
+				for (Enumeration<? extends ZipEntry> e = zip.entries(); e.hasMoreElements();) {
 					if (this.isCancelled) {
 						if (JobManager.VERBOSE)
 							org.eclipse.jdt.internal.core.util.Util.verbose("-> indexing of " + zip.getName() + " has been cancelled"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -172,7 +172,7 @@ class AddJarFileToIndex extends IndexRequest {
 					}
 
 					// iterate each entry to index it
-					ZipEntry ze = (ZipEntry) e.nextElement();
+					ZipEntry ze = e.nextElement();
 					if (Util.isClassFileName(ze.getName())) {
 						final byte[] classFileBytes = org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
 						JavaSearchDocument entryDocument = new JavaSearchDocument(ze, zipFilePath, classFileBytes, participant);

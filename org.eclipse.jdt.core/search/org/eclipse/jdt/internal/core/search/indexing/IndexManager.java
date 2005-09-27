@@ -37,7 +37,7 @@ public class IndexManager extends JobManager implements IIndexConstants {
 	/*
 	 * key = an IPath, value = an Index
 	 */
-	private Map indexes = new HashMap(5);
+	private Map<String, Index> indexes = new HashMap<String, Index>(5);
 
 	/* need to save ? */
 	private boolean needToSave = false;
@@ -177,7 +177,7 @@ public synchronized Index getIndex(IPath containerPath, boolean reuseExistingFil
  */
 public synchronized Index getIndex(IPath containerPath, String indexLocation, boolean reuseExistingFile, boolean createIfMissing) {
 	// Path is already canonical per construction
-	Index index = (Index) indexes.get(indexLocation);
+	Index index = indexes.get(indexLocation);
 	if (index == null) {
 		Object state = getIndexStates().get(indexLocation);
 		Integer currentIndexState = state == null ? UNKNOWN_STATE : (Integer) state;
@@ -233,7 +233,7 @@ public synchronized Index getIndex(IPath containerPath, String indexLocation, bo
 	return index;
 }
 public synchronized Index getIndex(String indexLocation) {
-	return (Index) indexes.get(indexLocation); // is null if unknown, call if the containerPath must be computed
+	return indexes.get(indexLocation); // is null if unknown, call if the containerPath must be computed
 }
 public synchronized Index getIndexForUpdate(IPath containerPath, boolean reuseExistingFile, boolean createIfMissing) {
 	String indexLocation = computeIndexLocation(containerPath);
@@ -429,7 +429,7 @@ public synchronized Index recreateIndex(IPath containerPath) {
 		// Path is already canonical
 		String indexLocation = computeIndexLocation(containerPath);
 		
-		Index index = (Index) this.indexes.get(indexLocation);
+		Index index = this.indexes.get(indexLocation);
 		ReadWriteMonitor monitor = index == null ? null : index.monitor;
 
 		if (VERBOSE)
@@ -476,20 +476,20 @@ public synchronized void removeIndex(IPath containerPath) {
  */
 public synchronized void removeIndexFamily(IPath path) {
 	// only finds cached index files... shutdown removes all non-cached index files
-	ArrayList toRemove = null;
+	ArrayList<IPath> toRemove = null;
 	Object[] containerPaths = this.indexLocations.keyTable;
 	for (int i = 0, length = containerPaths.length; i < length; i++) {
 		IPath containerPath = (IPath) containerPaths[i];
 		if (containerPath == null) continue;
 		if (path.isPrefixOf(containerPath)) {
 			if (toRemove == null)
-				toRemove = new ArrayList();
+				toRemove = new ArrayList<IPath>();
 			toRemove.add(containerPath);
 		}
 	}
 	if (toRemove != null)
 		for (int i = 0, length = toRemove.size(); i < length; i++)
-			this.removeIndex((IPath) toRemove.get(i));
+			this.removeIndex(toRemove.get(i));
 }
 /**
  * Remove the content of the given source folder from the index.
@@ -510,7 +510,7 @@ public void removeSourceFolderFromIndex(JavaProject javaProject, IPath sourceFol
 public synchronized void reset() {
 	super.reset();
 	if (this.indexes != null) {
-		this.indexes = new HashMap(5);
+		this.indexes = new HashMap<String, Index>(5);
 		this.indexStates = null;
 	}
 	this.indexLocations = new SimpleLookupTable();
@@ -543,19 +543,8 @@ public void saveIndex(Index index) throws IOException {
  * Commit all index memory changes to disk
  */
 public void saveIndexes() {
-	// only save cached indexes... the rest were not modified
-	ArrayList toSave = new ArrayList();
-	synchronized(this) {
-		for (Iterator iter = this.indexes.values().iterator(); iter.hasNext();) {
-			Object o = iter.next();
-			if (o instanceof Index)
-				toSave.add(o);
-		}
-	}
-
 	boolean allSaved = true;
-	for (int i = 0, length = toSave.size(); i < length; i++) {
-		Index index = (Index) toSave.get(i);
+	for (Index index : this.indexes.values()) {
 		ReadWriteMonitor monitor = index.monitor;
 		if (monitor == null) continue; // index got deleted since acquired
 		try {
@@ -615,8 +604,8 @@ public String toString() {
 	buffer.append(super.toString());
 	buffer.append("In-memory indexes:\n"); //$NON-NLS-1$
 	int count = 0;
-	for (Iterator iter = this.indexes.values().iterator(); iter.hasNext();) {
-		buffer.append(++count).append(" - ").append(iter.next().toString()).append('\n'); //$NON-NLS-1$
+	for (Index index : this.indexes.values()) {
+		buffer.append(++count).append(" - ").append(index.toString()).append('\n'); //$NON-NLS-1$
 	}
 	return buffer.toString();
 }

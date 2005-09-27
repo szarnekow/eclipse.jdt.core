@@ -26,8 +26,9 @@ PatternLocator patternLocator;
 private ASTVisitor localDeclarationVisitor;
 
 public static MatchLocatorParser createParser(ProblemReporter problemReporter, MatchLocator locator) {
-	if ((locator.matchContainer & PatternLocator.COMPILATION_UNIT_CONTAINER) != 0)
+	if ((locator.matchContainer & PatternLocator.COMPILATION_UNIT_CONTAINER) != 0) {
 		return new ImportMatchLocatorParser(problemReporter, locator);
+	}
 	return new MatchLocatorParser(problemReporter, locator);
 }
 
@@ -382,25 +383,3 @@ protected void parseBodies(TypeDeclaration type, CompilationUnitDeclaration unit
 }
 }
 
-class ImportMatchLocatorParser extends MatchLocatorParser {
-
-protected ImportMatchLocatorParser(ProblemReporter problemReporter, MatchLocator locator) {
-	super(problemReporter, locator);
-}
-protected void consumeStaticImportOnDemandDeclarationName() {
-	super.consumeStaticImportOnDemandDeclarationName();
-	this.patternLocator.match(this.astStack[this.astPtr], this.nodeSet);
-}
-protected void consumeSingleStaticImportDeclarationName() {
-	super.consumeSingleStaticImportDeclarationName();
-	this.patternLocator.match(this.astStack[this.astPtr], this.nodeSet);
-}
-protected void consumeSingleTypeImportDeclarationName() {
-	super.consumeSingleTypeImportDeclarationName();
-	this.patternLocator.match(this.astStack[this.astPtr], this.nodeSet);
-}
-protected void consumeTypeImportOnDemandDeclarationName() {
-	super.consumeTypeImportOnDemandDeclarationName();
-	this.patternLocator.match(this.astStack[this.astPtr], this.nodeSet);
-}
-}

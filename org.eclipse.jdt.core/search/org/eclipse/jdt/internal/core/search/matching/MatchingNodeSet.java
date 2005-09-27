@@ -44,7 +44,7 @@ public boolean mustResolve;
  * Set of possible matching ast nodes. They need to be resolved
  * to determine if they really match the search pattern.
  */
-SimpleSet possibleMatchingNodesSet = new SimpleSet(7);
+SimpleSet<ASTNode> possibleMatchingNodesSet = new SimpleSet<ASTNode>(7);
 private HashtableOfLong possibleMatchingNodesKeys = new HashtableOfLong(7);
 
 
@@ -100,13 +100,14 @@ void addTrustedMatch(ASTNode node, Integer level) {
 	this.matchingNodesKeys.put(key, node);
 }
 protected boolean hasPossibleNodes(int start, int end) {
-	Object[] nodes = this.possibleMatchingNodesSet.values;
-	for (int i = 0, l = nodes.length; i < l; i++) {
-		ASTNode node = (ASTNode) nodes[i];
-		if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
-			return true;
+	for (Object value: this.possibleMatchingNodesSet.values) {
+		if (value != null) {
+			ASTNode node = (ASTNode) value;
+			if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
+				return true;
+		}
 	}
-	nodes = this.matchingNodes.keyTable;
+	Object[] nodes = this.matchingNodes.keyTable;
 	for (int i = 0, l = nodes.length; i < l; i++) {
 		ASTNode node = (ASTNode) nodes[i];
 		if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
@@ -118,12 +119,12 @@ protected boolean hasPossibleNodes(int start, int end) {
  * Returns the matching nodes that are in the given range in the source order.
  */
 protected ASTNode[] matchingNodes(int start, int end) {
-	ArrayList nodes = null;
+	ArrayList<ASTNode> nodes = null;
 	Object[] keyTable = this.matchingNodes.keyTable;
 	for (int i = 0, l = keyTable.length; i < l; i++) {
 		ASTNode node = (ASTNode) keyTable[i];
 		if (node != null && start <= node.sourceStart && node.sourceEnd <= end) {
-			if (nodes == null) nodes = new ArrayList();
+			if (nodes == null) nodes = new ArrayList<ASTNode>();
 			nodes.add(node);
 		}
 	}
@@ -182,12 +183,10 @@ public String toString() {
 	}
 
 	result.append("\nPossible matches:"); //$NON-NLS-1$
-	Object[] nodes = this.possibleMatchingNodesSet.values;
-	for (int i = 0, l = nodes.length; i < l; i++) {
-		ASTNode node = (ASTNode) nodes[i];
-		if (node == null) continue;
+	for (Object value: this.possibleMatchingNodesSet.values) {
+		if (value == null) continue;
 		result.append("\nPOSSIBLE_MATCH: "); //$NON-NLS-1$
-		node.print(0, result);
+		((ASTNode) value).print(0, result);
 	}
 	return result.toString();
 }

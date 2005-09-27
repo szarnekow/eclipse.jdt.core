@@ -105,20 +105,19 @@ public class IndexAllProject extends IndexRequest {
 			final long indexLastModified = max == 0 ? 0L : index.getIndexFile().lastModified();
 
 			IWorkspaceRoot root = this.project.getWorkspace().getRoot();
-			for (int i = 0; i < sourceEntriesNumber; i++) {
+			for (IClasspathEntry sourceEntry:sourceEntries) {
 				if (this.isCancelled) return false;
 
-				IClasspathEntry entry = sourceEntries[i];
-				IResource sourceFolder = root.findMember(entry.getPath());
+				IResource sourceFolder = root.findMember(sourceEntry.getPath());
 				if (sourceFolder != null) {
 					
 					// collect output locations if source is project (see http://bugs.eclipse.org/bugs/show_bug.cgi?id=32041)
-					final HashSet outputs = new HashSet();
+					final HashSet<IPath> outputs = new HashSet<IPath>();
 					if (sourceFolder.getType() == IResource.PROJECT) {
 						// Do not create marker nor log problems while getting output location (see bug 41859)
 						outputs.add(javaProject.getOutputLocation(false, false));
-						for (int j = 0; j < sourceEntriesNumber; j++) {
-							IPath output = sourceEntries[j].getOutputLocation();
+						for (IClasspathEntry entry:sourceEntries) {
+							IPath output = entry.getOutputLocation();
 							if (output != null) {
 								outputs.add(output);
 							}
@@ -126,8 +125,8 @@ public class IndexAllProject extends IndexRequest {
 					}
 					final boolean hasOutputs = !outputs.isEmpty();
 					
-					final char[][] inclusionPatterns = ((ClasspathEntry) entry).fullInclusionPatternChars();
-					final char[][] exclusionPatterns = ((ClasspathEntry) entry).fullExclusionPatternChars();
+					final char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry).fullInclusionPatternChars();
+					final char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry).fullExclusionPatternChars();
 					if (max == 0) {
 						sourceFolder.accept(
 							new IResourceProxyVisitor() {

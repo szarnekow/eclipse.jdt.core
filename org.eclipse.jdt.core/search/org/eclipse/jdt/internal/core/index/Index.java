@@ -133,7 +133,7 @@ public EntryResult[] query(char[][] categories, char[] key, int matchRule) throw
  * Returns the document names that contain the given substring, if null then returns all of them.
  */
 public String[] queryDocumentNames(String substring) throws IOException {
-	SimpleSet results;
+	SimpleSet<String> results;
 	if (this.memoryIndex.hasChanged()) {
 		results = this.diskIndex.addDocumentNames(substring, this.memoryIndex);
 		this.memoryIndex.addDocumentNames(substring, results);
@@ -141,14 +141,7 @@ public String[] queryDocumentNames(String substring) throws IOException {
 		results = this.diskIndex.addDocumentNames(substring, null);
 	}
 	if (results.elementSize == 0) return null;
-
-	String[] documentNames = new String[results.elementSize];
-	int count = 0;
-	Object[] paths = results.values;
-	for (int i = 0, l = paths.length; i < l; i++)
-		if (paths[i] != null)
-			documentNames[count++] = (String) paths[i];
-	return documentNames;
+	return results.values();
 }
 public void remove(String containerRelativePath) {
 	this.memoryIndex.remove(containerRelativePath);

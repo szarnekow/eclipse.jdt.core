@@ -52,7 +52,7 @@ public class SourceIndexer extends AbstractIndexer implements SuffixConstants {
 		String documentPath = this.document.getPath();
 		IPath path = new Path(documentPath);
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.segment(0));
-		Map options = JavaCore.create(project).getOptions(true);
+		Map<String, String> options = JavaCore.create(project).getOptions(true);
 		// disable task tags to speed up parsing
 		options.put(JavaCore.COMPILER_TASK_TAGS, ""); //$NON-NLS-1$
 		SourceElementParser parser = new SourceElementParser(

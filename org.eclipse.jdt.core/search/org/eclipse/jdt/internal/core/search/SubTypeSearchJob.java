@@ -17,16 +17,16 @@ import org.eclipse.jdt.internal.core.util.SimpleSet;
 
 public class SubTypeSearchJob extends PatternSearchJob {
 
-SimpleSet indexes = new SimpleSet(5);
+SimpleSet<Index> indexes = new SimpleSet<Index>(5);
 
 public SubTypeSearchJob(SearchPattern pattern, SearchParticipant participant, IJavaSearchScope scope, IndexQueryRequestor requestor) {
 	super(pattern, participant, scope, requestor);
 }
 public void finished() {
-	Object[] values = this.indexes.values;
-	for (int i = 0, l = values.length; i < l; i++)
-		if (values[i] != null)
-			((Index) values[i]).stopQuery();
+	for (Object index : this.indexes.values) {
+		if (index != null)
+			((Index)index).stopQuery();
+	}
 }
 public boolean search(Index index, IProgressMonitor progressMonitor) {
 	if (index == null) return COMPLETE;

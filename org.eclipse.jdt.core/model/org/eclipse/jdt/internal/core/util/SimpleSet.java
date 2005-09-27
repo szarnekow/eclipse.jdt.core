@@ -15,7 +15,7 @@ package org.eclipse.jdt.internal.core.util;
  * and values are Objects. It also uses linear probing to resolve collisions
  * rather than a linked list of hash table entries.
  */
-public final class SimpleSet implements Cloneable {
+public final class SimpleSet<Type> implements Cloneable {
 
 // to avoid using Enumerations, walk the individual values skipping nulls
 public Object[] values;
@@ -33,7 +33,7 @@ public SimpleSet(int size) {
 	this.values = new Object[2 * size + 1];
 }
 
-public Object add(Object object) {
+public Object add(Type object) {
 	int length = values.length;
 	int index = (object.hashCode() & 0x7FFFFFFF) % length;
 	Object current;
@@ -53,19 +53,19 @@ public void clear() {
 		this.values[i] = null;
 	this.elementSize = 0;
 }
-
+@SuppressWarnings("unchecked") 
 public Object clone() throws CloneNotSupportedException {
-	SimpleSet result = (SimpleSet) super.clone();
+	SimpleSet<Type> result = (SimpleSet<Type>) super.clone();
 	result.elementSize = this.elementSize;
 	result.threshold = this.threshold;
 
 	int length = this.values.length;
-	result.values = new Object[length];
+	result.values = (Type[])new Object[length];
 	System.arraycopy(this.values, 0, result.values, 0, length);
 	return result;
 }
 
-public boolean includes(Object object) {
+public boolean includes(Type object) {
 	int length = values.length;
 	int index = (object.hashCode() & 0x7FFFFFFF) % length;
 	Object current;
@@ -76,7 +76,7 @@ public boolean includes(Object object) {
 	return false;
 }
 
-public Object remove(Object object) {
+public Object remove(Type object) {
 	int length = values.length;
 	int index = (object.hashCode() & 0x7FFFFFFF) % length;
 	Object current;
@@ -95,7 +95,7 @@ public Object remove(Object object) {
 }
 
 private void rehash() {
-	SimpleSet newSet = new SimpleSet(elementSize * 2); // double the number of expected elements
+	SimpleSet<Object>newSet = new SimpleSet<Object>(elementSize * 2); // double the number of expected elements
 	Object current;
 	for (int i = values.length; --i >= 0;)
 		if ((current = values[i]) != null)
@@ -107,11 +107,33 @@ private void rehash() {
 }
 
 public String toString() {
-	String s = ""; //$NON-NLS-1$
-	Object object;
-	for (int i = 0, l = values.length; i < l; i++)
-		if ((object = values[i]) != null)
-			s += object.toString() + "\n"; //$NON-NLS-1$
-	return s;
+	StringBuffer s = new StringBuffer();
+	for (Object value: this.values) {
+		if (value != null)
+			s.append(value).append('\n');
+	}
+	return s.toString();
+}
+
+/**
+ * Return values as an array of type parameter class.
+ * Indexes of non-null values of returned array are continuous.
+ *
+ * @return Warning: null if set is empty!
+ */
+@SuppressWarnings("unchecked") 
+public Type[] values() {
+	if (this.elementSize == 0) return null;
+	Type[] array = null;
+	int count = 0;
+	for (Object value : this.values) {
+		if (value != null) {
+			if (array == null) {
+				array = (Type[]) java.lang.reflect.Array.newInstance(value.getClass(), elementSize);
+			}
+			array[count++] = (Type) value;
+		}
+	}
+	return array;
 }
 }

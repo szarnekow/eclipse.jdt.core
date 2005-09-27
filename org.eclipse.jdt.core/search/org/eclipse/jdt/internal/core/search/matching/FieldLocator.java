@@ -245,7 +245,7 @@ protected void updateMatch(ParameterizedTypeBinding parameterizedBinding, char[]
 		match.setRule(0);
 	}
 }
-protected void reportDeclaration(FieldBinding fieldBinding, MatchLocator locator, SimpleSet knownFields) throws CoreException {
+protected void reportDeclaration(FieldBinding fieldBinding, MatchLocator locator, SimpleSet<IField> knownFields) throws CoreException {
 	// ignore length field
 	if (fieldBinding == ArrayBinding.ArrayLength) return;
 	

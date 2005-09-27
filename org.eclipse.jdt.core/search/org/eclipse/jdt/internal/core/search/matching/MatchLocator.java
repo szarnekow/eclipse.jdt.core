@@ -122,7 +122,7 @@ CompilationUnitScope unitScope;
 SimpleLookupTable bindings;
 
 // Cache for method handles
-HashSet methodHandles;
+HashSet<IMethod> methodHandles;
 
 /**
  * An ast visitor that visits local type declarations.
@@ -188,13 +188,13 @@ public class WrappedCoreException extends RuntimeException {
 
 public static SearchDocument[] addWorkingCopies(InternalSearchPattern pattern, SearchDocument[] indexMatches, org.eclipse.jdt.core.ICompilationUnit[] copies, SearchParticipant participant) {
 	// working copies take precedence over corresponding compilation units
-	HashMap workingCopyDocuments = workingCopiesThatCanSeeFocus(copies, pattern.focus, pattern.isPolymorphicSearch(), participant);
+	HashMap<String, SearchDocument> workingCopyDocuments = workingCopiesThatCanSeeFocus(copies, pattern.focus, pattern.isPolymorphicSearch(), participant);
 	SearchDocument[] matches = null;
 	int length = indexMatches.length;
 	for (int i = 0; i < length; i++) {
 		SearchDocument searchDocument = indexMatches[i];
 		if (searchDocument.getParticipant() == participant) {
-			SearchDocument workingCopyDocument = (SearchDocument) workingCopyDocuments.remove(searchDocument.getPath());
+			SearchDocument workingCopyDocument = workingCopyDocuments.remove(searchDocument.getPath());
 			if (workingCopyDocument != null) {
 				if (matches == null) {
 					System.arraycopy(indexMatches, 0, matches = new SearchDocument[length], 0, length);
@@ -209,10 +209,10 @@ public static SearchDocument[] addWorkingCopies(InternalSearchPattern pattern, S
 	int remainingWorkingCopiesSize = workingCopyDocuments.size();
 	if (remainingWorkingCopiesSize != 0) {
 		System.arraycopy(matches, 0, matches = new SearchDocument[length+remainingWorkingCopiesSize], 0, length);
-		Iterator iterator = workingCopyDocuments.values().iterator();
+		Iterator<SearchDocument> iterator = workingCopyDocuments.values().iterator();
 		int index = length;
 		while (iterator.hasNext()) {
-			matches[index++] = (SearchDocument) iterator.next();
+			matches[index++] = iterator.next();
 		}
 	}
 	return matches;
@@ -225,14 +225,14 @@ public static void setFocus(InternalSearchPattern pattern, IJavaElement focus) {
 /*
  * Returns the working copies that can see the given focus.
  */
-private static HashMap workingCopiesThatCanSeeFocus(org.eclipse.jdt.core.ICompilationUnit[] copies, IJavaElement focus, boolean isPolymorphicSearch, SearchParticipant participant) {
-	if (copies == null) return new HashMap();
+private static HashMap<String, SearchDocument> workingCopiesThatCanSeeFocus(org.eclipse.jdt.core.ICompilationUnit[] copies, IJavaElement focus, boolean isPolymorphicSearch, SearchParticipant participant) {
+	if (copies == null) return new HashMap<String, SearchDocument>();
 	if (focus != null) {
 		while (!(focus instanceof IJavaProject) && !(focus instanceof JarPackageFragmentRoot)) {
 			focus = focus.getParent();
 		}
 	}
-	HashMap result = new HashMap();
+	HashMap<String, SearchDocument> result = new HashMap<String, SearchDocument>();
 	for (int i=0, length = copies.length; i<length; i++) {
 		org.eclipse.jdt.core.ICompilationUnit workingCopy = copies[i];
 		IPath projectOrJar = MatchLocator.getProjectOrJar(workingCopy).getPath();
@@ -866,7 +866,7 @@ public void initialize(JavaProject project, int possibleMatchSize) throws JavaMo
 		: (INameEnvironment) new JavaSearchNameEnvironment(project, this.workingCopies);
 
 	// create lookup environment
-	Map map = project.getOptions(true);
+	Map<String, String> map = project.getOptions(true);
 	map.put(CompilerOptions.OPTION_TaskTags, ""); //$NON-NLS-1$
 	this.options = new CompilerOptions(map);
 	ProblemReporter problemReporter =
@@ -1019,7 +1019,7 @@ public void locateMatches(SearchDocument[] searchDocuments) throws CoreException
 	this.progressWorked = 0;
 
 	// extract working copies
-	ArrayList copies = new ArrayList();
+	ArrayList<org.eclipse.jdt.core.ICompilationUnit> copies = new ArrayList<org.eclipse.jdt.core.ICompilationUnit>();
 	for (int i = 0; i < docsLength; i++) {
 		SearchDocument document = searchDocuments[i];
 		if (document instanceof WorkingCopyDocument) {
@@ -1941,10 +1941,9 @@ protected void reportMatching(CompilationUnitDeclaration unit, boolean mustResol
 	if (mustResolve) {
 		this.unitScope= unit.scope.compilationUnitScope();
 		// move the possible matching nodes that exactly match the search pattern to the matching nodes set
-		Object[] nodes = nodeSet.possibleMatchingNodesSet.values;
-		for (int i = 0, l = nodes.length; i < l; i++) {
-			ASTNode node = (ASTNode) nodes[i];
-			if (node == null) continue;
+		for (Object value: nodeSet.possibleMatchingNodesSet.values) {
+			if (value == null) continue;
+			ASTNode node = (ASTNode) value;
 			if (node instanceof ImportReference) {
 				// special case for import refs: they don't know their binding
 				// import ref cannot be in the hierarchy of a type
@@ -1958,7 +1957,7 @@ protected void reportMatching(CompilationUnitDeclaration unit, boolean mustResol
 			}
 			nodeSet.addMatch(node, this.patternLocator.resolveLevel(node));
 		}
-		nodeSet.possibleMatchingNodesSet = new SimpleSet(3);
+		nodeSet.possibleMatchingNodesSet = new SimpleSet<ASTNode>(3);
 		if (BasicSearchEngine.VERBOSE) {
 			int size = nodeSet.matchingNodes==null ? 0 : nodeSet.matchingNodes.elementSize;
 			System.out.print("	- node set: accurate="+size); //$NON-NLS-1$
@@ -1970,7 +1969,7 @@ protected void reportMatching(CompilationUnitDeclaration unit, boolean mustResol
 	}
 
 	if (nodeSet.matchingNodes.elementSize == 0) return; // no matching nodes were found
-	this.methodHandles = new HashSet();
+	this.methodHandles = new HashSet<IMethod>();
 
 	boolean matchedUnitContainer = (this.matchContainer & PatternLocator.COMPILATION_UNIT_CONTAINER) != 0;
 
