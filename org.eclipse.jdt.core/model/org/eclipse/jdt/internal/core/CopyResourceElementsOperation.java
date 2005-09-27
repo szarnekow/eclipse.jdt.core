@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
@@ -636,7 +637,7 @@ public class CopyResourceElementsOperation extends MultiOperation implements Suf
 							// rename type
 							rewriter.replace(typeNode.getName(), ast.newSimpleName(newTypeName), null);
 							// rename constructors
-							Iterator bodyDeclarations = typeNode.bodyDeclarations().iterator();
+							Iterator<BodyDeclaration> bodyDeclarations = typeNode.bodyDeclarations().iterator();
 							while (bodyDeclarations.hasNext()) {
 								Object bodyDeclaration = bodyDeclarations.next();
 								if (bodyDeclaration instanceof MethodDeclaration) {
