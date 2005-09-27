@@ -237,9 +237,9 @@ public void printStats() {
 
 	Enumeration<K> keys = fEntryTable.keys();
 	class Temp {
-		public Class fClass;
+		public Class<? extends Object> fClass;
 		public int fCount;
-		public Temp(Class aClass) {
+		public Temp(Class<? extends Object> aClass) {
 			fClass = aClass;
 			fCount = 1;
 		}
@@ -247,10 +247,10 @@ public void printStats() {
 			return "Class: " + fClass + " has " + fCount + " entries."; //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-1$
 		}
 	}
-	java.util.HashMap<Class, Temp> h = new java.util.HashMap<Class, Temp>();
+	java.util.HashMap<Class<? extends Object>, Temp> h = new java.util.HashMap<Class<? extends Object>, Temp>();
 	while(keys.hasMoreElements()) {
 		entry = fEntryTable.get(keys.nextElement());
-		Class key = entry._fValue.getClass();
+		Class<? extends Object> key = entry._fValue.getClass();
 		Temp t = h.get(key);
 		if (t == null) {
 			h.put(key, new Temp(key));
@@ -259,7 +259,7 @@ public void printStats() {
 		}
 	}
 
-	for (Iterator iter = h.keySet().iterator(); iter.hasNext();){
+	for (Iterator<? extends Object> iter = h.keySet().iterator(); iter.hasNext();){
 		System.out.println(h.get(iter.next()));
 	}
 }

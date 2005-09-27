@@ -104,18 +104,18 @@ public class NameLookup implements SuffixConstants {
 	 * Reverse map from root path to corresponding resolved CP entry
 	 * (so as to be able to figure inclusion/exclusion rules)
 	 */
-	protected Map rootToResolvedEntries;
+	protected Map<IPackageFragmentRoot, ClasspathEntry> rootToResolvedEntries;
 	
 	/**
-	 * A map from package handles to a map from type name to an IType of an IType[].
+	 * A map from package handles to a map from type name to an IType or an IType[].
 	 * Allows working copies to take precedence over compilation units.
 	 */
-	protected HashMap unitsToLookInside;
+	protected HashMap<IPackageFragment, HashMap<String, Object>> unitsToLookInside;
 	
 	public long timeSpentInSeekTypesInSourcePackage = 0;
 	public long timeSpentInSeekTypesInBinaryPackage = 0;
 
-	public NameLookup(IPackageFragmentRoot[] packageFragmentRoots, HashtableOfArrayToObject packageFragments, ICompilationUnit[] workingCopies, Map rootToResolvedEntries) {
+	public NameLookup(IPackageFragmentRoot[] packageFragmentRoots, HashtableOfArrayToObject packageFragments, ICompilationUnit[] workingCopies, Map<IPackageFragmentRoot, ClasspathEntry> rootToResolvedEntries) {
 		long start = -1;
 		if (VERBOSE) {
 			System.out.println(Thread.currentThread() + " BUILDING NameLoopkup");  //$NON-NLS-1$
@@ -131,13 +131,13 @@ public class NameLookup implements SuffixConstants {
 			// ignore (implementation of HashtableOfArrayToObject supports cloning)
 		}
 		if (workingCopies != null) {
-			this.unitsToLookInside = new HashMap();
+			this.unitsToLookInside = new HashMap<IPackageFragment, HashMap<String, Object>>();
 			for (int i = 0, length = workingCopies.length; i < length; i++) {
 				ICompilationUnit workingCopy = workingCopies[i];
 				PackageFragment pkg = (PackageFragment) workingCopy.getParent();
-				HashMap typeMap = (HashMap) this.unitsToLookInside.get(pkg);
+				HashMap<String, Object> typeMap = this.unitsToLookInside.get(pkg);
 				if (typeMap == null) {
-					typeMap = new HashMap();
+					typeMap = new HashMap<String, Object>();
 					this.unitsToLookInside.put(pkg, typeMap);
 				}
 				try {
@@ -416,7 +416,7 @@ public class NameLookup implements SuffixConstants {
 		if (partialMatch) {
 			String[] splittedName = Util.splitOn('.', name, 0, name.length());
 			IPackageFragment[] oneFragment = null;
-			ArrayList pkgs = null;
+			ArrayList<IPackageFragment> pkgs = null;
 			Object[][] keys = this.packageFragments.keyTable;
 			for (int i = 0, length = keys.length; i < length; i++) {
 				String[] pkgName = (String[]) keys[i];
@@ -428,7 +428,7 @@ public class NameLookup implements SuffixConstants {
 							oneFragment = new IPackageFragment[] {pkg};
 						} else {
 							if (pkgs == null) {
-								pkgs = new ArrayList();
+								pkgs = new ArrayList<IPackageFragment>();
 								pkgs.add(oneFragment[0]);
 							}
 							pkgs.add(pkg);
@@ -442,7 +442,7 @@ public class NameLookup implements SuffixConstants {
 								oneFragment = new IPackageFragment[] {pkg};
 							} else {
 								if (pkgs == null) {
-									pkgs = new ArrayList();
+									pkgs = new ArrayList<IPackageFragment>();
 									pkgs.add(oneFragment[0]);
 								}
 								pkgs.add(pkg);
@@ -541,7 +541,7 @@ public class NameLookup implements SuffixConstants {
 	// TODO (kent) enable once index support is in
 	IType findSecondaryType(String typeName, IPackageFragment pkg, boolean partialMatch, final int acceptFlags) {
 		try {
-			final ArrayList paths = new ArrayList();
+			final ArrayList<String> paths = new ArrayList<String>();
 			TypeNameRequestor nameRequestor = new TypeNameRequestor() {
 				public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path) {
 					if (enclosingTypeNames == null || enclosingTypeNames.length == 0) { // accept only top level types
@@ -580,7 +580,7 @@ public class NameLookup implements SuffixConstants {
 			if (!paths.isEmpty()) {
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
 				for (int i = 0, l = paths.size(); i < l; i++) {
-					String pathname = (String) paths.get(i);
+					String pathname = paths.get(i);
 					if (org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(pathname)) {
 						IFile file = workspace.getRoot().getFile(new Path(pathname));
 						ICompilationUnit unit = JavaCore.createCompilationUnitFrom(file);
@@ -841,7 +841,7 @@ public class NameLookup implements SuffixConstants {
 				String topLevelTypeName = firstDot == -1 ? name : name.substring(0, firstDot);
 				
 				// look in unitsToLookInside first
-				HashMap typeMap = (HashMap) (this.unitsToLookInside == null ? null : this.unitsToLookInside.get(pkg));
+				HashMap<String, Object> typeMap = this.unitsToLookInside == null ? null : this.unitsToLookInside.get(pkg);
 				if (typeMap != null) {
 					Object object = typeMap.get(topLevelTypeName);
 					if (object instanceof IType) {
@@ -890,9 +890,9 @@ public class NameLookup implements SuffixConstants {
 				int firstDot = prefix.indexOf('.');
 				
 				// look in unitsToLookInside first
-				HashMap typeMap = (HashMap) (this.unitsToLookInside == null ? null : this.unitsToLookInside.get(pkg));
+				HashMap<String, Object> typeMap = this.unitsToLookInside == null ? null : this.unitsToLookInside.get(pkg);
 				if (typeMap != null) {
-					Iterator iterator = typeMap.values().iterator();
+					Iterator<Object> iterator = typeMap.values().iterator();
 					while (iterator.hasNext()) {
 						if (requestor.isCanceled())
 							return;
