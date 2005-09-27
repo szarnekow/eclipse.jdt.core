@@ -40,7 +40,7 @@ public class UserLibraryManager {
 	public final static String CP_USERLIBRARY_PREFERENCES_PREFIX = JavaCore.PLUGIN_ID+".userLibrary."; //$NON-NLS-1$
 	public final static String CP_ENTRY_IGNORE = "##<cp entry ignore>##"; //$NON-NLS-1$
 
-	private static Map userLibraries;
+	private static Map<String, UserLibrary> userLibraries;
 	private static final boolean logProblems= false;
 	private static IEclipsePreferences.IPreferenceChangeListener listener= new IEclipsePreferences.IPreferenceChangeListener() {
 
@@ -69,8 +69,8 @@ public class UserLibraryManager {
 	 * @return Return an array containing the names of all known user defined.
 	 */
 	public static String[] getUserLibraryNames() {
-		Set set= getLibraryMap().keySet();
-		return (String[]) set.toArray(new String[set.size()]);
+		Set<String> set= getLibraryMap().keySet();
+		return set.toArray(new String[set.size()]);
 	}
 	
 	/**
@@ -79,7 +79,7 @@ public class UserLibraryManager {
 	 * @return The library registered for the given name or <code>null</code>.
 	 */
 	public static UserLibrary getUserLibrary(String name) {
-		return (UserLibrary) getLibraryMap().get(name);
+		return getLibraryMap().get(name);
 	}
 
 	/**
@@ -120,9 +120,9 @@ public class UserLibraryManager {
 		internalSetUserLibrary(name, library, true, true, monitor);
 	}
 	
-	static Map getLibraryMap() {
+	static Map<String, UserLibrary> getLibraryMap() {
 		if (userLibraries == null) {
-			userLibraries= new HashMap();
+			userLibraries= new HashMap<String, UserLibrary>();
 			// load variables and containers from preferences into cache
 			IEclipsePreferences instancePreferences = JavaModelManager.getJavaModelManager().getInstancePreferences();
 			instancePreferences.addPreferenceChangeListener(listener);
@@ -216,7 +216,7 @@ public class UserLibraryManager {
 		IJavaProject[] projects= JavaCore.create(root).getJavaProjects();
 		IPath containerPath= new Path(JavaCore.USER_LIBRARY_CONTAINER_ID).append(name);
 		
-		ArrayList affectedProjects= new ArrayList();
+		ArrayList<IJavaProject> affectedProjects= new ArrayList<IJavaProject>();
 		
 		for (int i= 0; i < projects.length; i++) {
 			IJavaProject project= projects[i];
@@ -232,7 +232,7 @@ public class UserLibraryManager {
 			}
 		}
 		if (!affectedProjects.isEmpty()) {
-			IJavaProject[] affected= (IJavaProject[]) affectedProjects.toArray(new IJavaProject[affectedProjects.size()]);
+			IJavaProject[] affected= affectedProjects.toArray(new IJavaProject[affectedProjects.size()]);
 			IClasspathContainer[] containers= new IClasspathContainer[affected.length];
 			if (!remove) {
 				// Previously, containers array only contained a null value. Then, user library classpath entry was first removed

@@ -75,14 +75,14 @@ class XMLWriter extends PrintWriter {
 		for (int i= 0; i < tab; i++)
 			super.print('\t');
 	}
-	public void printTag(String name, HashMap parameters, boolean insertTab, boolean insertNewLine, boolean closeTag) {
+	public void printTag(String name, HashMap<String, String> parameters, boolean insertTab, boolean insertNewLine, boolean closeTag) {
 		StringBuffer sb= new StringBuffer();
 		sb.append("<"); //$NON-NLS-1$
 		sb.append(name);
 		if (parameters != null) {
-			for (Enumeration en = Collections.enumeration(parameters.keySet()); en.hasMoreElements();) {
+			for (Enumeration<String> en = Collections.enumeration(parameters.keySet()); en.hasMoreElements();) {
 				sb.append(" "); //$NON-NLS-1$
-				String key= (String) en.nextElement();
+				String key= en.nextElement();
 				sb.append(key);
 				sb.append("=\""); //$NON-NLS-1$
 				sb.append(getEscaped(String.valueOf(parameters.get(key))));

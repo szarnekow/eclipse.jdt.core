@@ -101,7 +101,7 @@ public class UserLibrary {
 		OutputStreamWriter writer = new OutputStreamWriter(s, "UTF8"); //$NON-NLS-1$
 		XMLWriter xmlWriter = new XMLWriter(writer, null/*use the workspace line delimiter*/, true/*print XML version*/);
 		
-		HashMap<String, Object> library = new HashMap<String, Object>();
+		HashMap<String, String> library = new HashMap<String, String>();
 		library.put(TAG_VERSION, String.valueOf(CURRENT_VERSION));
 		library.put(TAG_SYSTEMLIBRARY, String.valueOf(this.isSystemLibrary));
 		xmlWriter.printTag(TAG_USERLIBRARY, library, true, true, false);
@@ -109,14 +109,14 @@ public class UserLibrary {
 		for (int i = 0; i < this.entries.length; ++i) {
 			ClasspathEntry cpEntry = (ClasspathEntry) this.entries[i];
 		
-			HashMap<String, Object> archive = new HashMap<String, Object>();
+			HashMap<String, String> archive = new HashMap<String, String>();
 			archive.put(TAG_PATH, cpEntry.getPath().toString());
 			IPath sourceAttach= cpEntry.getSourceAttachmentPath();
 			if (sourceAttach != null)
-				archive.put(TAG_SOURCEATTACHMENT, sourceAttach);
+				archive.put(TAG_SOURCEATTACHMENT, sourceAttach.toString());
 			IPath sourceAttachRoot= cpEntry.getSourceAttachmentRootPath();
 			if (sourceAttachRoot != null)
-				archive.put(TAG_SOURCEATTACHMENTROOT, sourceAttachRoot);				
+				archive.put(TAG_SOURCEATTACHMENTROOT, sourceAttachRoot.toString());				
 
 			boolean hasExtraAttributes = cpEntry.extraAttributes != null && cpEntry.extraAttributes.length != 0;
 			boolean hasRestrictions = cpEntry.getAccessRuleSet() != null; // access rule set is null if no access rules
