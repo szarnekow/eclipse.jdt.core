@@ -32,19 +32,19 @@ public abstract class MultiOperation extends JavaModelOperation {
 	 * values are the corresponding insertion point.
 	 * @see #processElements()
 	 */
-	protected Map insertBeforeElements = new HashMap(1);
+	protected Map<IJavaElement, IJavaElement> insertBeforeElements = new HashMap<IJavaElement, IJavaElement>(1);
 	/**
 	 * Table specifying the new parent for elements being 
 	 * copied/moved/renamed.
 	 * Keyed by elements being processed, and
 	 * values are the corresponding destination parent.
 	 */
-	protected Map newParents;
+	protected Map<IJavaElement, IJavaElement> newParents;
 	/**
 	 * This table presents the data in <code>fRenamingList</code> in a more
 	 * convenient way.
 	 */
-	protected Map renamings;
+	protected Map<IJavaElement, String> renamings;
 	/**
 	 * The list of renamings supplied to the operation
 	 */
@@ -60,7 +60,7 @@ public abstract class MultiOperation extends JavaModelOperation {
 	 */
 	protected MultiOperation(IJavaElement[] elementsToProcess, IJavaElement[] parentElements, boolean force) {
 		super(elementsToProcess, parentElements, force);
-		this.newParents = new HashMap(elementsToProcess.length);
+		this.newParents = new HashMap<IJavaElement, IJavaElement>(elementsToProcess.length);
 		if (elementsToProcess.length == parentElements.length) {
 			for (int i = 0; i < elementsToProcess.length; i++) {
 				this.newParents.put(elementsToProcess[i], parentElements[i]);
@@ -93,7 +93,7 @@ public abstract class MultiOperation extends JavaModelOperation {
 	 * Returns the parent of the element being copied/moved/renamed.
 	 */
 	protected IJavaElement getDestinationParent(IJavaElement child) {
-		return (IJavaElement)this.newParents.get(child);
+		return this.newParents.get(child);
 	}
 	/**
 	 * Returns the name to be used by the progress monitor.
@@ -106,7 +106,7 @@ public abstract class MultiOperation extends JavaModelOperation {
 	protected String getNewNameFor(IJavaElement element) throws JavaModelException {
 		String newName = null;
 		if (this.renamings != null)
-			newName = (String) this.renamings.get(element);
+			newName = this.renamings.get(element);
 		if (newName == null && element instanceof IMethod && ((IMethod) element).isConstructor())
 			newName = getDestinationParent(element).getElementName();
 		return newName;
@@ -117,7 +117,7 @@ public abstract class MultiOperation extends JavaModelOperation {
 	 */
 	private void initializeRenamings() {
 		if (this.renamingsList != null && this.renamingsList.length == this.elementsToProcess.length) {
-			this.renamings = new HashMap(this.renamingsList.length);
+			this.renamings = new HashMap<IJavaElement, String>(this.renamingsList.length);
 			for (int i = 0; i < this.renamingsList.length; i++) {
 				if (this.renamingsList[i] != null) {
 					this.renamings.put(this.elementsToProcess[i], this.renamingsList[i]);
@@ -295,7 +295,7 @@ public abstract class MultiOperation extends JavaModelOperation {
 	 * its parent is the destination container of this <code>element</code>.
 	 */
 	protected void verifySibling(IJavaElement element, IJavaElement destination) throws JavaModelException {
-		IJavaElement insertBeforeElement = (IJavaElement) this.insertBeforeElements.get(element);
+		IJavaElement insertBeforeElement = this.insertBeforeElements.get(element);
 		if (insertBeforeElement != null) {
 			if (!insertBeforeElement.exists() || !insertBeforeElement.getParent().equals(destination)) {
 				error(IJavaModelStatusConstants.INVALID_SIBLING, insertBeforeElement);

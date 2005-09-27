@@ -22,7 +22,7 @@ import org.eclipse.jdt.core.*;
  */
 public class ModelUpdater {
 
-	HashSet projectsToUpdate = new HashSet();
+	HashSet<IJavaProject> projectsToUpdate = new HashSet<IJavaProject>();
 
 	/**
 	 * Adds the given child handle to its parent's cache of children. 
@@ -68,7 +68,7 @@ public class ModelUpdater {
 			// project add is handled by JavaProject.configure() because
 			// when a project is created, it does not yet have a java nature
 			addToParentInfo(element);
-			this.projectsToUpdate.add(element);
+			this.projectsToUpdate.add((IJavaProject) element);
 		} else {
 			addToParentInfo(element);
 
@@ -157,13 +157,13 @@ public class ModelUpdater {
 			this.traverseDelta(delta, null, null); // traverse delta
 
 			// update package fragment roots of projects that were affected
-			Iterator iterator = this.projectsToUpdate.iterator();
+			Iterator<IJavaProject> iterator = this.projectsToUpdate.iterator();
 			while (iterator.hasNext()) {
 				JavaProject project = (JavaProject) iterator.next();
 				project.updatePackageFragmentRoots();
 			}
 		} finally {
-			this.projectsToUpdate = new HashSet();
+			this.projectsToUpdate = new HashSet<IJavaProject>();
 		}
 	}
 

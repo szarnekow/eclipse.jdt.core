@@ -103,7 +103,7 @@ public static IMethod[] findMethods(IMethod method, IMethod[] methods) {
 		String erasure = Signature.getTypeErasure(parameters[i]);
 		simpleNames[i] = Signature.getSimpleName(Signature.toString(erasure));
 	}
-	ArrayList list = new ArrayList();
+	ArrayList<IMethod> list = new ArrayList<IMethod>();
 	next: for (int i = 0, length = methods.length; i < length; i++) {
 		IMethod existingMethod = methods[i];
 		if (areSimilarMethods(
