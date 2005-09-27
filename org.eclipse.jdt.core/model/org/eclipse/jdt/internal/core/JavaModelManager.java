@@ -1087,9 +1087,9 @@ public class JavaModelManager implements ISaveParticipant {
 		IEclipsePreferences defaultPreferences = getDefaultPreferences();
 		
 		// initialize preferences to their default
-		Iterator iterator = this.optionNames.iterator();
+		Iterator<String> iterator = this.optionNames.iterator();
 		while (iterator.hasNext()) {
-		    String propertyName = (String) iterator.next();
+		    String propertyName = iterator.next();
 		    String value = defaultPreferences.get(propertyName, null);
 		    if (value != null) defaultOptions.put(propertyName, value);
 		}
@@ -1176,9 +1176,9 @@ public class JavaModelManager implements ISaveParticipant {
 		IPreferencesService service = Platform.getPreferencesService();
 
 		// set options using preferences service lookup
-		Iterator iterator = optionNames.iterator();
+		Iterator<String> iterator = optionNames.iterator();
 		while (iterator.hasNext()) {
-		    String propertyName = (String) iterator.next();
+		    String propertyName = iterator.next();
 		    String propertyValue = service.get(propertyName, null, this.preferencesLookup);
 		    if (propertyValue != null) {
 			    options.put(propertyName, propertyValue);
@@ -2459,9 +2459,9 @@ public class JavaModelManager implements ISaveParticipant {
 			if (newOptions == null){
 				instancePreferences.clear();
 			} else {
-				Enumeration keys = newOptions.keys();
+				Enumeration<String> keys = newOptions.keys();
 				while (keys.hasMoreElements()){
-					String key = (String)keys.nextElement();
+					String key = keys.nextElement();
 					if (!this.optionNames.contains(key)) continue; // unrecognized option
 					if (key.equals(JavaCore.CORE_ENCODING)) continue; // skipped, contributed by resource prefs
 					String value = newOptions.get(key);

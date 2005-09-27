@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 
 /**
  * The cache of java elements to their respective info.
@@ -33,36 +36,36 @@ public class JavaModelCache {
 	/**
 	 * Cache of open projects.
 	 */
-	protected HashMap projectCache;
+	protected HashMap<IJavaProject, JavaProjectElementInfo> projectCache;
 	
 	/**
 	 * Cache of open package fragment roots.
 	 */
-	protected ElementCache rootCache;
+	protected ElementCache<IPackageFragmentRoot, PackageFragmentRootInfo> rootCache;
 	
 	/**
 	 * Cache of open package fragments
 	 */
-	protected ElementCache pkgCache;
+	protected ElementCache<IPackageFragment, PackageFragmentInfo> pkgCache;
 
 	/**
 	 * Cache of open compilation unit and class files
 	 */
-	protected ElementCache openableCache;
+	protected ElementCache<Openable, OpenableElementInfo> openableCache;
 
 	/**
 	 * Cache of open children of openable Java Model Java elements
 	 */
-	protected Map childrenCache;
+	protected Map<IJavaElement, Object> childrenCache;
 	
 public JavaModelCache() {
 	// set the size of the caches in function of the maximum amount of memory available
 	double ratio =  Runtime.getRuntime().maxMemory() / 64000000; // 64000000 is the base memory for most JVM
-	this.projectCache = new HashMap(DEFAULT_PROJECT_SIZE); // NB: Don't use a LRUCache for projects as they are constantly reopened (e.g. during delta processing)
-	this.rootCache = new ElementCache((int) (DEFAULT_ROOT_SIZE * ratio));
-	this.pkgCache = new ElementCache((int) (DEFAULT_PKG_SIZE * ratio));
-	this.openableCache = new ElementCache((int) (DEFAULT_OPENABLE_SIZE * ratio));
-	this.childrenCache = new HashMap((int) (DEFAULT_CHILDREN_SIZE * ratio));
+	this.projectCache = new HashMap<IJavaProject, JavaProjectElementInfo>(DEFAULT_PROJECT_SIZE); // NB: Don't use a LRUCache for projects as they are constantly reopened (e.g. during delta processing)
+	this.rootCache = new ElementCache<IPackageFragmentRoot, PackageFragmentRootInfo>((int) (DEFAULT_ROOT_SIZE * ratio));
+	this.pkgCache = new ElementCache<IPackageFragment, PackageFragmentInfo>((int) (DEFAULT_PKG_SIZE * ratio));
+	this.openableCache = new ElementCache<Openable, OpenableElementInfo>((int) (DEFAULT_OPENABLE_SIZE * ratio));
+	this.childrenCache = new HashMap<IJavaElement, Object>((int) (DEFAULT_CHILDREN_SIZE * ratio));
 }
 
 /**
@@ -75,12 +78,12 @@ public Object getInfo(IJavaElement element) {
 		case IJavaElement.JAVA_PROJECT:
 			return this.projectCache.get(element);
 		case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-			return this.rootCache.get(element);
+			return this.rootCache.get((IPackageFragmentRoot) element);
 		case IJavaElement.PACKAGE_FRAGMENT:
-			return this.pkgCache.get(element);
+			return this.pkgCache.get((IPackageFragment) element);
 		case IJavaElement.COMPILATION_UNIT:
 		case IJavaElement.CLASS_FILE:
-			return this.openableCache.get(element);
+			return this.openableCache.get((Openable) element);
 		default:
 			return this.childrenCache.get(element);
 	}
@@ -97,12 +100,12 @@ protected Object peekAtInfo(IJavaElement element) {
 		case IJavaElement.JAVA_PROJECT:
 			return this.projectCache.get(element);
 		case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-			return this.rootCache.peek(element);
+			return this.rootCache.peek((IPackageFragmentRoot) element);
 		case IJavaElement.PACKAGE_FRAGMENT:
-			return this.pkgCache.peek(element);
+			return this.pkgCache.peek((IPackageFragment) element);
 		case IJavaElement.COMPILATION_UNIT:
 		case IJavaElement.CLASS_FILE:
-			return this.openableCache.peek(element);
+			return this.openableCache.peek((Openable) element);
 		default:
 			return this.childrenCache.get(element);
 	}
@@ -117,20 +120,20 @@ protected void putInfo(IJavaElement element, Object info) {
 			this.modelInfo = (JavaModelInfo) info;
 			break;
 		case IJavaElement.JAVA_PROJECT:
-			this.projectCache.put(element, info);
+			this.projectCache.put((IJavaProject) element, (JavaProjectElementInfo) info);
 			this.rootCache.ensureSpaceLimit(((JavaElementInfo) info).children.length, element);
 			break;
 		case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-			this.rootCache.put(element, info);
+			this.rootCache.put((IPackageFragmentRoot) element, (PackageFragmentRootInfo) info);
 			this.pkgCache.ensureSpaceLimit(((JavaElementInfo) info).children.length, element);
 			break;
 		case IJavaElement.PACKAGE_FRAGMENT:
-			this.pkgCache.put(element, info);
+			this.pkgCache.put((IPackageFragment) element, (PackageFragmentInfo) info);
 			this.openableCache.ensureSpaceLimit(((JavaElementInfo) info).children.length, element);
 			break;
 		case IJavaElement.COMPILATION_UNIT:
 		case IJavaElement.CLASS_FILE:
-			this.openableCache.put(element, info);
+			this.openableCache.put((Openable) element, (OpenableElementInfo) info);
 			break;
 		default:
 			this.childrenCache.put(element, info);
@@ -149,16 +152,16 @@ protected void removeInfo(IJavaElement element) {
 			this.rootCache.resetSpaceLimit(DEFAULT_ROOT_SIZE, element);
 			break;
 		case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-			this.rootCache.remove(element);
+			this.rootCache.remove((IPackageFragmentRoot) element);
 			this.pkgCache.resetSpaceLimit(DEFAULT_PKG_SIZE, element);
 			break;
 		case IJavaElement.PACKAGE_FRAGMENT:
-			this.pkgCache.remove(element);
+			this.pkgCache.remove((IPackageFragment) element);
 			this.openableCache.resetSpaceLimit(DEFAULT_OPENABLE_SIZE, element);
 			break;
 		case IJavaElement.COMPILATION_UNIT:
 		case IJavaElement.CLASS_FILE:
-			this.openableCache.remove(element);
+			this.openableCache.remove((Openable) element);
 			break;
 		default:
 			this.childrenCache.remove(element);
