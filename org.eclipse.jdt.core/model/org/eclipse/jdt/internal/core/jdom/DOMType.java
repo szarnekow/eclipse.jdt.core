@@ -652,9 +652,9 @@ public void setName(String name) throws IllegalArgumentException {
 		throw new IllegalArgumentException(Messages.element_nullName); 
 	}
 	super.setName(name);
-	Enumeration children= getChildren();
+	Enumeration<IDOMNode> children= getChildren();
 	while (children.hasMoreElements()) {
-		IDOMNode child= (IDOMNode)children.nextElement();
+		IDOMNode child= children.nextElement();
 		if (child.getNodeType() == IDOMNode.METHOD && ((IDOMMethod)child).isConstructor()) {
 			((DOMNode)child).fragment();
 		}

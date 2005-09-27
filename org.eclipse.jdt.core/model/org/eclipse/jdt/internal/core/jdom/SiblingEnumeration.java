@@ -23,7 +23,7 @@ import org.eclipse.jdt.core.jdom.*;
  * powerful, fine-grained DOM/AST API found in the 
  * org.eclipse.jdt.core.dom package.
  */
-/* package */ class SiblingEnumeration implements Enumeration {
+/* package */ class SiblingEnumeration implements Enumeration<IDOMNode> {
 
 	/**
 	 * The current location in the linked list
@@ -46,7 +46,7 @@ public boolean hasMoreElements() {
 /**
  * @see java.util.Enumeration#nextElement()
  */
-public Object nextElement() {
+public IDOMNode nextElement() {
 	IDOMNode curr=  fCurrentElement;
 	if (curr != null) {
 		fCurrentElement= fCurrentElement.getNextNode();

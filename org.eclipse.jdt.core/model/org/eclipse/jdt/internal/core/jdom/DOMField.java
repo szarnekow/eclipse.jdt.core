@@ -268,7 +268,7 @@ public Object clone() {
  */
 protected void expand() {
 	if (isVariableDeclarator() || hasMultipleVariableDeclarators()) {
-		Enumeration siblings= new SiblingEnumeration(getFirstFieldDeclaration());
+		Enumeration<IDOMNode> siblings= new SiblingEnumeration(getFirstFieldDeclaration());
 		DOMField field= (DOMField)siblings.nextElement();
 		DOMNode next= field.fNextNode;
 		while (siblings.hasMoreElements() && (next instanceof DOMField) && (((DOMField)next).isVariableDeclarator())) {

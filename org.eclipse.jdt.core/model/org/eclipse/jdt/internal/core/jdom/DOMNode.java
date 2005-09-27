@@ -433,7 +433,7 @@ public Object clone() {
 
 	// clone my children
 	if (canHaveChildren()) {
-		Enumeration children= getChildren();
+		Enumeration<IDOMNode> children= getChildren();
 		while (children.hasMoreElements()) {
 			DOMNode child= (DOMNode)children.nextElement();
 			if (child.fDocument == fDocument) {
@@ -459,7 +459,7 @@ private DOMNode cloneSharingDocument(char[] document, int rootOffset) {
 	}
 	
 	if (canHaveChildren()) {
-		Enumeration children = getChildren();
+		Enumeration<IDOMNode> children = getChildren();
 		while (children.hasMoreElements()) {
 			DOMNode child = (DOMNode) children.nextElement();
 			if (child.fDocument == fDocument) {
@@ -519,7 +519,7 @@ public IDOMNode getChild(String name) {
 /**
  * @see IDOMNode#getChildren()
  */
-public Enumeration getChildren() {
+public Enumeration<IDOMNode> getChildren() {
 	return new SiblingEnumeration(fFirstChild);
 }
 /**
@@ -788,7 +788,7 @@ void normalize(ILineStartFinder finder) {
 
 	// Set the children's position
 	if (canHaveChildren()) {
-		Enumeration children = getChildren();
+		Enumeration<IDOMNode> children = getChildren();
 		while(children.hasMoreElements())
 			((DOMNode)children.nextElement()).normalize(finder);
 	}
@@ -952,8 +952,8 @@ protected void shareContents(DOMNode node) {
 
 	
 	if (canHaveChildren()) {
-		Enumeration myChildren= getChildren();
-		Enumeration otherChildren= node.getChildren();
+		Enumeration<IDOMNode> myChildren= getChildren();
+		Enumeration<IDOMNode> otherChildren= node.getChildren();
 		DOMNode myChild, otherChild;
 		while (myChildren.hasMoreElements()) {
 			myChild= (DOMNode)myChildren.nextElement();

@@ -49,9 +49,9 @@ public class DOMBuilder extends AbstractDOMBuilder implements IDocumentElementRe
 	/**
 	 * Collection of multiple fields in one declaration
 	 */
-	protected ArrayList fFields;
+	protected ArrayList<IDOMNode> fFields;
 
-	Map options = JavaCore.getOptions();
+	Map<String, String> options = JavaCore.getOptions();
 
 /**
  * Creates a new DOMBuilder
@@ -178,7 +178,7 @@ public IDOMField createField(char[] sourceCode) {
  */
 public IDOMField[] createFields(char[] sourceCode) {
 	initializeBuild(sourceCode, false, false, false);
-	fFields= new ArrayList();
+	fFields= new ArrayList<IDOMNode>();
 	getParser(options).parseField(sourceCode);
 	if (fAbort) {
 		return null;
@@ -688,7 +688,7 @@ public void exitMethod(int bodyEnd, int declarationEnd) {
 /**
  * Creates a new parser.
  */
-protected DocumentElementParser getParser(Map settings) {
+protected DocumentElementParser getParser(Map<String, String> settings) {
 	return new DocumentElementParser(this, new DefaultProblemFactory(), new CompilerOptions(settings));
 }
 /**

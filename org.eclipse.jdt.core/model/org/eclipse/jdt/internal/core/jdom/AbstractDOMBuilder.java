@@ -58,7 +58,7 @@ public class AbstractDOMBuilder extends ReferenceInfoAdapter implements ILineSta
 	 * a compilation unit or type. The top of the stack
 	 * is the document fragment that children are added to.
 	 */
-	protected Stack fStack = null;	
+	protected Stack<IDOMNode> fStack = null;	
 
 	/**
 	 * The number of fields constructed in the current
@@ -204,7 +204,7 @@ public int getLineStart(int position) {
 protected void initializeBuild(char[] sourceCode, boolean buildingCompilationUnit, boolean buildingType) {
 	fBuildingCU = buildingCompilationUnit;
 	fBuildingType = buildingType;
-	fStack = new Stack();
+	fStack = new Stack<IDOMNode>();
 	fDocument = sourceCode;
 	fFieldCount = 0;
 	fAbort = false;
