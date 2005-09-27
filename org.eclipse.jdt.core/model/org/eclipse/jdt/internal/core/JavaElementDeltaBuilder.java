@@ -46,17 +46,17 @@ public class JavaElementDeltaBuilder {
 	/**
 	 * The old handle to info relationships
 	 */
-	Map infos;
+	Map<IJavaElement, JavaElementInfo> infos;
 
 	/**
 	 * The old position info
 	 */
-	Map oldPositions;
+	Map<IJavaElement, ListItem> oldPositions;
 
 	/**
 	 * The new position info
 	 */
-	Map newPositions;
+	Map<IJavaElement, ListItem> newPositions;
 
 	/**
 	 * Change delta
@@ -66,12 +66,12 @@ public class JavaElementDeltaBuilder {
 	/**
 	 * List of added elements
 	 */
-	ArrayList added;
+	ArrayList<IJavaElement> added;
 
 	/**
 	 * List of removed elements
 	 */
-	ArrayList removed;
+	ArrayList<IJavaElement> removed;
 	
 	/**
 	 * Doubly linked list item
@@ -261,26 +261,26 @@ private void findContentChange(JavaElementInfo oldInfo, JavaElementInfo newInfo,
  * Adds removed deltas for any handles left in the table
  */
 private void findDeletions() {
-	Iterator iter = this.infos.keySet().iterator();
+	Iterator<IJavaElement> iter = this.infos.keySet().iterator();
 	while(iter.hasNext()) {
-		IJavaElement element = (IJavaElement)iter.next();
+		IJavaElement element = iter.next();
 		this.delta.removed(element);
 		this.removed(element);
 	}
 }
 private JavaElementInfo getElementInfo(IJavaElement element) {
-	return (JavaElementInfo)this.infos.get(element);
+	return this.infos.get(element);
 }
 private ListItem getNewPosition(IJavaElement element) {
-	return (ListItem)this.newPositions.get(element);
+	return this.newPositions.get(element);
 }
 private ListItem getOldPosition(IJavaElement element) {
-	return (ListItem)this.oldPositions.get(element);
+	return this.oldPositions.get(element);
 }
 private void initialize() {
-	this.infos = new HashMap(20);
-	this.oldPositions = new HashMap(20);
-	this.newPositions = new HashMap(20);
+	this.infos = new HashMap<IJavaElement, JavaElementInfo>(20);
+	this.oldPositions = new HashMap<IJavaElement, ListItem>(20);
+	this.newPositions = new HashMap<IJavaElement, ListItem>(20);
 	this.putOldPosition(this.javaElement, new ListItem(null, null));
 	this.putNewPosition(this.javaElement, new ListItem(null, null));
 	this.delta = new JavaElementDelta(javaElement);
@@ -291,8 +291,8 @@ private void initialize() {
 		this.delta.fineGrained();
 	}
 	
-	this.added = new ArrayList(5);
-	this.removed = new ArrayList(5);
+	this.added = new ArrayList<IJavaElement>(5);
+	this.removed = new ArrayList<IJavaElement>(5);
 }
 /**
  * Inserts position information for the elements into the new or old positions table

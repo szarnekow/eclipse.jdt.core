@@ -33,37 +33,37 @@ public class JavaElementRequestor implements IJavaElementRequestor {
 	 * A collection of the resulting fields, or <code>null</code>
 	 * if no field results have been received.
 	 */
-	protected ArrayList fFields= null;
+	protected ArrayList<IField> fFields= null;
 
 	/**
 	 * A collection of the resulting initializers, or <code>null</code>
 	 * if no initializer results have been received.
 	 */
-	protected ArrayList fInitializers= null;
+	protected ArrayList<IInitializer> fInitializers= null;
 
 	/**
 	 * A collection of the resulting member types, or <code>null</code>
 	 * if no member type results have been received.
 	 */
-	protected ArrayList fMemberTypes= null;
+	protected ArrayList<IType> fMemberTypes= null;
 
 	/**
 	 * A collection of the resulting methods, or <code>null</code>
 	 * if no method results have been received.
 	 */
-	protected ArrayList fMethods= null;
+	protected ArrayList<IMethod> fMethods= null;
 
 	/**
 	 * A collection of the resulting package fragments, or <code>null</code>
 	 * if no package fragment results have been received.
 	 */
-	protected ArrayList fPackageFragments= null;
+	protected ArrayList<IPackageFragment> fPackageFragments= null;
 
 	/**
 	 * A collection of the resulting types, or <code>null</code>
 	 * if no type results have been received.
 	 */
-	protected ArrayList fTypes= null;
+	protected ArrayList<IType> fTypes= null;
 
 	/**
 	 * Empty arrays used for efficiency
@@ -78,7 +78,7 @@ public class JavaElementRequestor implements IJavaElementRequestor {
  */
 public void acceptField(IField field) {
 	if (fFields == null) {
-		fFields= new ArrayList();
+		fFields= new ArrayList<IField>();
 	}
 	fFields.add(field);
 }
@@ -87,7 +87,7 @@ public void acceptField(IField field) {
  */
 public void acceptInitializer(IInitializer initializer) {
 	if (fInitializers == null) {
-		fInitializers= new ArrayList();
+		fInitializers= new ArrayList<IInitializer>();
 	}
 	fInitializers.add(initializer);
 }
@@ -96,7 +96,7 @@ public void acceptInitializer(IInitializer initializer) {
  */
 public void acceptMemberType(IType type) {
 	if (fMemberTypes == null) {
-		fMemberTypes= new ArrayList();
+		fMemberTypes= new ArrayList<IType>();
 	}
 	fMemberTypes.add(type);
 }
@@ -105,7 +105,7 @@ public void acceptMemberType(IType type) {
  */
 public void acceptMethod(IMethod method) {
 	if (fMethods == null) {
-		fMethods = new ArrayList();
+		fMethods = new ArrayList<IMethod>();
 	}
 	fMethods.add(method);
 }
@@ -114,7 +114,7 @@ public void acceptMethod(IMethod method) {
  */
 public void acceptPackageFragment(IPackageFragment packageFragment) {
 	if (fPackageFragments== null) {
-		fPackageFragments= new ArrayList();
+		fPackageFragments= new ArrayList<IPackageFragment>();
 	}
 	fPackageFragments.add(packageFragment);
 }
@@ -123,7 +123,7 @@ public void acceptPackageFragment(IPackageFragment packageFragment) {
  */
 public void acceptType(IType type) {
 	if (fTypes == null) {
-		fTypes= new ArrayList();
+		fTypes= new ArrayList<IType>();
 	}
 	fTypes.add(type);
 }

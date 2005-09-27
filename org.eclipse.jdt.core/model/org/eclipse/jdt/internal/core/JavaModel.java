@@ -48,14 +48,14 @@ public class JavaModel extends Openable implements IJavaModel {
 	 * are known to be existing.
 	 * Note this cache is kept for the whole session.
 	 */ 
-	public static HashSet existingExternalFiles = new HashSet();
+	public static HashSet<File> existingExternalFiles = new HashSet<File>();
 
 	/**
 	 * A set of external files ({@link #existingExternalFiles}) which have
 	 * been confirmed as file (ie. which returns true to {@link java.io.File#isFile()}.
 	 * Note this cache is kept for the whole session.
 	 */ 
-	public static HashSet existingExternalConfirmedFiles = new HashSet();
+	public static HashSet<File> existingExternalConfirmedFiles = new HashSet<File>();
 
 /**
  * Constructs a new Java Model on the given workspace.
@@ -68,7 +68,7 @@ public class JavaModel extends Openable implements IJavaModel {
 protected JavaModel() throws Error {
 	super(null);
 }
-protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource)	/*throws JavaModelException*/ {
+protected boolean buildStructure(OpenableElementInfo info, IProgressMonitor pm, Map<IJavaElement, Object> newElements, IResource underlyingResource)	/*throws JavaModelException*/ {
 
 	// determine my children
 	IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
@@ -166,8 +166,8 @@ public int getElementType() {
  * Flushes the cache of external files known to be existing.
  */
 public static void flushExternalFileCache() {
-	existingExternalFiles = new HashSet();
-	existingExternalConfirmedFiles = new HashSet();
+	existingExternalFiles = new HashSet<File>();
+	existingExternalConfirmedFiles = new HashSet<File>();
 }
 
 /*
@@ -227,7 +227,7 @@ public IJavaProject getJavaProject(IResource resource) {
  * @see IJavaModel
  */
 public IJavaProject[] getJavaProjects() throws JavaModelException {
-	ArrayList list = getChildrenOfType(JAVA_PROJECT);
+	ArrayList<IJavaElement> list = getChildrenOfType(JAVA_PROJECT);
 	IJavaProject[] array= new IJavaProject[list.size()];
 	list.toArray(array);
 	return array;
