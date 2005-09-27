@@ -237,7 +237,7 @@ public final class CompletionEngine
 	public CompletionEngine(
 			SearchableEnvironment nameEnvironment,
 			CompletionRequestor requestor,
-			Map settings,
+			Map<String, String> settings,
 			IJavaProject javaProject) {
 		super(settings);
 		this.javaProject = javaProject;

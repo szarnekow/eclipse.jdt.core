@@ -43,7 +43,7 @@ public abstract class Engine implements ITypeRequestor {
 	public int onDemandImportCacheCount = 0;
 	public char[] currentPackageName = null;
 	
-	public Engine(Map settings){
+	public Engine(Map<String, String> settings){
 		this.options = new AssistOptions(settings);
 		this.compilerOptions = new CompilerOptions(settings);
 		this.forbiddenReferenceIsError =

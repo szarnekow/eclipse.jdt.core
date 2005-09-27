@@ -69,13 +69,13 @@ public class AssistOptions {
 	/** 
 	 * Initializing the assist options with external settings
 	 */
-	public AssistOptions(Map settings) {
+	public AssistOptions(Map<String, String> settings) {
 		if (settings == null)
 			return;
 
 		set(settings);
 	}
-	public void set(Map optionsMap) {
+	public void set(Map<String, String> optionsMap) {
 
 		Object optionValue;
 		if ((optionValue = optionsMap.get(OPTION_PerformVisibilityCheck)) != null) {

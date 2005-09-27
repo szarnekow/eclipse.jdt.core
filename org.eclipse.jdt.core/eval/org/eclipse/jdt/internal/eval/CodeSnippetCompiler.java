@@ -33,7 +33,7 @@ public class CodeSnippetCompiler extends Compiler {
 	public CodeSnippetCompiler(
 		INameEnvironment environment,
 		IErrorHandlingPolicy policy,
-		Map settings,
+		Map<String, String> settings,
 		ICompilerRequestor requestor,
 		IProblemFactory problemFactory,
 		EvaluationContext evaluationContext,

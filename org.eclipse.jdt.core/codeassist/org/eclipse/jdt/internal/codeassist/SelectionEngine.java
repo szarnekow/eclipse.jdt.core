@@ -88,7 +88,7 @@ public final class SelectionEngine extends Engine implements ISearchRequestor {
 	public SelectionEngine(
 		SearchableEnvironment nameEnvironment,
 		ISelectionRequestor requestor,
-		Map settings) {
+		Map<String, String> settings) {
 
 		super(settings);
 

@@ -97,7 +97,7 @@ public GlobalVariable[] allVariables() {
  *  @param options
  *		set of options used to configure the code assist engine.
  */
-public void complete(char[] codeSnippet, int completionPosition, SearchableEnvironment environment, CompletionRequestor requestor, Map options, IJavaProject project) {
+public void complete(char[] codeSnippet, int completionPosition, SearchableEnvironment environment, CompletionRequestor requestor, Map<String, String> options, IJavaProject project) {
 	final char[] className = "CodeSnippetCompletion".toCharArray(); //$NON-NLS-1$
 	final CodeSnippetToCuMapper mapper = new CodeSnippetToCuMapper(
 		codeSnippet, 
@@ -501,7 +501,7 @@ public void select(
 	int selectionSourceEnd,
 	SearchableEnvironment environment, 
 	ISelectionRequestor requestor,
-	Map options) {
+	Map<String, String> options) {
 		
 	final char[] className = "CodeSnippetSelection".toCharArray(); //$NON-NLS-1$
 	final CodeSnippetToCuMapper mapper = new CodeSnippetToCuMapper(

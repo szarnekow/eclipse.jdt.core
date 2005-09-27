@@ -15,7 +15,7 @@ package org.eclipse.jdt.internal.core.util;
  * and values are Objects. It also uses linear probing to resolve collisions
  * rather than a linked list of hash table entries.
  */
-public final class SimpleSet<Type> implements Cloneable {
+public final class SimpleSet<T> implements Cloneable {
 
 // to avoid using Enumerations, walk the individual values skipping nulls
 public Object[] values;
@@ -33,7 +33,7 @@ public SimpleSet(int size) {
 	this.values = new Object[2 * size + 1];
 }
 
-public Object add(Type object) {
+public Object add(T object) {
 	int length = values.length;
 	int index = (object.hashCode() & 0x7FFFFFFF) % length;
 	Object current;
@@ -55,17 +55,17 @@ public void clear() {
 }
 @SuppressWarnings("unchecked") 
 public Object clone() throws CloneNotSupportedException {
-	SimpleSet<Type> result = (SimpleSet<Type>) super.clone();
+	SimpleSet<T> result = (SimpleSet<T>) super.clone();
 	result.elementSize = this.elementSize;
 	result.threshold = this.threshold;
 
 	int length = this.values.length;
-	result.values = (Type[])new Object[length];
+	result.values = (T[])new Object[length];
 	System.arraycopy(this.values, 0, result.values, 0, length);
 	return result;
 }
 
-public boolean includes(Type object) {
+public boolean includes(T object) {
 	int length = values.length;
 	int index = (object.hashCode() & 0x7FFFFFFF) % length;
 	Object current;
@@ -76,7 +76,7 @@ public boolean includes(Type object) {
 	return false;
 }
 
-public Object remove(Type object) {
+public Object remove(T object) {
 	int length = values.length;
 	int index = (object.hashCode() & 0x7FFFFFFF) % length;
 	Object current;
@@ -122,16 +122,16 @@ public String toString() {
  * @return Warning: null if set is empty!
  */
 @SuppressWarnings("unchecked") 
-public Type[] values() {
+public T[] values() {
 	if (this.elementSize == 0) return null;
-	Type[] array = null;
+	T[] array = null;
 	int count = 0;
 	for (Object value : this.values) {
 		if (value != null) {
 			if (array == null) {
-				array = (Type[]) java.lang.reflect.Array.newInstance(value.getClass(), elementSize);
+				array = (T[]) java.lang.reflect.Array.newInstance(value.getClass(), elementSize);
 			}
-			array[count++] = (Type) value;
+			array[count++] = (T) value;
 		}
 	}
 	return array;

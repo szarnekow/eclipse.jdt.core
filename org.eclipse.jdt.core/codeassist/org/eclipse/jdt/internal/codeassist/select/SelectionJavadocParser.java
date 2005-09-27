@@ -100,6 +100,7 @@ public class SelectionJavadocParser extends JavadocParser {
 	 * If so, create field reference, store it and abort comment parse.
 	 * Otherwise return null as we do not need this reference.
 	 */
+	@SuppressWarnings("unchecked") 
 	protected Object createMethodReference(Object receiver, List arguments) throws InvalidInputException {
 		int start = (int) (this.identifierPositionStack[0] >>> 32);
 		int end = (int) this.identifierPositionStack[0];
