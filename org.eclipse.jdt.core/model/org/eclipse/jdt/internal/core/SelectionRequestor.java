@@ -737,7 +737,7 @@ protected IType resolveType(char[] packageName, char[] typeName, int acceptFlags
 				tName = tName.replace('.','$');
 				IType[] allTypes= null;
 				try {
-					ArrayList list = this.openable.getChildrenOfType(IJavaElement.TYPE);
+					ArrayList<IJavaElement> list = this.openable.getChildrenOfType(IJavaElement.TYPE);
 					allTypes = new IType[list.size()];
 					list.toArray(allTypes);
 				} catch (JavaModelException e) {
@@ -817,7 +817,7 @@ protected IType resolveTypeByLocation(char[] packageName, char[] typeName, int a
 				tName = tName.replace('.','$');
 				IType[] allTypes= null;
 				try {
-					ArrayList list = this.openable.getChildrenOfType(IJavaElement.TYPE);
+					ArrayList<IJavaElement> list = this.openable.getChildrenOfType(IJavaElement.TYPE);
 					allTypes = new IType[list.size()];
 					list.toArray(allTypes);
 				} catch (JavaModelException e) {
