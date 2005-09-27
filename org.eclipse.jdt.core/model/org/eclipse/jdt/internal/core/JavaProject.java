@@ -60,6 +60,7 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.eval.IEvaluationContext;
 import org.eclipse.jdt.internal.compiler.util.ObjectVector;
 import org.eclipse.jdt.internal.compiler.util.SuffixConstants;
+import org.eclipse.jdt.internal.core.ClasspathEntry.UnknownXmlElements;
 import org.eclipse.jdt.internal.core.eval.EvaluationContextWrapper;
 import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 import org.eclipse.jdt.internal.core.util.Messages;
@@ -392,10 +393,10 @@ public class JavaProject
 		ClasspathEntry referringEntry,
 		boolean ignoreUnresolvedVariable,
 		boolean generateMarkerOnError,
-		HashSet rootIDs,
+		HashSet<String> rootIDs,
 		ObjectVector accumulatedEntries,
-		Map preferredClasspaths,
-		Map preferredOutputs) throws JavaModelException {
+		Map<IJavaProject, IClasspathEntry[]> preferredClasspaths,
+		Map<IJavaProject, IPath> preferredOutputs) throws JavaModelException {
 		
 		String projectRootId = this.rootID();
 		if (rootIDs.contains(projectRootId)){
@@ -403,8 +404,8 @@ public class JavaProject
 		}
 		rootIDs.add(projectRootId);
 
-		IClasspathEntry[] preferredClasspath = preferredClasspaths != null ? (IClasspathEntry[])preferredClasspaths.get(this) : null;
-		IPath preferredOutput = preferredOutputs != null ? (IPath)preferredOutputs.get(this) : null;
+		IClasspathEntry[] preferredClasspath = preferredClasspaths != null ? preferredClasspaths.get(this) : null;
+		IPath preferredOutput = preferredOutputs != null ? preferredOutputs.get(this) : null;
 		IClasspathEntry[] immediateClasspath = 
 			preferredClasspath != null 
 				? getResolvedClasspath(preferredClasspath, preferredOutput, ignoreUnresolvedVariable, generateMarkerOnError, null /*no reverse map*/)
@@ -481,11 +482,11 @@ public class JavaProject
 	public void computePackageFragmentRoots(
 		IClasspathEntry resolvedEntry,
 		ObjectVector accumulatedRoots, 
-		HashSet rootIDs, 
+		HashSet<String> rootIDs, 
 		IClasspathEntry referringEntry,
 		boolean checkExistency,
 		boolean retrieveExportedRoots,
-		Map rootToResolvedEntries) throws JavaModelException {
+		Map<IPackageFragmentRoot, ClasspathEntry> rootToResolvedEntries) throws JavaModelException {
 			
 		String rootID = ((ClasspathEntry)resolvedEntry).rootID();
 		if (rootIDs.contains(rootID)) return;
@@ -581,13 +582,13 @@ public class JavaProject
 	public IPackageFragmentRoot[] computePackageFragmentRoots(
 					IClasspathEntry[] resolvedClasspath, 
 					boolean retrieveExportedRoots,
-					Map rootToResolvedEntries) throws JavaModelException {
+					Map<IPackageFragmentRoot, ClasspathEntry> rootToResolvedEntries) throws JavaModelException {
 
 		ObjectVector accumulatedRoots = new ObjectVector();
 		computePackageFragmentRoots(
 			resolvedClasspath, 
 			accumulatedRoots, 
-			new HashSet(5), // rootIDs
+			new HashSet<String>(5), // rootIDs
 			null, // inside original project
 			true, // check existency
 			retrieveExportedRoots,
@@ -613,11 +614,11 @@ public class JavaProject
 	public void computePackageFragmentRoots(
 		IClasspathEntry[] resolvedClasspath,
 		ObjectVector accumulatedRoots, 
-		HashSet rootIDs, 
+		HashSet<String> rootIDs, 
 		IClasspathEntry referringEntry,
 		boolean checkExistency,
 		boolean retrieveExportedRoots,
-		Map rootToResolvedEntries) throws JavaModelException {
+		Map<IPackageFragmentRoot, ClasspathEntry> rootToResolvedEntries) throws JavaModelException {
 
 		if (referringEntry == null){
 			rootIDs.add(rootID());
@@ -803,9 +804,9 @@ public class JavaProject
 	/**
 	 * Reads and decode an XML classpath string
 	 */
-	protected IClasspathEntry[] decodeClasspath(String xmlClasspath, boolean createMarker, boolean logProblems, Map unknownElements) {
+	protected IClasspathEntry[] decodeClasspath(String xmlClasspath, boolean createMarker, boolean logProblems, Map<IPath, UnknownXmlElements> unknownElements) {
 
-		ArrayList paths = new ArrayList();
+		ArrayList<IClasspathEntry> paths = new ArrayList<IClasspathEntry>();
 		IClasspathEntry defaultOutput = null;
 		try {
 			if (xmlClasspath == null) return null;
@@ -909,7 +910,7 @@ public class JavaProject
 	/**
 	 * Returns the XML String encoding of the class path.
 	 */
-	protected String encodeClasspath(IClasspathEntry[] classpath, IPath outputLocation, boolean indent, Map unknownElements) throws JavaModelException {
+	protected String encodeClasspath(IClasspathEntry[] classpath, IPath outputLocation, boolean indent, Map<IPath, UnknownXmlElements> unknownElements) throws JavaModelException {
 		try {
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
 			OutputStreamWriter writer = new OutputStreamWriter(s, "UTF8"); //$NON-NLS-1$
@@ -923,7 +924,7 @@ public class JavaProject
 			if (outputLocation != null) {
 				outputLocation = outputLocation.removeFirstSegments(1);
 				outputLocation = outputLocation.makeRelative();
-				HashMap parameters = new HashMap();
+				HashMap<String, String> parameters = new HashMap<String, String>();
 				parameters.put(ClasspathEntry.TAG_KIND, ClasspathEntry.kindToString(ClasspathEntry.K_OUTPUT));
 				parameters.put(ClasspathEntry.TAG_PATH, String.valueOf(outputLocation));
 				xmlWriter.printTag(ClasspathEntry.TAG_CLASSPATHENTRY, parameters, indent, true, true);
@@ -1316,7 +1317,7 @@ public class JavaProject
 		return getAllPackageFragmentRoots(null /*no reverse map*/);
 	}
 	
-	public IPackageFragmentRoot[] getAllPackageFragmentRoots(Map rootToResolvedEntries) throws JavaModelException {
+	public IPackageFragmentRoot[] getAllPackageFragmentRoots(Map<IPackageFragmentRoot, ClasspathEntry> rootToResolvedEntries) throws JavaModelException {
 
 		return computePackageFragmentRoots(getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/), true/*retrieveExportedRoots*/, rootToResolvedEntries);
 	}
@@ -1438,11 +1439,11 @@ public class JavaProject
 	public IClasspathEntry[] getExpandedClasspath(
 		boolean ignoreUnresolvedVariable,
 		boolean generateMarkerOnError,
-		Map preferredClasspaths,
-		Map preferredOutputs) throws JavaModelException {
+		Map<IJavaProject, IClasspathEntry[]> preferredClasspaths,
+		Map<IJavaProject, IPath> preferredOutputs) throws JavaModelException {
 	
 		ObjectVector accumulatedEntries = new ObjectVector();		
-		computeExpandedClasspath(null, ignoreUnresolvedVariable, generateMarkerOnError, new HashSet(5), accumulatedEntries, preferredClasspaths, preferredOutputs);
+		computeExpandedClasspath(null, ignoreUnresolvedVariable, generateMarkerOnError, new HashSet<String>(5), accumulatedEntries, preferredClasspaths, preferredOutputs);
 		
 		IClasspathEntry[] expandedPath = new IClasspathEntry[accumulatedEntries.size()];
 		accumulatedEntries.copyInto(expandedPath);
@@ -1551,12 +1552,12 @@ public class JavaProject
 	public Map<String, String> getOptions(boolean inheritJavaCoreOptions) {
 
 		// initialize to the defaults from JavaCore options pool
-		Map options = inheritJavaCoreOptions ? JavaCore.getOptions() : new Hashtable(5);
+		Map<String, String> options = inheritJavaCoreOptions ? JavaCore.getOptions() : new Hashtable<String, String>(5);
 
 		// Get project specific options
 		JavaModelManager.PerProjectInfo perProjectInfo = null;
-		Hashtable projectOptions = null;
-		HashSet optionNames = JavaModelManager.getJavaModelManager().optionNames;
+		Hashtable<String, String> projectOptions = null;
+		HashSet<String> optionNames = JavaModelManager.getJavaModelManager().optionNames;
 		try {
 			perProjectInfo = getPerProjectInfo();
 			projectOptions = perProjectInfo.options;
@@ -1566,7 +1567,7 @@ public class JavaProject
 				if (projectPreferences == null) return options; // cannot do better (non-Java project)
 				// create project options
 				String[] propertyNames = projectPreferences.keys();
-				projectOptions = new Hashtable(propertyNames.length);
+				projectOptions = new Hashtable<String, String>(propertyNames.length);
 				for (int i = 0; i < propertyNames.length; i++){
 					String propertyName = propertyNames[i];
 					String value = projectPreferences.get(propertyName, null);
@@ -1578,17 +1579,17 @@ public class JavaProject
 				perProjectInfo.options = projectOptions;
 			}
 		} catch (JavaModelException jme) {
-			projectOptions = new Hashtable();
+			projectOptions = new Hashtable<String, String>();
 		} catch (BackingStoreException e) {
-			projectOptions = new Hashtable();
+			projectOptions = new Hashtable<String, String>();
 		}
 
 		// Inherit from JavaCore options if specified
 		if (inheritJavaCoreOptions) {
-			Iterator propertyNames = projectOptions.keySet().iterator();
+			Iterator<String> propertyNames = projectOptions.keySet().iterator();
 			while (propertyNames.hasNext()) {
-				String propertyName = (String) propertyNames.next();
-				String propertyValue = (String) projectOptions.get(propertyName);
+				String propertyName = propertyNames.next();
+				String propertyValue = projectOptions.get(propertyName);
 				if (propertyValue != null && optionNames.contains(propertyName)){
 					options.put(propertyName, propertyValue.trim());
 				}
@@ -1736,7 +1737,7 @@ public class JavaProject
 
 		throws JavaModelException {
 		IPackageFragmentRoot[] roots = getAllPackageFragmentRoots();
-		ArrayList matches = new ArrayList();
+		ArrayList<IPackageFragmentRoot> matches = new ArrayList<IPackageFragmentRoot>();
 
 		for (int i = 0; i < roots.length; ++i) {
 			if (path.isPrefixOf(roots[i].getPath())) {
@@ -1765,7 +1766,7 @@ public class JavaProject
 	 */
 	public IPackageFragment[] getPackageFragmentsInRoots(IPackageFragmentRoot[] roots) {
 
-		ArrayList frags = new ArrayList();
+		ArrayList<IJavaElement> frags = new ArrayList<IJavaElement>();
 		for (int i = 0; i < roots.length; i++) {
 			IPackageFragmentRoot root = roots[i];
 			try {
@@ -1946,7 +1947,7 @@ public class JavaProject
 				}
 			}
 		}
-		Map rawReverseMap = perProjectInfo == null ? null : new HashMap(5);
+		Map<IPath, IClasspathEntry> rawReverseMap = perProjectInfo == null ? null : new HashMap<IPath, IClasspathEntry>(5);
 		IClasspathEntry[] resolvedPath = null;
 		boolean nullOldResolvedCP = perProjectInfo != null && perProjectInfo.resolvedClasspath == null;
 		try {
@@ -1995,7 +1996,7 @@ public class JavaProject
 		IPath projectOutputLocation, // only set if needing full classpath validation (and markers)
 		boolean ignoreUnresolvedEntry, // if unresolved entries are met, should it trigger initializations
 		boolean generateMarkerOnError,
-		Map rawReverseMap) // can be null if not interested in reverse mapping
+		Map<IPath, IClasspathEntry> rawReverseMap) // can be null if not interested in reverse mapping
 		throws JavaModelException {
 
 		IJavaModelStatus status;
@@ -2004,7 +2005,7 @@ public class JavaProject
 		}
 
 		int length = classpathEntries.length;
-		ArrayList resolvedEntries = new ArrayList();
+		ArrayList<IClasspathEntry> resolvedEntries = new ArrayList<IClasspathEntry>();
 		
 		for (int i = 0; i < length; i++) {
 
@@ -2172,10 +2173,10 @@ public class JavaProject
 	 * @see IJavaProject
 	 */
 	public boolean hasClasspathCycle(IClasspathEntry[] preferredClasspath) {
-		HashSet cycleParticipants = new HashSet();
-		HashMap preferredClasspaths = new HashMap(1);
+		HashSet<IPath> cycleParticipants = new HashSet<IPath>();
+		HashMap<IJavaProject, IClasspathEntry[]> preferredClasspaths = new HashMap<IJavaProject, IClasspathEntry[]>(1);
 		preferredClasspaths.put(this, preferredClasspath);
-		updateCycleParticipants(new ArrayList(2), cycleParticipants, ResourcesPlugin.getWorkspace().getRoot(), new HashSet(2), preferredClasspaths);
+		updateCycleParticipants(new ArrayList<IPath>(2), cycleParticipants, ResourcesPlugin.getWorkspace().getRoot(), new HashSet<IPath>(2), preferredClasspaths);
 		return !cycleParticipants.isEmpty();
 	}
 	
@@ -2519,7 +2520,7 @@ public class JavaProject
 	public String[] projectPrerequisites(IClasspathEntry[] entries)
 		throws JavaModelException {
 			
-		ArrayList prerequisites = new ArrayList();
+		ArrayList<String> prerequisites = new ArrayList<String>();
 		// need resolution
 		entries = getResolvedClasspath(entries, null, true, false, null/*no reverse map*/);
 		for (int i = 0, length = entries.length; i < length; i++) {
@@ -2548,7 +2549,7 @@ public class JavaProject
 		return readClasspathFile(createMarker, logProblems, null/*not interested in unknown elements*/);
 	}
 	
-	protected IClasspathEntry[] readClasspathFile(boolean createMarker, boolean logProblems, Map unknownElements) {
+	protected IClasspathEntry[] readClasspathFile(boolean createMarker, boolean logProblems, Map<IPath, UnknownXmlElements> unknownElements) {
 
 		try {
 			String xmlClasspath = getSharedProperty(CLASSPATH_FILENAME);
@@ -2665,7 +2666,7 @@ public class JavaProject
 
 		if (!this.project.isAccessible()) return false;
 
-		Map unknownElements = new HashMap();
+		Map<IPath, UnknownXmlElements> unknownElements = new HashMap<IPath, UnknownXmlElements>();
 		IClasspathEntry[] fileEntries = readClasspathFile(false /*don't create markers*/, false/*don't log problems*/, unknownElements);
 		if (fileEntries != null && isClasspathEqualsTo(newClasspath, newOutputLocation, fileEntries)) {
 			// no need to save it, it is the same
@@ -2909,7 +2910,7 @@ public class JavaProject
 	/*
 	 * Update .classpath format markers.
 	 */
-	public void updateClasspathMarkers(Map preferredClasspaths, Map preferredOutputs) {
+	public void updateClasspathMarkers(Map<IJavaProject, IClasspathEntry[]> preferredClasspaths, Map<IJavaProject, IPath> preferredOutputs) {
 		
 		this.flushClasspathProblemMarkers(false/*cycle*/, true/*format*/);
 		this.flushClasspathProblemMarkers(false/*cycle*/, false/*format*/);
