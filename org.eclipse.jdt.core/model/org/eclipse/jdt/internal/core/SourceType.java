@@ -200,7 +200,7 @@ public IField getField(String fieldName) {
  * @see IType
  */
 public IField[] getFields() throws JavaModelException {
-	ArrayList list = getChildrenOfType(FIELD);
+	ArrayList<IJavaElement> list = getChildrenOfType(FIELD);
 	IField[] array= new IField[list.size()];
 	list.toArray(array);
 	return array;
@@ -248,7 +248,7 @@ public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento,
 		case JEM_METHOD:
 			if (!memento.hasMoreTokens()) return this;
 			String selector = memento.nextToken();
-			ArrayList params = new ArrayList();
+			ArrayList<String> params = new ArrayList<String>();
 			nextParam: while (memento.hasMoreTokens()) {
 				token = memento.nextToken();
 				switch (token.charAt(0)) {
@@ -325,7 +325,7 @@ public IInitializer getInitializer(int count) {
  * @see IType
  */
 public IInitializer[] getInitializers() throws JavaModelException {
-	ArrayList list = getChildrenOfType(INITIALIZER);
+	ArrayList<IJavaElement> list = getChildrenOfType(INITIALIZER);
 	IInitializer[] array= new IInitializer[list.size()];
 	list.toArray(array);
 	return array;
@@ -351,7 +351,7 @@ public IMethod getMethod(String selector, String[] parameterTypeSignatures) {
  * @see IType
  */
 public IMethod[] getMethods() throws JavaModelException {
-	ArrayList list = getChildrenOfType(METHOD);
+	ArrayList<IJavaElement> list = getChildrenOfType(METHOD);
 	IMethod[] array= new IMethod[list.size()];
 	list.toArray(array);
 	return array;
@@ -506,7 +506,7 @@ public String getTypeQualifiedName(char enclosingTypeSeparator) {
  * @see IType
  */
 public IType[] getTypes() throws JavaModelException {
-	ArrayList list= getChildrenOfType(TYPE);
+	ArrayList<IJavaElement> list= getChildrenOfType(TYPE);
 	IType[] array= new IType[list.size()];
 	list.toArray(array);
 	return array;

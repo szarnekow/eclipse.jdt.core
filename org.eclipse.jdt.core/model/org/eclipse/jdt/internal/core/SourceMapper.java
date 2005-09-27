@@ -83,7 +83,7 @@ public class SourceMapper
 	 * the zip (empty specifies the default root). <code>null</code> is
 	 * not a valid root path.
 	 */
-	protected ArrayList rootPaths;
+	protected ArrayList<String> rootPaths;
 
 	/**
 	 * The binary type source is being mapped for
@@ -110,7 +110,7 @@ public class SourceMapper
 	 * Table that maps a binary method to its parameter names.
 	 * Keys are the method handles, entries are <code>char[][]</code>.
 	 */
-	protected HashMap fParameterNames;
+	protected HashMap<IMethod, char[][]> fParameterNames;
 	
 	/**
 	 * Table that maps a binary element to its <code>SourceRange</code>s.
@@ -118,7 +118,7 @@ public class SourceMapper
 	 * is a two element array; the first being source range, the second
 	 * being name range.
 	 */
-	protected HashMap fSourceRanges;
+	protected HashMap<IJavaElement, SourceRange[]> fSourceRanges;
 	
 
 	/**
@@ -159,8 +159,8 @@ public class SourceMapper
 	/**
 	 * imports references
 	 */
-	private HashMap importsTable;
-	private HashMap importsCounterTable;
+	private HashMap<BinaryType, char[][]> importsTable;
+	private HashMap<BinaryType, Integer> importsCounterTable;
 
 	/**
 	 * Enclosing type information
@@ -180,7 +180,7 @@ public class SourceMapper
 	 *Options to be used
 	 */
 	String encoding;
-	Map options;
+	Map<String, String> options;
 	
 	/**
 	 * Use to handle root paths inference
@@ -195,7 +195,7 @@ public class SourceMapper
 	 * Creates a <code>SourceMapper</code> that locates source in the zip file
 	 * at the given location in the specified package fragment root.
 	 */
-	public SourceMapper(IPath sourcePath, String rootPath, Map options) {
+	public SourceMapper(IPath sourcePath, String rootPath, Map<String, String> options) {
 		this.areRootPathsComputed = false;
 		this.options = options;
 		try {
@@ -204,14 +204,14 @@ public class SourceMapper
 			// use no encoding
 		}
 		if (rootPath != null) {
-			this.rootPaths = new ArrayList();
+			this.rootPaths = new ArrayList<String>();
 			this.rootPaths.add(rootPath);
 		}
 		this.sourcePath = sourcePath;
-		this.fSourceRanges = new HashMap();
-		this.fParameterNames = new HashMap();
-		this.importsTable = new HashMap();
-		this.importsCounterTable = new HashMap();
+		this.fSourceRanges = new HashMap<IJavaElement, SourceRange[]>();
+		this.fParameterNames = new HashMap<IMethod, char[][]>();
+		this.importsTable = new HashMap<BinaryType, char[][]>();
+		this.importsCounterTable = new HashMap<BinaryType, Integer>();
 	}
 	
 	/**
@@ -223,13 +223,13 @@ public class SourceMapper
 			char[] name,
 			boolean onDemand,
 			int modifiers) {
-		char[][] imports = (char[][]) this.importsTable.get(this.binaryType);
+		char[][] imports = this.importsTable.get(this.binaryType);
 		int importsCounter;
 		if (imports == null) {
 			imports = new char[5][];
 			importsCounter = 0;
 		} else {
-			importsCounter = ((Integer) this.importsCounterTable.get(this.binaryType)).intValue();
+			importsCounter = this.importsCounterTable.get(this.binaryType).intValue();
 		}
 		if (imports.length == importsCounter) {
 			System.arraycopy(
@@ -311,13 +311,13 @@ public class SourceMapper
 	}
 	
 	private void computeAllRootPaths(IPackageFragmentRoot root) {
-		final HashSet tempRoots = new HashSet();
+		final HashSet<IPath> tempRoots = new HashSet<IPath>();
 		long time = 0;
 		if (VERBOSE) {
 			System.out.println("compute all root paths for " + root.getElementName()); //$NON-NLS-1$
 			time = System.currentTimeMillis();
 		}
-		final HashSet firstLevelPackageNames = new HashSet();
+		final HashSet<String> firstLevelPackageNames = new HashSet<String>();
 		boolean containsADefaultPackage = false;
 
 		if (root.isArchive()) {
@@ -326,8 +326,8 @@ public class SourceMapper
 			ZipFile zip = null;
 			try {
 				zip = manager.getZipFile(jarPackageFragmentRoot.getPath());
-				for (Enumeration entries = zip.entries(); entries.hasMoreElements(); ) {
-					ZipEntry entry = (ZipEntry) entries.nextElement();
+				for (Enumeration< ? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
+					ZipEntry entry = entries.nextElement();
 					String entryName = entry.getName();
 					if (!entry.isDirectory()) {
 						int index = entryName.indexOf('/');
@@ -389,8 +389,8 @@ public class SourceMapper
 			ZipFile zip = null;
 			try {
 				zip = manager.getZipFile(this.sourcePath);
-				for (Enumeration entries = zip.entries(); entries.hasMoreElements(); ) {
-					ZipEntry entry = (ZipEntry) entries.nextElement();
+				for (Enumeration< ? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
+					ZipEntry entry = entries.nextElement();
 					String entryName;
 					if (!entry.isDirectory() && org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(entryName = entry.getName())) {
 						IPath path = new Path(entryName);
@@ -430,27 +430,25 @@ public class SourceMapper
 		}
 		int size = tempRoots.size();
 		if (this.rootPaths != null) {
-			for (Iterator iterator = this.rootPaths.iterator(); iterator.hasNext(); ) {
-				tempRoots.add(new Path((String) iterator.next()));
+			for (Iterator<String> iterator = this.rootPaths.iterator(); iterator.hasNext(); ) {
+				tempRoots.add(new Path(iterator.next()));
 			}
 			this.rootPaths.clear();
 		} else {
-			this.rootPaths = new ArrayList(size);
+			this.rootPaths = new ArrayList<String>(size);
 		}
 		size = tempRoots.size();
 		if (size > 0) {
-			ArrayList sortedRoots = new ArrayList(tempRoots);
+			ArrayList<IPath> sortedRoots = new ArrayList<IPath>(tempRoots);
 			if (size > 1) {
-				Collections.sort(sortedRoots, new Comparator() {
-					public int compare(Object o1, Object o2) {
-						IPath path1 = (IPath) o1;
-						IPath path2 = (IPath) o2;
+				Collections.sort(sortedRoots, new Comparator<IPath>() {
+					public int compare(IPath path1, IPath path2) {
 						return path1.segmentCount() - path2.segmentCount();
 					}
 				});
 			}
-			for (Iterator iter = sortedRoots.iterator(); iter.hasNext();) {
-				IPath path = (IPath) iter.next();
+			for (Iterator<IPath> iter = sortedRoots.iterator(); iter.hasNext();) {
+				IPath path = iter.next();
 				this.rootPaths.add(path.toString());
 			}
 		}
@@ -459,14 +457,14 @@ public class SourceMapper
 			System.out.println("Spent " + (System.currentTimeMillis() - time) + "ms"); //$NON-NLS-1$ //$NON-NLS-2$
 			System.out.println("Found " + size + " root paths");	//$NON-NLS-1$ //$NON-NLS-2$
 			int i = 0;
-			for (Iterator iterator = this.rootPaths.iterator(); iterator.hasNext();) {
-				System.out.println("root[" + i + "]=" + ((String) iterator.next()));//$NON-NLS-1$ //$NON-NLS-2$
+			for (Iterator<String> iterator = this.rootPaths.iterator(); iterator.hasNext();) {
+				System.out.println("root[" + i + "]=" + iterator.next());//$NON-NLS-1$ //$NON-NLS-2$
 				i++;
 			}
 		}
 	}
 	
-	private void computeRootPath(File directory, HashSet firstLevelPackageNames, boolean hasDefaultPackage, Set set) {
+	private void computeRootPath(File directory, HashSet<String> firstLevelPackageNames, boolean hasDefaultPackage, Set<IPath> set) {
 		File[] files = directory.listFiles();
 		boolean hasSubDirectories = false;
 		loop: for (int i = 0, max = files.length; i < max; i++) {
@@ -492,7 +490,7 @@ public class SourceMapper
 		}
 	}	
 
-	private void computeRootPath(IContainer container, HashSet firstLevelPackageNames, boolean hasDefaultPackage, Set set) {
+	private void computeRootPath(IContainer container, HashSet<String> firstLevelPackageNames, boolean hasDefaultPackage, Set<IPath> set) {
 		try {
 			IResource[] resources = container.members();
 			boolean hasSubDirectories = false;
@@ -826,8 +824,8 @@ public class SourceMapper
 			 * If it still doesn't work, then return null
 			 */
 			if (this.rootPaths != null) {
-				loop: for (Iterator iterator = this.rootPaths.iterator(); iterator.hasNext(); ) {
-					String currentRootPath = (String) iterator.next();
+				loop: for (Iterator<String> iterator = this.rootPaths.iterator(); iterator.hasNext(); ) {
+					String currentRootPath = iterator.next();
 					if (!currentRootPath.equals(this.rootPath)) {
 						source = getSourceForRootPath(currentRootPath, name);
 						if (source != null) {
@@ -941,7 +939,7 @@ public class SourceMapper
 					}
 				}
 		}
-		SourceRange[] ranges = (SourceRange[]) fSourceRanges.get(element);
+		SourceRange[] ranges = fSourceRanges.get(element);
 		if (ranges == null) {
 			return fgUnknownRange;
 		} else {
@@ -962,7 +960,7 @@ public class SourceMapper
 				method = (IMethod) el[0];
 			}
 		}
-		char[][] parameterNames = (char[][]) fParameterNames.get(method);
+		char[][] parameterNames = fParameterNames.get(method);
 		if (parameterNames == null) {
 			return null;
 		} else {
@@ -1001,7 +999,7 @@ public class SourceMapper
 					}
 				}
 		}
-		SourceRange[] ranges = (SourceRange[]) fSourceRanges.get(element);
+		SourceRange[] ranges = fSourceRanges.get(element);
 		if (ranges == null) {
 			return fgUnknownRange;
 		} else {
@@ -1130,7 +1128,8 @@ public class SourceMapper
 		this.fMethodParameterNames = new char[1][][];
 		this.anonymousCounter = 0;
 		
-		HashMap oldSourceRanges = (HashMap) fSourceRanges.clone();
+		@SuppressWarnings("unchecked")
+		HashMap<IJavaElement, SourceRange[]> oldSourceRanges = (HashMap<IJavaElement, SourceRange[]>) fSourceRanges.clone();
 		try {
 			IProblemFactory factory = new DefaultProblemFactory();
 			SourceElementParser parser = null;
@@ -1223,9 +1222,9 @@ public class SourceMapper
 	 * Return a char[][] array containing the imports of the attached source for the binary type
 	 */
 	public char[][] getImports(BinaryType type) {
-		char[][] imports = (char[][]) this.importsTable.get(type);
+		char[][] imports = this.importsTable.get(type);
 		if (imports != null) {
-			int importsCounter = ((Integer) this.importsCounterTable.get(type)).intValue();
+			int importsCounter = this.importsCounterTable.get(type).intValue();
 			if (imports.length != importsCounter) {
 				System.arraycopy(
 					imports,
