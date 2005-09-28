@@ -121,7 +121,7 @@ boolean isDuplicateLocator(String qualifiedTypeName, String typeLocator) {
 
 boolean isKnownPackage(String qualifiedPackageName) {
 	if (knownPackageNames == null) {
-		ArrayList names = new ArrayList(typeLocators.elementSize);
+		ArrayList<String> names = new ArrayList<String>(typeLocators.elementSize);
 		Object[] keyTable = typeLocators.keyTable;
 		for (int i = 0, l = keyTable.length; i < l; i++) {
 			if (keyTable[i] != null) {
@@ -144,8 +144,8 @@ boolean isKnownPackage(String qualifiedPackageName) {
 	return false;
 }
 
-void record(String typeLocator, char[][][] qualifiedRefs, char[][] simpleRefs, char[] mainTypeName, ArrayList typeNames) {
-	if (typeNames.size() == 1 && CharOperation.equals(mainTypeName, (char[]) typeNames.get(0))) {
+void record(String typeLocator, char[][][] qualifiedRefs, char[][] simpleRefs, char[] mainTypeName, ArrayList<char[]> typeNames) {
+	if (typeNames.size() == 1 && CharOperation.equals(mainTypeName, typeNames.get(0))) {
 			references.put(typeLocator, new ReferenceCollection(qualifiedRefs, simpleRefs));
 	} else {
 		char[][] definedTypeNames = new char[typeNames.size()][]; // can be empty when no types are defined
@@ -459,7 +459,7 @@ void write(DataOutputStream out) throws IOException {
  * String[]		Interned type locators
  */
 	out.writeInt(length = references.elementSize);
-	ArrayList internedTypeLocators = new ArrayList(length);
+	ArrayList<String> internedTypeLocators = new ArrayList<String>(length);
 	if (length > 0) {
 		keyTable = references.keyTable;
 		for (int i = 0, l = keyTable.length; i < l; i++) {
@@ -498,8 +498,8 @@ void write(DataOutputStream out) throws IOException {
  * char[][][]	Interned qualified names
  * char[][]		Interned simple names
  */
-	ArrayList internedQualifiedNames = new ArrayList(31);
-	ArrayList internedSimpleNames = new ArrayList(31);
+	ArrayList<char[][]> internedQualifiedNames = new ArrayList<char[][]>(31);
+	ArrayList<char[]> internedSimpleNames = new ArrayList<char[]>(31);
 	valueTable = references.valueTable;
 	for (int i = 0, l = valueTable.length; i < l; i++) {
 		if (valueTable[i] != null) {
@@ -530,7 +530,7 @@ void write(DataOutputStream out) throws IOException {
 	// now write the interned qualified names as arrays of interned simple names
 	out.writeInt(length = internedQualifiedNames.size());
 	for (int i = 0; i < length; i++) {
-		char[][] qName = (char[][]) internedQualifiedNames.get(i);
+		char[][] qName = internedQualifiedNames.get(i);
 		int qLength = qName.length;
 		out.writeInt(qLength);
 		for (int j = 0; j < qLength; j++)
