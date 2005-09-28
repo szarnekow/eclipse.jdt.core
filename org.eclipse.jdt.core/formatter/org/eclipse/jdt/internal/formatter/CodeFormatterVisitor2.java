@@ -65,7 +65,7 @@ public class CodeFormatterVisitor2 extends ASTVisitor {
 	
 	public Scribe2 scribe;
 
-	public CodeFormatterVisitor2(DefaultCodeFormatterOptions preferences, Map settings, int offset, int length, CompilationUnit unit) {
+	public CodeFormatterVisitor2(DefaultCodeFormatterOptions preferences, Map<String, String> settings, int offset, int length, CompilationUnit unit) {
 		if (settings != null) {
 			Object assertModeSetting = settings.get(JavaCore.COMPILER_SOURCE);
 			long sourceLevel = ClassFileConstants.JDK1_3;
@@ -2073,7 +2073,7 @@ public class CodeFormatterVisitor2 extends ASTVisitor {
 		Alignment2 binaryExpressionAlignment = this.scribe.createAlignment("binaryExpressionAlignment", this.preferences.alignment_for_binary_expression, Alignment.R_OUTERMOST, fragmentsSize, this.scribe.scanner.currentPosition); //$NON-NLS-1$
 		this.scribe.enterAlignment(binaryExpressionAlignment);
 		boolean ok = false;
-		List fragments = builder.fragments;
+		List<Expression> fragments = builder.fragments;
 		int[] operators = builder.getOperators();
 /*		do {
 			try {
@@ -2152,7 +2152,7 @@ public class CodeFormatterVisitor2 extends ASTVisitor {
 		do {
 			try {
 				for (int i = 0; i < fragmentsSize - 1; i++) {
-					((Expression) fragments.get(i)).accept(this);
+					fragments.get(i).accept(this);
 					this.scribe.printTrailingComment();
 					if (this.scribe.lastNumberOfNewLines == 1) {
 						if (binaryExpressionAlignment.couldBreak() && binaryExpressionAlignment.wasSplit) {
@@ -2173,7 +2173,7 @@ public class CodeFormatterVisitor2 extends ASTVisitor {
 						this.scribe.space();
 					}
 				}
-				((Expression) fragments.get(fragmentsSize - 1)).accept(this);
+				fragments.get(fragmentsSize - 1).accept(this);
 				this.scribe.printTrailingComment();
 				if (this.scribe.lastNumberOfNewLines == 1) {
 					if (binaryExpressionAlignment.couldBreak() && binaryExpressionAlignment.wasSplit) {
@@ -2441,12 +2441,12 @@ public class CodeFormatterVisitor2 extends ASTVisitor {
 		MethodInvocationFragmentBuilder builder = new MethodInvocationFragmentBuilder();
 		node.accept(builder);
 		
-		final List fragments = builder.fragments();
+		final List<Expression> fragments = builder.fragments();
 		final int fragmentsLength = fragments.size();
 		if (fragmentsLength >= 3) {
 			// manage cascading method invocations
 			// check the first fragment
-			final Expression firstFragment = (Expression) fragments.get(0);
+			final Expression firstFragment = fragments.get(0);
 			switch(firstFragment.getNodeType()) {
 				case ASTNode.METHOD_INVOCATION :
 					formatSingleMethodInvocation((MethodInvocation) firstFragment);

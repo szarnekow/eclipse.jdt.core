@@ -172,7 +172,7 @@ public class CodeFormatterVisitor extends ASTVisitor {
 	public DefaultCodeFormatterOptions preferences;
 	public Scribe scribe;
 
-	public CodeFormatterVisitor(DefaultCodeFormatterOptions preferences, Map settings, int offset, int length, CodeSnippetParsingUtil codeSnippetParsingUtil) {
+	public CodeFormatterVisitor(DefaultCodeFormatterOptions preferences, Map<String, String> settings, int offset, int length, CodeSnippetParsingUtil codeSnippetParsingUtil) {
 		if (settings != null) {
 			Object assertModeSetting = settings.get(JavaCore.COMPILER_SOURCE);
 			long sourceLevel = ClassFileConstants.JDK1_3;

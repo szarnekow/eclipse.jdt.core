@@ -22,13 +22,13 @@ import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 class MethodInvocationFragmentBuilder
 	extends ASTVisitor {
 		
-	ArrayList fragmentsList;
+	ArrayList<Expression> fragmentsList;
 
 	MethodInvocationFragmentBuilder() {
-		this.fragmentsList = new ArrayList();
+		this.fragmentsList = new ArrayList<Expression>();
 	}
 
-	public List fragments() {
+	public List<Expression> fragments() {
 		return this.fragmentsList;
 	}
 

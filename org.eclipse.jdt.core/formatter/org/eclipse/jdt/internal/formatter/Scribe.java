@@ -79,7 +79,7 @@ public class Scribe {
     /** indent empty lines*/
     private final boolean indentEmptyLines;
     
-	Scribe(CodeFormatterVisitor formatter, Map settings, int offset, int length, CodeSnippetParsingUtil codeSnippetParsingUtil) {
+	Scribe(CodeFormatterVisitor formatter, Map<String, String> settings, int offset, int length, CodeSnippetParsingUtil codeSnippetParsingUtil) {
 		if (settings != null) {
 			Object sourceLevelOption = settings.get(JavaCore.COMPILER_SOURCE);
 			long sourceLevel = ClassFileConstants.JDK1_3;

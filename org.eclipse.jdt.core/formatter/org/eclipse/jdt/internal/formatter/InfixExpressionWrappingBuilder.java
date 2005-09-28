@@ -10,7 +10,7 @@ import org.eclipse.jdt.core.dom.InfixExpression;
 
 public class InfixExpressionWrappingBuilder extends ASTVisitor {
 	private final static int DEFAULT_SIZE = 10;
-	ArrayList fragments = new ArrayList();
+	ArrayList<Expression> fragments = new ArrayList<Expression>();
 	int[] operators = new int[DEFAULT_SIZE];
 	int operatorCounter = 0;
 	

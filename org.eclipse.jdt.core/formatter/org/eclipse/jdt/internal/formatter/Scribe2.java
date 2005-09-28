@@ -83,7 +83,7 @@ public class Scribe2 {
     /** indent empty lines*/
     private final boolean indentEmptyLines;
     
-	Scribe2(CodeFormatterVisitor2 formatter, Map settings, int offset, int length, CompilationUnit unit) {
+	Scribe2(CodeFormatterVisitor2 formatter, Map<String, String> settings, int offset, int length, CompilationUnit unit) {
 		if (settings != null) {
 			Object sourceLevelOption = settings.get(JavaCore.COMPILER_SOURCE);
 			long sourceLevel = ClassFileConstants.JDK1_3;
