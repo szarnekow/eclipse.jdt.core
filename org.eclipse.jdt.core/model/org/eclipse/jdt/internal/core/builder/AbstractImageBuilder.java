@@ -15,9 +15,7 @@ import org.eclipse.core.resources.*;
 
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.compiler.*;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.*;
-import org.eclipse.jdt.internal.compiler.ClassFile;
 import org.eclipse.jdt.internal.compiler.Compiler;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.*;
@@ -45,7 +43,7 @@ protected BuildNotifier notifier;
 
 protected Compiler compiler;
 protected WorkQueue workQueue;
-protected ArrayList problemSourceFiles;
+protected ArrayList<SourceFile> problemSourceFiles;
 protected boolean compiledAllAtOnce;
 
 private boolean inCompiler;
@@ -84,7 +82,7 @@ protected AbstractImageBuilder(JavaBuilder javaBuilder) {
 
 	this.compiler = newCompiler();
 	this.workQueue = new WorkQueue();
-	this.problemSourceFiles = new ArrayList(3);
+	this.problemSourceFiles = new ArrayList<SourceFile>(3);
 }
 
 public void acceptResult(CompilationResult result) {
@@ -117,8 +115,8 @@ public void acceptResult(CompilationResult result) {
 		String typeLocator = compilationUnit.typeLocator();
 		ClassFile[] classFiles = result.getClassFiles();
 		int length = classFiles.length;
-		ArrayList duplicateTypeNames = null;
-		ArrayList definedTypeNames = new ArrayList(length);
+		ArrayList<char[][]> duplicateTypeNames = null;
+		ArrayList<char[]> definedTypeNames = new ArrayList<char[]>(length);
 		for (int i = 0; i < length; i++) {
 			ClassFile classFile = classFiles[i];
 
@@ -135,7 +133,7 @@ public void acceptResult(CompilationResult result) {
 				String qualifiedTypeName = new String(classFile.fileName()); // the qualified type name "p1/p2/A"
 				if (newState.isDuplicateLocator(qualifiedTypeName, typeLocator)) {
 					if (duplicateTypeNames == null)
-						duplicateTypeNames = new ArrayList();
+						duplicateTypeNames = new ArrayList<char[][]>();
 					duplicateTypeNames.add(compoundName);
 					if (mainType == null)
 						try {
@@ -236,7 +234,7 @@ void compile(SourceFile[] units, SourceFile[] additionalUnits) {
 		else
 			System.arraycopy(additionalUnits, 0, additionalUnits = new SourceFile[length + toAdd], 0, length);
 		for (int i = 0; i < toAdd; i++)
-			additionalUnits[length + i] = (SourceFile) problemSourceFiles.get(i);
+			additionalUnits[length + i] = problemSourceFiles.get(i);
 	}
 	String[] initialTypeNames = new String[units.length];
 	for (int i = 0, l = units.length; i < l; i++)
@@ -273,7 +271,7 @@ protected void createProblemFor(IResource resource, IMember javaElement, String 
 	}
 }
 
-protected void finishedWith(String sourceLocator, CompilationResult result, char[] mainTypeName, ArrayList definedTypeNames, ArrayList duplicateTypeNames) {
+protected void finishedWith(String sourceLocator, CompilationResult result, char[] mainTypeName, ArrayList<char[]> definedTypeNames, ArrayList<char[][]> duplicateTypeNames) {
 	if (duplicateTypeNames == null) {
 		newState.record(sourceLocator, result.qualifiedReferences, result.simpleNameReferences, mainTypeName, definedTypeNames);
 		return;
@@ -283,7 +281,7 @@ protected void finishedWith(String sourceLocator, CompilationResult result, char
 	char[][] simpleRefs = result.simpleNameReferences;
 	// for each duplicate type p1.p2.A, add the type name A (package was already added)
 	next : for (int i = 0, l = duplicateTypeNames.size(); i < l; i++) {
-		char[][] compoundName = (char[][]) duplicateTypeNames.get(i);
+		char[][] compoundName = duplicateTypeNames.get(i);
 		char[] typeName = compoundName[compoundName.length - 1];
 		int sLength = simpleRefs.length;
 		for (int j = 0; j < sLength; j++)
@@ -315,14 +313,14 @@ protected RuntimeException internalException(CoreException t) {
 
 protected Compiler newCompiler() {
 	// disable entire javadoc support if not interested in diagnostics
-	Map projectOptions = javaBuilder.javaProject.getOptions(true);
-	String option = (String) projectOptions.get(JavaCore.COMPILER_PB_INVALID_JAVADOC);
+	Map<String, String> projectOptions = javaBuilder.javaProject.getOptions(true);
+	String option = projectOptions.get(JavaCore.COMPILER_PB_INVALID_JAVADOC);
 	if (option == null || option.equals(JavaCore.IGNORE)) { // TODO (frederic) see why option is null sometimes while running model tests!?
-		option = (String) projectOptions.get(JavaCore.COMPILER_PB_MISSING_JAVADOC_TAGS);
+		option = projectOptions.get(JavaCore.COMPILER_PB_MISSING_JAVADOC_TAGS);
 		if (option == null || option.equals(JavaCore.IGNORE)) {
-			option = (String) projectOptions.get(JavaCore.COMPILER_PB_MISSING_JAVADOC_COMMENTS);
+			option = projectOptions.get(JavaCore.COMPILER_PB_MISSING_JAVADOC_COMMENTS);
 			if (option == null || option.equals(JavaCore.IGNORE)) {
-				option = (String) projectOptions.get(JavaCore.COMPILER_PB_UNUSED_IMPORT);
+				option = projectOptions.get(JavaCore.COMPILER_PB_UNUSED_IMPORT);
 				if (option == null || option.equals(JavaCore.IGNORE)) { // Unused import need also to look inside javadoc comment
 					projectOptions.put(JavaCore.COMPILER_DOC_COMMENT_SUPPORT, JavaCore.DISABLED);
 				}

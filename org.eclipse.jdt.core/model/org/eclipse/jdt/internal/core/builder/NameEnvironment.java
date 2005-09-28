@@ -89,8 +89,8 @@ private void computeClasspathLocations(
 	}
 
 	IClasspathEntry[] classpathEntries = javaProject.getExpandedClasspath(true/*ignore unresolved variable*/, false/*don't create markers*/, null/*preferred cp*/, null/*preferred output*/);
-	ArrayList sLocations = new ArrayList(classpathEntries.length);
-	ArrayList bLocations = new ArrayList(classpathEntries.length);
+	ArrayList<ClasspathLocation> sLocations = new ArrayList<ClasspathLocation>(classpathEntries.length);
+	ArrayList<ClasspathLocation> bLocations = new ArrayList<ClasspathLocation>(classpathEntries.length);
 	nextEntry : for (int i = 0, l = classpathEntries.length; i < l; i++) {
 		ClasspathEntry entry = (ClasspathEntry) classpathEntries[i];
 		IPath path = entry.getPath();
@@ -122,7 +122,7 @@ private void computeClasspathLocations(
 
 				JavaProject prereqJavaProject = (JavaProject) JavaCore.create(prereqProject);
 				IClasspathEntry[] prereqClasspathEntries = prereqJavaProject.getRawClasspath();
-				ArrayList seen = new ArrayList();
+				ArrayList<IContainer> seen = new ArrayList<IContainer>();
 				nextPrereqEntry: for (int j = 0, m = prereqClasspathEntries.length; j < m; j++) {
 					IClasspathEntry prereqEntry = prereqClasspathEntries[j];
 					if (prereqEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
@@ -207,7 +207,7 @@ private void computeClasspathLocations(
 	}
 
 	// now split the classpath locations... place the output folders ahead of the other .class file folders & jars
-	ArrayList outputFolders = new ArrayList(1);
+	ArrayList<ClasspathMultiDirectory> outputFolders = new ArrayList<ClasspathMultiDirectory>(1);
 	this.sourceLocations = new ClasspathMultiDirectory[sLocations.size()];
 	if (!sLocations.isEmpty()) {
 		sLocations.toArray(this.sourceLocations);
@@ -236,9 +236,9 @@ private void computeClasspathLocations(
 	this.binaryLocations = new ClasspathLocation[outputFolders.size() + bLocations.size()];
 	int index = 0;
 	for (int i = 0, l = outputFolders.size(); i < l; i++)
-		this.binaryLocations[index++] = (ClasspathLocation) outputFolders.get(i);
+		this.binaryLocations[index++] = outputFolders.get(i);
 	for (int i = 0, l = bLocations.size(); i < l; i++)
-		this.binaryLocations[index++] = (ClasspathLocation) bLocations.get(i);
+		this.binaryLocations[index++] = bLocations.get(i);
 }
 
 public void cleanup() {

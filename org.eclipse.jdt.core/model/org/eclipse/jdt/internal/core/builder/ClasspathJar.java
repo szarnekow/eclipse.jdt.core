@@ -30,9 +30,9 @@ public class ClasspathJar extends ClasspathLocation {
 static class PackageCacheEntry {
 	long lastModified;
 	long fileSize;
-	SimpleSet packageSet;
+	SimpleSet<String> packageSet;
 	
-	PackageCacheEntry(long lastModified, long fileSize, SimpleSet packageSet) {
+	PackageCacheEntry(long lastModified, long fileSize, SimpleSet<String> packageSet) {
 		this.lastModified = lastModified;
 		this.fileSize = fileSize;
 		this.packageSet = packageSet;
@@ -46,7 +46,7 @@ static SimpleLookupTable PackageCache = new SimpleLookupTable();
  * @param jar The ClasspathJar to use
  * @return A SimpleSet with the all the package names in the zipFile.
  */
-static SimpleSet findPackageSet(ClasspathJar jar) {
+static SimpleSet<String> findPackageSet(ClasspathJar jar) {
 	String zipFileName = jar.zipFilename;
 	long lastModified = jar.lastModified();
 	long fileSize = new File(zipFileName).length();
@@ -54,10 +54,10 @@ static SimpleSet findPackageSet(ClasspathJar jar) {
 	if (cacheEntry != null && cacheEntry.lastModified == lastModified && cacheEntry.fileSize == fileSize)
 		return cacheEntry.packageSet;
 
-	SimpleSet packageSet = new SimpleSet(41);
+	SimpleSet<String> packageSet = new SimpleSet<String>(41);
 	packageSet.add(""); //$NON-NLS-1$
-	nextEntry : for (Enumeration e = jar.zipFile.entries(); e.hasMoreElements(); ) {
-		String fileName = ((ZipEntry) e.nextElement()).getName();
+	nextEntry : for (Enumeration< ? extends ZipEntry> e = jar.zipFile.entries(); e.hasMoreElements(); ) {
+		String fileName = e.nextElement().getName();
 
 		// add the package name & all of its parent packages
 		int last = fileName.lastIndexOf('/');
@@ -81,7 +81,7 @@ IFile resource;
 ZipFile zipFile;
 long lastModified;
 boolean closeZipFileAtEnd;
-SimpleSet knownPackageNames;
+SimpleSet<String> knownPackageNames;
 AccessRuleSet accessRuleSet;
 
 ClasspathJar(IFile resource, AccessRuleSet accessRuleSet) {
@@ -166,7 +166,7 @@ public boolean isPackage(String qualifiedPackageName) {
 		}
 		this.knownPackageNames = findPackageSet(this);
 	} catch(Exception e) {
-		this.knownPackageNames = new SimpleSet(); // assume for this build the zipFile is empty
+		this.knownPackageNames = new SimpleSet<String>(); // assume for this build the zipFile is empty
 	}
 	return this.knownPackageNames.includes(qualifiedPackageName);
 }

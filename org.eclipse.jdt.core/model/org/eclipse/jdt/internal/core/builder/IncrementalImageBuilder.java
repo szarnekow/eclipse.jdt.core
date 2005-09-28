@@ -14,7 +14,6 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 
 import org.eclipse.jdt.core.compiler.*;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.*;
 import org.eclipse.jdt.internal.compiler.classfmt.*;
 import org.eclipse.jdt.internal.compiler.problem.*;
@@ -31,8 +30,8 @@ import java.util.*;
  */
 public class IncrementalImageBuilder extends AbstractImageBuilder {
 
-protected ArrayList sourceFiles;
-protected ArrayList previousSourceFiles;
+protected ArrayList<SourceFile> sourceFiles;
+protected ArrayList<SourceFile> previousSourceFiles;
 protected StringSet qualifiedStrings;
 protected StringSet simpleStrings;
 protected SimpleLookupTable secondaryTypesToRemove;
@@ -46,7 +45,7 @@ protected IncrementalImageBuilder(JavaBuilder javaBuilder) {
 	this.nameEnvironment.isIncrementalBuild = true;
 	this.newState.copyFrom(javaBuilder.lastState);
 
-	this.sourceFiles = new ArrayList(33);
+	this.sourceFiles = new ArrayList<SourceFile>(33);
 	this.previousSourceFiles = null;
 	this.qualifiedStrings = new StringSet(3);
 	this.simpleStrings = new StringSet(3);
@@ -505,7 +504,7 @@ protected void findSourceFiles(IResourceDelta sourceDelta, ClasspathMultiDirecto
 	}
 }
 
-protected void finishedWith(String sourceLocator, CompilationResult result, char[] mainTypeName, ArrayList definedTypeNames, ArrayList duplicateTypeNames) {
+protected void finishedWith(String sourceLocator, CompilationResult result, char[] mainTypeName, ArrayList<char[]> definedTypeNames, ArrayList<char[][]> duplicateTypeNames) {
 	char[][] previousTypeNames = newState.getDefinedTypeNamesFor(sourceLocator);
 	if (previousTypeNames == null)
 		previousTypeNames = new char[][] {mainTypeName};
@@ -513,7 +512,7 @@ protected void finishedWith(String sourceLocator, CompilationResult result, char
 	next : for (int i = 0, l = previousTypeNames.length; i < l; i++) {
 		char[] previous = previousTypeNames[i];
 		for (int j = 0, m = definedTypeNames.size(); j < m; j++)
-			if (CharOperation.equals(previous, (char[]) definedTypeNames.get(j)))
+			if (CharOperation.equals(previous, definedTypeNames.get(j)))
 				continue next;
 
 		SourceFile sourceFile = (SourceFile) result.getCompilationUnit();
@@ -523,9 +522,9 @@ protected void finishedWith(String sourceLocator, CompilationResult result, char
 		}
 		if (secondaryTypesToRemove == null)
 			this.secondaryTypesToRemove = new SimpleLookupTable();
-		ArrayList types = (ArrayList) secondaryTypesToRemove.get(sourceFile.sourceLocation.binaryFolder);
+		ArrayList<IPath> types = (ArrayList<IPath>) secondaryTypesToRemove.get(sourceFile.sourceLocation.binaryFolder);
 		if (types == null)
-			types = new ArrayList(definedTypeNames.size());
+			types = new ArrayList<IPath>(definedTypeNames.size());
 		types.add(packagePath.append(new String(previous)));
 		secondaryTypesToRemove.put(sourceFile.sourceLocation.binaryFolder, types);
 	}
@@ -555,9 +554,9 @@ protected void removeSecondaryTypes() throws CoreException {
 		for (int i = 0, l = keyTable.length; i < l; i++) {
 			IContainer outputFolder = (IContainer) keyTable[i];
 			if (outputFolder != null) {
-				ArrayList paths = (ArrayList) valueTable[i];
+				ArrayList<IPath> paths = (ArrayList<IPath>) valueTable[i];
 				for (int j = 0, m = paths.size(); j < m; j++)
-					removeClassFile((IPath) paths.get(j), outputFolder);
+					removeClassFile(paths.get(j), outputFolder);
 			}
 		}
 		this.secondaryTypesToRemove = null;
@@ -567,7 +566,7 @@ protected void removeSecondaryTypes() throws CoreException {
 }
 
 protected void resetCollections() {
-	previousSourceFiles = sourceFiles.isEmpty() ? null : (ArrayList) sourceFiles.clone();
+	previousSourceFiles = sourceFiles.isEmpty() ? null : (ArrayList<SourceFile>) sourceFiles.clone();
 
 	sourceFiles.clear();
 	qualifiedStrings.clear();

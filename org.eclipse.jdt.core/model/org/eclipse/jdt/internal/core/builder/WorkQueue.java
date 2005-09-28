@@ -14,12 +14,12 @@ import org.eclipse.jdt.internal.core.util.SimpleSet;
 
 public class WorkQueue {
 
-private SimpleSet needsCompileList;
-private SimpleSet compiledList;
+private SimpleSet<SourceFile> needsCompileList;
+private SimpleSet<SourceFile> compiledList;
 
 public WorkQueue() {
-	this.needsCompileList = new SimpleSet();
-	this.compiledList = new SimpleSet();
+	this.needsCompileList = new SimpleSet<SourceFile>();
+	this.compiledList = new SimpleSet<SourceFile>();
 }
 
 public void add(SourceFile element) {

@@ -37,7 +37,7 @@ public void build() {
 		notifier.updateProgressDelta(0.1f);
 
 		notifier.subTask(Messages.build_analyzingSources); 
-		ArrayList sourceFiles = new ArrayList(33);
+		ArrayList<SourceFile> sourceFiles = new ArrayList<SourceFile>(33);
 		addAllSourceFiles(sourceFiles);
 		notifier.updateProgressDelta(0.15f);
 
@@ -59,7 +59,7 @@ public void build() {
 	}
 }
 
-protected void addAllSourceFiles(final ArrayList sourceFiles) throws CoreException {
+protected void addAllSourceFiles(final ArrayList<SourceFile> sourceFiles) throws CoreException {
 	for (int i = 0, l = sourceLocations.length; i < l; i++) {
 		final ClasspathMultiDirectory sourceLocation = sourceLocations[i];
 		final char[][] exclusionPatterns = sourceLocation.exclusionPatterns;
@@ -102,7 +102,7 @@ protected void cleanOutputFolders(boolean copyBack) throws CoreException {
 	boolean deleteAll = JavaCore.CLEAN.equals(
 		javaBuilder.javaProject.getOption(JavaCore.CORE_JAVA_BUILD_CLEAN_OUTPUT_FOLDER, true));
 	if (deleteAll) {
-		ArrayList visited = new ArrayList(sourceLocations.length);
+		ArrayList<IContainer> visited = new ArrayList<IContainer>(sourceLocations.length);
 		for (int i = 0, l = sourceLocations.length; i < l; i++) {
 			notifier.subTask(Messages.build_cleaningOutput); 
 			ClasspathMultiDirectory sourceLocation = sourceLocations[i];

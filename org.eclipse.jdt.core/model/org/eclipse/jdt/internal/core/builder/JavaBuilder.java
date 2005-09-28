@@ -42,7 +42,7 @@ public static boolean DEBUG = false;
  * This list is used to reset the JavaModel.existingExternalFiles cache when a build cycle begins
  * so that deleted external jars are discovered.
  */
-static ArrayList builtProjects = null;
+static ArrayList<String> builtProjects = null;
 
 public static IMarker[] getProblemsFor(IResource resource) {
 	try {
@@ -363,7 +363,7 @@ public State getLastState(IProject project) {
 private IProject[] getRequiredProjects(boolean includeBinaryPrerequisites) {
 	if (javaProject == null || workspaceRoot == null) return new IProject[0];
 
-	ArrayList projects = new ArrayList();
+	ArrayList<IProject> projects = new ArrayList<IProject>();
 	try {
 		IClasspathEntry[] entries = javaProject.getExpandedClasspath(true);
 		for (int i = 0, l = entries.length; i < l; i++) {
@@ -488,7 +488,7 @@ private void initializeBuilder() throws CoreException {
 	String projectName = currentProject.getName();
 	if (builtProjects == null || builtProjects.contains(projectName)) {
 		JavaModel.flushExternalFileCache();
-		builtProjects = new ArrayList();
+		builtProjects = new ArrayList<String>();
 	}
 	builtProjects.add(projectName);
 
@@ -586,12 +586,12 @@ private boolean isWorthBuilding() throws CoreException {
  * needs to propagate structural changes to the other projects in the cycle.
  */
 void mustPropagateStructuralChanges() {
-	HashSet cycleParticipants = new HashSet(3);
-	javaProject.updateCycleParticipants(new ArrayList(), cycleParticipants, workspaceRoot, new HashSet(3), null);
+	HashSet<IPath> cycleParticipants = new HashSet<IPath>(3);
+	javaProject.updateCycleParticipants(new ArrayList<IPath>(), cycleParticipants, workspaceRoot, new HashSet<IPath>(3), null);
 	IPath currentPath = javaProject.getPath();
-	Iterator i= cycleParticipants.iterator();
+	Iterator<IPath> i= cycleParticipants.iterator();
 	while (i.hasNext()) {
-		IPath participantPath = (IPath) i.next();
+		IPath participantPath = i.next();
 		if (participantPath != currentPath) {
 			IProject project = workspaceRoot.getProject(participantPath.segment(0));
 			if (hasBeenBuilt(project)) {
