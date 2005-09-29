@@ -66,8 +66,8 @@ private JavaSearchScope(int size) {
 	
 private void addEnclosingProjectOrJar(IPath path) {
 	int length = this.enclosingProjectsAndJars.length;
-	for (int i = 0; i < length; i++) {
-		if (this.enclosingProjectsAndJars[i].equals(path)) return;
+	for (IPath projectOrJarPath: this.enclosingProjectsAndJars) {
+		if (projectOrJarPath.equals(path)) return;
 	}
 	System.arraycopy(
 		this.enclosingProjectsAndJars,
@@ -107,8 +107,7 @@ void add(JavaProject javaProject, IPath pathToAdd, int includeMask, HashSet<IPro
 	IClasspathEntry[] entries = javaProject.getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/);
 	IJavaModel model = javaProject.getJavaModel();
 	JavaModelManager.PerProjectInfo perProjectInfo = javaProject.getPerProjectInfo();
-	for (int i = 0, length = entries.length; i < length; i++) {
-		IClasspathEntry entry = entries[i];
+	for (IClasspathEntry entry: entries) {
 		AccessRuleSet access = null;
 		ClasspathEntry cpEntry = (ClasspathEntry) entry;
 		if (referringEntry != null) {
@@ -487,8 +486,7 @@ public void processDelta(IJavaElementDelta delta) {
 	switch (delta.getKind()) {
 		case IJavaElementDelta.CHANGED:
 			IJavaElementDelta[] children = delta.getAffectedChildren();
-			for (int i = 0, length = children.length; i < length; i++) {
-				IJavaElementDelta child = children[i];
+			for (IJavaElementDelta child: children) {
 				this.processDelta(child);
 			}
 			break;

@@ -65,8 +65,7 @@ public static boolean canSeeFocus(IJavaElement focus, boolean isPolymorphicSearc
 		for (int i = 0, length = allProjects.length; i < length; i++) {
 			JavaProject otherProject = (JavaProject) allProjects[i];
 			IClasspathEntry[] entries = otherProject.getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/);
-			for (int j = 0, length2 = entries.length; j < length2; j++) {
-				IClasspathEntry entry = entries[j];
+			for (IClasspathEntry entry: entries) {
 				if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY && entry.getPath().equals(projectOrJarPath))
 					if (canSeeFocus(focus, otherProject, focusEntries))
 						return true;
@@ -85,8 +84,7 @@ public static boolean canSeeFocus(IJavaElement focus, JavaProject javaProject, I
 		if (focusEntriesForPolymorphicSearch != null) {
 			// look for refering project
 			IPath projectPath = javaProject.getProject().getFullPath();
-			for (int i = 0, length = focusEntriesForPolymorphicSearch.length; i < length; i++) {
-				IClasspathEntry entry = focusEntriesForPolymorphicSearch[i];
+			for (IClasspathEntry entry: focusEntriesForPolymorphicSearch) {
 				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT && entry.getPath().equals(projectPath))
 					return true;
 			}
@@ -95,8 +93,7 @@ public static boolean canSeeFocus(IJavaElement focus, JavaProject javaProject, I
 			// focus is part of a jar
 			IPath focusPath = focus.getPath();
 			IClasspathEntry[] entries = javaProject.getExpandedClasspath(true);
-			for (int i = 0, length = entries.length; i < length; i++) {
-				IClasspathEntry entry = entries[i];
+			for (IClasspathEntry entry: entries) {
 				if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY && entry.getPath().equals(focusPath))
 					return true;
 			}
@@ -105,8 +102,7 @@ public static boolean canSeeFocus(IJavaElement focus, JavaProject javaProject, I
 		// look for dependent projects
 		IPath focusPath = ((JavaProject) focus).getProject().getFullPath();
 		IClasspathEntry[] entries = javaProject.getExpandedClasspath(true);
-		for (int i = 0, length = entries.length; i < length; i++) {
-			IClasspathEntry entry = entries[i];
+		for (IClasspathEntry entry: entries) {
 			if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT && entry.getPath().equals(focusPath))
 				return true;
 		}
@@ -124,8 +120,9 @@ private void initializeIndexLocations() {
 	SimpleSet<String> locations = new SimpleSet<String>();
 	IJavaElement focus = MatchLocator.projectOrJarFocus(this.pattern);
 	if (focus == null) {
-		for (int i = 0; i < projectsAndJars.length; i++)
-			locations.add(manager.computeIndexLocation(projectsAndJars[i]));
+		for (IPath path: projectsAndJars) {
+			locations.add(manager.computeIndexLocation(path));
+		}
 	} else {
 		try {
 			// find the projects from projectsAndJars that see the focus then walk those projects looking for the jars from projectsAndJars
@@ -140,8 +137,7 @@ private void initializeIndexLocations() {
 				focusEntries = focusProject.getExpandedClasspath(true);
 			}
 			IJavaModel model = JavaModelManager.getJavaModelManager().getJavaModel();
-			for (int i = 0; i < length; i++) {
-				IPath path = projectsAndJars[i];
+			for (IPath path: projectsAndJars) {
 				JavaProject project = (JavaProject) getJavaProject(path, model);
 				if (project != null) {
 					visitedProjects.add(project);
@@ -155,8 +151,7 @@ private void initializeIndexLocations() {
 			}
 			for (int i = 0; i < projectIndex && jarsToCheck.elementSize > 0; i++) {
 				IClasspathEntry[] entries = projectsCanSeeFocus[i].getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/);
-				for (int j = entries.length; --j >= 0;) {
-					IClasspathEntry entry = entries[j];
+				for (IClasspathEntry entry: entries) {
 					if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
 						IPath path = entry.getPath();
 						if (jarsToCheck.includes(path)) {

@@ -512,8 +512,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			// first reference all methods declarations and field declarations
 			MethodInfo[] methods = (MethodInfo[]) reader.getMethods();
 			if (methods != null) {
-				for (int i = 0, max = methods.length; i < max; i++) {
-					MethodInfo method = methods[i];
+				for (MethodInfo method: methods) {
 					char[] descriptor = method.getMethodDescriptor();
 					char[][] parameterTypes = decodeParameterTypes(descriptor);
 					char[] returnType = decodeReturnType(descriptor);
@@ -529,8 +528,7 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 			}
 			FieldInfo[] fields = (FieldInfo[]) reader.getFields();
 			if (fields != null) {
-				for (int i = 0, max = fields.length; i < max; i++) {
-					FieldInfo field = fields[i];
+				for (FieldInfo field: fields) {
 					char[] fieldName = field.getName();
 					char[] fieldType = decodeFieldType(replace('/', '.', field.getTypeName()));
 					addFieldDeclaration(fieldType, fieldName);
@@ -548,8 +546,8 @@ public class BinaryIndexer extends AbstractIndexer implements SuffixConstants {
 	 */
 	private char[][] replace(char toBeReplaced, char newChar, char[][] array) {
 		if (array == null) return null;
-		for (int i = 0, max = array.length; i < max; i++) {
-			replace(toBeReplaced, newChar, array[i]);
+		for (char[] token:array) {
+			replace(toBeReplaced, newChar, token);
 		}
 		return array;
 	}

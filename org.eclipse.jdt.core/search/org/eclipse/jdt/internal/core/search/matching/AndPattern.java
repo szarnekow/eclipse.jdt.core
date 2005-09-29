@@ -41,20 +41,21 @@ public void findIndexMatches(Index index, IndexQueryRequestor requestor, SearchP
 
 			SearchPattern decodedResult = pattern.getBlankPattern();
 			SimpleSet<String> newIntersectedNames = new SimpleSet<String>(3);
-			for (int i = 0, l = entries.length; i < l; i++) {
+			for (EntryResult entry: entries) {
 				if (progressMonitor != null && progressMonitor.isCanceled()) throw new OperationCanceledException();
 
-				EntryResult entry = entries[i];
 				decodedResult.decodeIndexKey(entry.getWord());
 				if (pattern.matchesDecodedKey(decodedResult)) {
 					String[] names = entry.getDocumentNames(index);
 					if (intersectedNames != null) {
-						for (int j = 0, n = names.length; j < n; j++)
-							if (intersectedNames.includes(names[j]))
-								newIntersectedNames.add(names[j]);
+						for (String name: names) {
+							if (intersectedNames.includes(name))
+								newIntersectedNames.add(name);
+						}
 					} else {
-						for (int j = 0, n = names.length; j < n; j++)
-							newIntersectedNames.add(names[j]);
+						for (String name: names) {
+							newIntersectedNames.add(name);
+						}
 					}
 				}
 			}

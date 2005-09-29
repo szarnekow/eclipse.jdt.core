@@ -78,8 +78,8 @@ public class IndexBinaryFolder extends IndexRequest {
 					}
 				}, IResource.NONE);
 			} else {
-				for (int i = 0; i < max; i++)
-					indexedFileNames.put(paths[i], DELETED);
+				for (String path: paths)
+					indexedFileNames.put(path, DELETED);
 
 				final long indexLastModified = index.getIndexFile().lastModified();
 				this.folder.accept(

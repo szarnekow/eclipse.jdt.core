@@ -124,9 +124,10 @@ class AddJarFileToIndex extends IndexRequest {
 					 */
 					String EXISTS = "OK"; //$NON-NLS-1$
 					String DELETED = "DELETED"; //$NON-NLS-1$
-					SimpleLookupTable indexedFileNames = new SimpleLookupTable(max == 0 ? 33 : max + 11);
-					for (int i = 0; i < max; i++)
-						indexedFileNames.put(paths[i], DELETED);
+					SimpleLookupTable indexedFileNames = new SimpleLookupTable(max + 11);
+					for (String path: paths) {
+						indexedFileNames.put(path, DELETED);
+					}
 					for (Enumeration<? extends ZipEntry> e = zip.entries(); e.hasMoreElements();) {
 						// iterate each entry to index it
 						ZipEntry ze = e.nextElement();
@@ -137,8 +138,8 @@ class AddJarFileToIndex extends IndexRequest {
 					boolean needToReindex = indexedFileNames.elementSize != max; // a new file was added
 					if (!needToReindex) {
 						Object[] valueTable = indexedFileNames.valueTable;
-						for (int i = 0, l = valueTable.length; i < l; i++) {
-							if (valueTable[i] == DELETED) {
+						for (Object value: valueTable) {
+							if (value == DELETED) {
 								needToReindex = true; // a file was deleted so re-index
 								break;
 							}

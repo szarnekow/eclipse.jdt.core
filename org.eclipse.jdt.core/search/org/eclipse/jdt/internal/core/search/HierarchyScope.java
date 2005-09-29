@@ -13,7 +13,6 @@ package org.eclipse.jdt.internal.core.search;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.IPath;
@@ -102,8 +101,7 @@ public class HierarchyScope extends AbstractSearchScope implements SuffixConstan
 		HashMap<IPath, IType> paths = new HashMap<IPath, IType>();
 		this.types = this.hierarchy.getAllTypes();
 		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-		for (int i = 0; i < this.types.length; i++) {
-			IType type = this.types[i];
+		for (IType type: this.types) {
 			IResource resource = type.getResource();
 			if (resource != null && resources.get(resource) == null) {
 				resources.put(resource, resource);
@@ -141,8 +139,8 @@ public class HierarchyScope extends AbstractSearchScope implements SuffixConstan
 		}
 		this.enclosingProjectsAndJars = new IPath[paths.size()];
 		int i = 0;
-		for (Iterator<IPath> iter = paths.keySet().iterator(); iter.hasNext();) {
-			this.enclosingProjectsAndJars[i++] = iter.next();
+		for (IPath path: paths.keySet()) {
+			this.enclosingProjectsAndJars[i++] = path;
 		}
 	}
 	/*
@@ -162,14 +160,13 @@ public class HierarchyScope extends AbstractSearchScope implements SuffixConstan
 			HashSet<IJavaProject> visited = new HashSet<IJavaProject>();
 			for (int i = 0; i < projects.length; i++) {
 				JavaProject project = (JavaProject) projects[i];
-				IClasspathEntry[] classpath = project.getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/);
-				for (int j = 0; j < classpath.length; j++) {
-					if (rootPath.equals(classpath[j].getPath())) {
+				IClasspathEntry[] entries= project.getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/);
+				for (IClasspathEntry classpath:entries) {
+					if (rootPath.equals(classpath.getPath())) {
 						// add the project and its binary pkg fragment roots
 						IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
 						set.add(project.getPath());
-						for (int k = 0; k < roots.length; k++) {
-							IPackageFragmentRoot pkgFragmentRoot = roots[k];
+						for (IPackageFragmentRoot pkgFragmentRoot: roots) {
 							if (pkgFragmentRoot.getKind() == IPackageFragmentRoot.K_BINARY) {
 								set.add(pkgFragmentRoot.getPath());
 							}
@@ -184,8 +181,7 @@ public class HierarchyScope extends AbstractSearchScope implements SuffixConstan
 			// add all the project's pkg fragment roots
 			IJavaProject project = (IJavaProject)root.getParent();
 			IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
-			for (int i = 0; i < roots.length; i++) {
-				IPackageFragmentRoot pkgFragmentRoot = roots[i];
+			for (IPackageFragmentRoot pkgFragmentRoot: roots) {
 				if (pkgFragmentRoot.getKind() == IPackageFragmentRoot.K_BINARY) {
 					set.add(pkgFragmentRoot.getPath());
 				} else {
@@ -203,13 +199,12 @@ public class HierarchyScope extends AbstractSearchScope implements SuffixConstan
 		if (visited.contains(project)) return;
 		visited.add(project);
 		IProject[] dependents = project.getProject().getReferencingProjects();
-		for (int i = 0; i < dependents.length; i++) {
+		for (IProject resource: dependents) {
 			try {
-				IJavaProject dependent = JavaCore.create(dependents[i]);
+				IJavaProject dependent = JavaCore.create(resource);
 				IPackageFragmentRoot[] roots = dependent.getPackageFragmentRoots();
 				set.add(dependent.getPath());
-				for (int j = 0; j < roots.length; j++) {
-					IPackageFragmentRoot pkgFragmentRoot = roots[j];
+				for (IPackageFragmentRoot pkgFragmentRoot: roots) {
 					if (pkgFragmentRoot.isArchive()) {
 						set.add(pkgFragmentRoot.getPath());
 					}

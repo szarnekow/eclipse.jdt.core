@@ -130,8 +130,7 @@ public class BasicSearchEngine {
 	public static IJavaSearchScope createJavaSearchScope(IJavaElement[] elements, int includeMask) {
 		JavaSearchScope scope = new JavaSearchScope();
 		HashSet<IProject> visitedProjects = new HashSet<IProject>(2);
-		for (int i = 0, length = elements.length; i < length; i++) {
-			IJavaElement element = elements[i];
+		for (IJavaElement element: elements) {
 			if (element != null) {
 				try {
 					if (element instanceof JavaProject) {
@@ -178,10 +177,10 @@ public class BasicSearchEngine {
 		IndexManager indexManager = JavaModelManager.getJavaModelManager().getIndexManager();
 		try {
 			requestor.beginReporting();
-			for (int i = 0, l = participants == null ? 0 : participants.length; i < l; i++) {
+			if (participants == null) return;
+			for (SearchParticipant participant: participants) {
 				if (monitor != null && monitor.isCanceled()) throw new OperationCanceledException();
 	
-				SearchParticipant participant = participants[i];
 				SubProgressMonitor subMonitor= monitor==null ? null : new SubProgressMonitor(monitor, 1000);
 				if (subMonitor != null) subMonitor.beginTask("", 1000); //$NON-NLS-1$
 				try {
@@ -581,15 +580,13 @@ public class BasicSearchEngine {
 				
 			// add type names from working copies
 			if (copies != null) {
-				for (int i = 0, length = copies.length; i < length; i++) {
-					ICompilationUnit workingCopy = copies[i];
+				for (ICompilationUnit workingCopy : copies) {
 					final String path = workingCopy.getPath().toString();
 					if (workingCopy.isConsistent()) {
 						IPackageDeclaration[] packageDeclarations = workingCopy.getPackageDeclarations();
 						char[] packageDeclaration = packageDeclarations.length == 0 ? CharOperation.NO_CHAR : packageDeclarations[0].getElementName().toCharArray();
 						IType[] allTypes = workingCopy.getAllTypes();
-						for (int j = 0, allTypesLength = allTypes.length; j < allTypesLength; j++) {
-							IType type = allTypes[j];
+						for (IType type: allTypes) {
 							IJavaElement parent = type.getParent();
 							char[][] enclosingTypeNames;
 							if (parent instanceof IType) {
@@ -801,15 +798,13 @@ public class BasicSearchEngine {
 				
 			// add type names from working copies
 			if (copies != null) {
-				for (int i = 0, length = copies.length; i < length; i++) {
-					ICompilationUnit workingCopy = copies[i];
+				for (ICompilationUnit workingCopy: copies) {
 					final String path = workingCopy.getPath().toString();
 					if (workingCopy.isConsistent()) {
 						IPackageDeclaration[] packageDeclarations = workingCopy.getPackageDeclarations();
 						char[] packageDeclaration = packageDeclarations.length == 0 ? CharOperation.NO_CHAR : packageDeclarations[0].getElementName().toCharArray();
 						IType[] allTypes = workingCopy.getAllTypes();
-						for (int j = 0, allTypesLength = allTypes.length; j < allTypesLength; j++) {
-							IType type = allTypes[j];
+						for (IType type: allTypes) {
 							IJavaElement parent = type.getParent();
 							char[][] enclosingTypeNames;
 							char[] qualification = packageDeclaration;

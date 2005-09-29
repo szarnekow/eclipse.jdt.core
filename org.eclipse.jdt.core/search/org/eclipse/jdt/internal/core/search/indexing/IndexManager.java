@@ -100,18 +100,17 @@ public void cleanUpIndexes() {
 	IJavaSearchScope scope = BasicSearchEngine.createWorkspaceScope();
 	PatternSearchJob job = new PatternSearchJob(null, SearchEngine.getDefaultSearchParticipant(), scope, null);
 	Index[] selectedIndexes = job.getIndexes(null);
-	for (int j = 0, max = selectedIndexes.length; j < max; j++) {
+	for (Index selectedIndex: selectedIndexes) {
 		// TODO should use getJavaPluginWorkingLocation()+index simple name to avoid bugs such as https://bugs.eclipse.org/bugs/show_bug.cgi?id=62267
-		String path = selectedIndexes[j].getIndexFile().getAbsolutePath();
+		String path = selectedIndex.getIndexFile().getAbsolutePath();
 		knownPaths.put(path, path);
 	}
 
 	if (indexStates != null) {
 		Object[] keys = indexStates.keyTable;
-		for (int i = 0, l = keys.length; i < l; i++) {
-			String key = (String) keys[i];
+		for (Object key: keys) {
 			if (key != null && !knownPaths.containsKey(key))
-				updateIndexState(key, null);
+				updateIndexState((String)key, null);
 		}
 	}
 
@@ -119,12 +118,12 @@ public void cleanUpIndexes() {
 	if (indexesDirectory.isDirectory()) {
 		File[] indexesFiles = indexesDirectory.listFiles();
 		if (indexesFiles != null) {
-			for (int i = 0, indexesFilesLength = indexesFiles.length; i < indexesFilesLength; i++) {
-				String fileName = indexesFiles[i].getAbsolutePath();
+			for (File indexesFile: indexesFiles) {
+				String fileName = indexesFile.getAbsolutePath();
 				if (!knownPaths.containsKey(fileName) && fileName.toLowerCase().endsWith(".index")) { //$NON-NLS-1$
 					if (VERBOSE)
-						Util.verbose("Deleting index file " + indexesFiles[i]); //$NON-NLS-1$
-					indexesFiles[i].delete();
+						Util.verbose("Deleting index file " + indexesFile); //$NON-NLS-1$
+					indexesFile.delete();
 				}
 			}
 		}
@@ -255,8 +254,7 @@ private SimpleLookupTable getIndexStates() {
 			char[] dirName = indexesDirectory.getAbsolutePath().toCharArray();
 			int delimiterPos = dirName.length;
 			if (CharOperation.match(names[0], 0, delimiterPos, dirName, 0, delimiterPos, true)) {
-				for (int i = 0, l = names.length; i < l; i++) {
-					char[] name = names[i];
+				for (char[] name: names) {
 					if (name.length > 0)
 						this.indexStates.put(new String(name), SAVED_STATE);
 				}
@@ -264,12 +262,12 @@ private SimpleLookupTable getIndexStates() {
 				savedIndexNamesFile.delete(); // forget saved indexes & delete each index file
 				File[] files = indexesDirectory.listFiles();
 				if (files != null) {
-					for (int i = 0, l = files.length; i < l; i++) {
-						String fileName = files[i].getAbsolutePath();
+					for (File file: files) {
+						String fileName = file.getAbsolutePath();
 						if (fileName.toLowerCase().endsWith(".index")) { //$NON-NLS-1$
 							if (VERBOSE)
-								Util.verbose("Deleting index file " + files[i]); //$NON-NLS-1$
-							files[i].delete();
+								Util.verbose("Deleting index file " + file); //$NON-NLS-1$
+							file.delete();
 						}
 					}
 				}
@@ -308,8 +306,7 @@ public void indexAll(IProject project) {
 		// NOTE: force to resolve CP variables before calling indexer - 19303, so that initializers
 		// will be run in the current thread.
 		IClasspathEntry[] entries = javaProject.getResolvedClasspath(true/*ignoreUnresolvedEntry*/, false/*don't generateMarkerOnError*/, false/*don't returnResolutionInProgress*/);	
-		for (int i = 0; i < entries.length; i++) {
-			IClasspathEntry entry= entries[i];
+		for (IClasspathEntry entry: entries) {
 			if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY)
 				this.indexLibrary(entry.getPath(), project);
 		}
@@ -478,18 +475,19 @@ public synchronized void removeIndexFamily(IPath path) {
 	// only finds cached index files... shutdown removes all non-cached index files
 	ArrayList<IPath> toRemove = null;
 	Object[] containerPaths = this.indexLocations.keyTable;
-	for (int i = 0, length = containerPaths.length; i < length; i++) {
-		IPath containerPath = (IPath) containerPaths[i];
-		if (containerPath == null) continue;
+	for (Object key: containerPaths) {
+		if (key == null) continue;
+		IPath containerPath = (IPath) key;
 		if (path.isPrefixOf(containerPath)) {
 			if (toRemove == null)
 				toRemove = new ArrayList<IPath>();
 			toRemove.add(containerPath);
 		}
 	}
-	if (toRemove != null)
-		for (int i = 0, length = toRemove.size(); i < length; i++)
-			this.removeIndex(toRemove.get(i));
+	if (toRemove != null) {
+		for (IPath removed: toRemove)
+			this.removeIndex(removed);
+	}
 }
 /**
  * Remove the content of the given source folder from the index.

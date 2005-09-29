@@ -95,8 +95,7 @@ public void processDelta(IJavaElementDelta delta) {
 	switch (element.getElementType()) {
 		case IJavaElement.JAVA_MODEL:
 			IJavaElementDelta[] children = delta.getAffectedChildren();
-			for (int i = 0, length = children.length; i < length; i++) {
-				IJavaElementDelta child = children[i];
+			for (IJavaElementDelta child: children) {
 				this.processDelta(child);
 			}
 			break;
@@ -114,8 +113,7 @@ public void processDelta(IJavaElementDelta delta) {
 						this.needsInitialize = true;
 					} else {
 						children = delta.getAffectedChildren();
-						for (int i = 0, length = children.length; i < length; i++) {
-							IJavaElementDelta child = children[i];
+						for (IJavaElementDelta child: children) {
 							this.processDelta(child);
 						}
 					}

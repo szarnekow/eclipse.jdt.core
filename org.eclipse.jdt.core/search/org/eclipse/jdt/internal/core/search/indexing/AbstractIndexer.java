@@ -50,13 +50,13 @@ public abstract class AbstractIndexer implements IIndexConstants {
 			SuperTypeReferencePattern.createIndexKey(
 				modifiers, packageName, name, enclosingTypeNames, typeParameterSignatures, CLASS_SUFFIX, superclass, CLASS_SUFFIX));
 		if (superinterfaces != null) {
-			for (int i = 0, max = superinterfaces.length; i < max; i++) {
-				char[] superinterface = erasure(superinterfaces[i]);
-				addTypeReference(superinterface);
+			for (char[] superinterface: superinterfaces) {
+				char[] erasure = erasure(superinterface);
+				addTypeReference(erasure);
 				addIndexEntry(
 					SUPER_REF,
 					SuperTypeReferencePattern.createIndexKey(
-						modifiers, packageName, name, enclosingTypeNames, typeParameterSignatures, CLASS_SUFFIX, superinterface, INTERFACE_SUFFIX));
+						modifiers, packageName, name, enclosingTypeNames, typeParameterSignatures, CLASS_SUFFIX, erasure, INTERFACE_SUFFIX));
 			}
 		}
 	}
@@ -70,11 +70,14 @@ public abstract class AbstractIndexer implements IIndexConstants {
 		int argCount = parameterTypes == null ? 0 : parameterTypes.length;
 		addIndexEntry(CONSTRUCTOR_DECL, ConstructorPattern.createIndexKey(CharOperation.lastSegment(typeName,'.'), argCount));
 	
-		for (int i = 0; i < argCount; i++)
-			addTypeReference(parameterTypes[i]);
-		if (exceptionTypes != null)
-			for (int i = 0, max = exceptionTypes.length; i < max; i++)
-				addTypeReference(exceptionTypes[i]);
+		if (parameterTypes != null) {
+			for (char[] parameterType: parameterTypes)
+				addTypeReference(parameterType);
+		}
+		if (exceptionTypes != null) {
+			for (char[] exceptionType: exceptionTypes)
+				addTypeReference(exceptionType);
+		}
 	}
 	public void addConstructorReference(char[] typeName, int argCount) {
 		char[] simpleTypeName = CharOperation.lastSegment(typeName,'.');
@@ -116,13 +119,13 @@ public abstract class AbstractIndexer implements IIndexConstants {
 		addIndexEntry(TYPE_DECL, TypeDeclarationPattern.createIndexKey(modifiers, name, packageName, enclosingTypeNames));
 
 		if (superinterfaces != null) {
-			for (int i = 0, max = superinterfaces.length; i < max; i++) {
-				char[] superinterface = erasure(superinterfaces[i]);
-				addTypeReference(superinterface);
+			for (char[] superinterface: superinterfaces) {
+				char[] erasure = erasure(superinterface);
+				addTypeReference(erasure);
 				addIndexEntry(
 					SUPER_REF,
 					SuperTypeReferencePattern.createIndexKey(
-						modifiers, packageName, name, enclosingTypeNames, typeParameterSignatures, INTERFACE_SUFFIX, superinterface, INTERFACE_SUFFIX));
+						modifiers, packageName, name, enclosingTypeNames, typeParameterSignatures, INTERFACE_SUFFIX, erasure, INTERFACE_SUFFIX));
 			}
 		}
 	}
@@ -130,11 +133,14 @@ public abstract class AbstractIndexer implements IIndexConstants {
 		int argCount = parameterTypes == null ? 0 : parameterTypes.length;
 		addIndexEntry(METHOD_DECL, MethodPattern.createIndexKey(methodName, argCount));
 	
-		for (int i = 0; i < argCount; i++)
-			addTypeReference(parameterTypes[i]);
-		if (exceptionTypes != null)
-			for (int i = 0, max = exceptionTypes.length; i < max; i++)
-				addTypeReference(exceptionTypes[i]);
+		if (parameterTypes != null) {
+			for (char[] parameterType: parameterTypes)
+				addTypeReference(parameterType);
+		}
+		if (exceptionTypes != null) {
+			for (char[] exceptionType: exceptionTypes)
+				addTypeReference(exceptionType);
+		}
 		if (returnType != null)
 			addTypeReference(returnType);
 	}

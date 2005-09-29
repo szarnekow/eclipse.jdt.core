@@ -62,15 +62,13 @@ public class IndexAllProject extends IndexRequest {
 			int length = entries.length;
 			IClasspathEntry[] sourceEntries = new IClasspathEntry[length];
 			int sourceEntriesNumber = 0;
-			for (int i = 0; i < length; i++) {
-				IClasspathEntry entry = entries[i];
+			for (IClasspathEntry entry: entries) {
 				if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE)
 					sourceEntries[sourceEntriesNumber++] = entry;
 			}
 			if (sourceEntriesNumber == 0) {
 				IPath projectPath = javaProject.getPath();
-				for (int i = 0; i < length; i++) {
-					IClasspathEntry entry = entries[i];
+				for (IClasspathEntry entry: entries) {
 					if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY && entry.getPath().equals(projectPath)) {
 						// the project is also a library folder (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=89815)
 						// ensure a job exists to index it as a binary folder
@@ -100,8 +98,10 @@ public class IndexAllProject extends IndexRequest {
 			final SimpleLookupTable indexedFileNames = new SimpleLookupTable(max == 0 ? 33 : max + 11);
 			final String OK = "OK"; //$NON-NLS-1$
 			final String DELETED = "DELETED"; //$NON-NLS-1$
-			for (int i = 0; i < max; i++)
-				indexedFileNames.put(paths[i], DELETED);
+			if (paths != null) {
+				for (String path: paths)
+					indexedFileNames.put(path, DELETED);
+			}
 			final long indexLastModified = max == 0 ? 0L : index.getIndexFile().lastModified();
 
 			IWorkspaceRoot root = this.project.getWorkspace().getRoot();

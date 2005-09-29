@@ -42,8 +42,8 @@ public void acceptConstructorReference(char[] typeName, int argCount, int source
 	int lastDot = CharOperation.lastIndexOf('.', typeName);
 	if (lastDot != -1) {
 		char[][] qualification = CharOperation.splitOn('.', CharOperation.subarray(typeName, 0, lastDot));
-		for (int i = 0, length = qualification.length; i < length; i++) {
-			this.indexer.addNameReference(qualification[i]);
+		for (char[] token: qualification) {
+			this.indexer.addNameReference(token);
 		}
 	}
 }
@@ -58,8 +58,8 @@ public void acceptFieldReference(char[] fieldName, int sourcePosition) {
  */
 public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
 	char[][] qualification = CharOperation.splitOn('.', CharOperation.subarray(name, 0, CharOperation.lastIndexOf('.', name)));
-	for (int i = 0, length = qualification.length; i < length; i++) {
-		this.indexer.addNameReference(qualification[i]);
+	for (char[] token: qualification) {
+		this.indexer.addNameReference(token);
 	}
 }
 /**
@@ -105,8 +105,8 @@ public void acceptTypeReference(char[] simpleTypeName, int sourcePosition) {
  * @see ISourceElementRequestor#acceptUnknownReference(char[][], int, int)
  */
 public void acceptUnknownReference(char[][] name, int sourceStart, int sourceEnd) {
-	for (int i = 0; i < name.length; i++) {
-		acceptUnknownReference(name[i], 0);
+	for (char[] token: name) {
+		acceptUnknownReference(token, 0);
 	}
 }
 /**
