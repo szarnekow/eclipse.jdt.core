@@ -118,7 +118,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 		private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"; //$NON-NLS-1$
 		private static final String XML_DTD_DECLARATION = "<!DOCTYPE compiler SYSTEM \"compiler.dtd\">"; //$NON-NLS-1$
 
-		private static final HashMap FIELD_TABLE = new HashMap();
+		private static final HashMap<Object, String> FIELD_TABLE = new HashMap<Object, String>();
 		static {
 			try {
 				Class c = IProblem.class;

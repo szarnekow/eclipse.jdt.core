@@ -21,7 +21,7 @@ import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 public class ClasspathDirectory extends ClasspathLocation {
 
 String path;
-Hashtable directoryCache;
+Hashtable<String, String[]> directoryCache;
 String[] missingPackageHolder = new String[1];
 String encoding;
 public int mode; // ability to only consider one kind of files (source vs. binaries), by default use both
@@ -40,7 +40,7 @@ ClasspathDirectory(File directory, String encoding, int mode, AccessRuleSet acce
 	this.path = directory.getAbsolutePath();
 	if (!this.path.endsWith(File.separator))
 		this.path += File.separator;
-	this.directoryCache = new Hashtable(11);
+	this.directoryCache = new Hashtable<String, String[]>(11);
 	this.encoding = encoding;
 }
 
@@ -48,7 +48,7 @@ ClasspathDirectory(File directory, String encoding) {
 	this(directory, encoding, SOURCE | BINARY, null); // by default consider both sources and binaries
 }
 String[] directoryList(String qualifiedPackageName) {
-	String[] dirList = (String[]) this.directoryCache.get(qualifiedPackageName);
+	String[] dirList = this.directoryCache.get(qualifiedPackageName);
 	if (dirList == this.missingPackageHolder) return null; // package exists in another classpath directory or jar
 	if (dirList != null) return dirList;
 
@@ -128,7 +128,7 @@ public boolean isPackage(String qualifiedPackageName) {
 	return directoryList(qualifiedPackageName) != null;
 }
 public void reset() {
-	this.directoryCache = new Hashtable(11);
+	this.directoryCache = new Hashtable<String, String[]>(11);
 }
 public String toString() {
 	return "ClasspathDirectory " + this.path; //$NON-NLS-1$

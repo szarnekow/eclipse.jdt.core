@@ -26,7 +26,7 @@ public class ClasspathJar extends ClasspathLocation {
 private File file;
 private ZipFile zipFile;
 private boolean closeZipFileAtEnd;
-private Hashtable packageCache;
+private Hashtable<String, String> packageCache;
 
 public ClasspathJar(File file) throws IOException {
 	this(file, true, null);
@@ -57,7 +57,7 @@ public boolean isPackage(String qualifiedPackageName) {
 	if (this.packageCache != null)
 		return this.packageCache.containsKey(qualifiedPackageName);
 
-	this.packageCache = new Hashtable(41);
+	this.packageCache = new Hashtable<String, String>(41);
 	this.packageCache.put("", ""); //$NON-NLS-1$ //$NON-NLS-2$
 
 	nextEntry : for (Enumeration e = this.zipFile.entries(); e.hasMoreElements(); ) {

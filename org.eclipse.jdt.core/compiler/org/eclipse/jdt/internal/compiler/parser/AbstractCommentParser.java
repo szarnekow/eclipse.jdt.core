@@ -412,7 +412,7 @@ public abstract class AbstractCommentParser {
 		int modulo = 0; // should be 2 for (Type,Type,...) or 3 for (Type arg,Type arg,...)
 		int iToken = 0;
 		char[] argName = null;
-		List arguments = new ArrayList(10);
+		List<Object> arguments = new ArrayList<Object>(10);
 		int start = this.scanner.getCurrentTokenStartPosition();
 		
 		// Parse arguments declaration if method reference
