@@ -70,8 +70,7 @@ public void locateMatches(MatchLocator locator, ClassFile classFile, IBinaryType
 				if (!locator.typeInHierarchy(binding)) return;
 
 				MethodBinding[] methods = binding.methods();
-				for (int i = 0, l = methods.length; i < l; i++) {
-					MethodBinding method = methods[i];
+				for (MethodBinding method: methods) {
 					if (locator.patternLocator.resolveLevel(method) == PatternLocator.ACCURATE_MATCH) {
 						IMethod methodHandle = binaryType.getMethod(
 							new String(method.isConstructor() ? binding.compoundName[binding.compoundName.length-1] : method.selector),
@@ -81,8 +80,7 @@ public void locateMatches(MatchLocator locator, ClassFile classFile, IBinaryType
 				}
 
 				FieldBinding[] fields = binding.fields();
-				for (int i = 0, l = fields.length; i < l; i++) {
-					FieldBinding field = fields[i];
+				for (FieldBinding field: fields) {
 					if (locator.patternLocator.resolveLevel(field) == PatternLocator.ACCURATE_MATCH) {
 						IField fieldHandle = binaryType.getField(new String(field.name));
 						locator.reportBinaryMemberDeclaration(null, fieldHandle, field, info, SearchMatch.A_ACCURATE);
@@ -100,8 +98,7 @@ public void locateMatches(MatchLocator locator, ClassFile classFile, IBinaryType
 
 	IBinaryMethod[] methods = info.getMethods();
 	if (methods != null) {
-		for (int i = 0, l = methods.length; i < l; i++) {
-			IBinaryMethod method = methods[i];
+		for (IBinaryMethod method: methods) {
 			if (matchBinary(pattern, method, info)) {
 				char[] name;
 				if (method.isConstructor()) {
@@ -124,8 +121,7 @@ public void locateMatches(MatchLocator locator, ClassFile classFile, IBinaryType
 
 	IBinaryField[] fields = info.getFields();
 	if (fields != null) {
-		for (int i = 0, l = fields.length; i < l; i++) {
-			IBinaryField field = fields[i];
+		for (IBinaryField field: fields) {
 			if (matchBinary(pattern, field, info)) {
 				String fieldName = new String(field.getName());
 				IField fieldHandle = binaryType.getField(fieldName);
@@ -153,8 +149,9 @@ boolean matchBinary(SearchPattern pattern, Object binaryInfo, IBinaryType enclos
 			return matchTypeDeclaration((TypeDeclarationPattern) pattern, binaryInfo, enclosingBinaryType);
 		case OR_PATTERN :
 			SearchPattern[] patterns = ((OrPattern) pattern).patterns;
-			for (int i = 0, length = patterns.length; i < length; i++)
-				if (matchBinary(patterns[i], binaryInfo, enclosingBinaryType)) return true;
+			for (SearchPattern p: patterns) {
+				if (matchBinary(p, binaryInfo, enclosingBinaryType)) return true;
+			}
 	}
 	return false;
 }
@@ -225,8 +222,8 @@ boolean matchSuperTypeReference(SuperTypeReferencePattern pattern, Object binary
 	if (pattern.superRefKind != SuperTypeReferencePattern.ONLY_SUPER_CLASSES) {
 		char[][] superInterfaces = type.getInterfaceNames();
 		if (superInterfaces != null) {
-			for (int i = 0, max = superInterfaces.length; i < max; i++) {
-				char[] superInterfaceName = convertClassFileFormat(superInterfaces[i]);
+			for (char[] superInterface: superInterfaces) {
+				char[] superInterfaceName = convertClassFileFormat(superInterface);
 				if (checkTypeName(pattern.superSimpleName, pattern.superQualification, superInterfaceName, pattern.isCaseSensitive()))
 					return true;
 			}

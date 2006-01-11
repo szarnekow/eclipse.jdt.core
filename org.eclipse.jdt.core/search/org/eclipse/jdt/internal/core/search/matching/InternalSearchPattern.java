@@ -77,16 +77,16 @@ public abstract class InternalSearchPattern {
 		
 			SearchPattern decodedResult = pattern.getBlankPattern();
 			String containerPath = index.containerPath;
-			for (int i = 0, l = entries.length; i < l; i++) {
+			for (EntryResult entry: entries) {
 				if (monitor != null && monitor.isCanceled()) throw new OperationCanceledException();
 		
-				EntryResult entry = entries[i];
 				decodedResult.decodeIndexKey(entry.getWord());
 				if (pattern.matchesDecodedKey(decodedResult)) {
 					// TODO (kent) some clients may not need the document names
 					String[] names = entry.getDocumentNames(index);
-					for (int j = 0, n = names.length; j < n; j++)
-						acceptMatch(names[j], containerPath, decodedResult, requestor, participant, scope);
+					for (String name: names) {
+						acceptMatch(name, containerPath, decodedResult, requestor, participant, scope);
+					}
 				}
 			}
 		} finally {

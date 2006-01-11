@@ -225,9 +225,8 @@ public class JavaSearchPattern extends SearchPattern {
 		this.typeArguments = typeArguments;
 		// update flags
 		if (this.typeArguments != null) {
-			int length = this.typeArguments.length;
-			for (int i=0; i<length; i++) {
-				if (this.typeArguments[i] != null && this.typeArguments[i].length > 0) {
+			for (char[][] typeArgument: this.typeArguments) {
+				if (typeArgument != null && typeArgument.length > 0) {
 					this.flags |= HAS_TYPE_ARGUMENTS;
 					break;
 				}

@@ -108,8 +108,8 @@ protected boolean hasPossibleNodes(int start, int end) {
 		}
 	}
 	Object[] nodes = this.matchingNodes.keyTable;
-	for (int i = 0, l = nodes.length; i < l; i++) {
-		ASTNode node = (ASTNode) nodes[i];
+	for (Object n: nodes) {
+		ASTNode node = (ASTNode) n;
 		if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
 			return true;
 	}
@@ -121,8 +121,8 @@ protected boolean hasPossibleNodes(int start, int end) {
 protected ASTNode[] matchingNodes(int start, int end) {
 	ArrayList<ASTNode> nodes = null;
 	Object[] keyTable = this.matchingNodes.keyTable;
-	for (int i = 0, l = keyTable.length; i < l; i++) {
-		ASTNode node = (ASTNode) keyTable[i];
+	for (Object key: keyTable) {
+		ASTNode node = (ASTNode) key;
 		if (node != null && start <= node.sourceStart && node.sourceEnd <= end) {
 			if (nodes == null) nodes = new ArrayList<ASTNode>();
 			nodes.add(node);

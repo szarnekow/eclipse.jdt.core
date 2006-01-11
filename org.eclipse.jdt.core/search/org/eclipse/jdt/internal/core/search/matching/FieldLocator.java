@@ -15,7 +15,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.search.*;
-import org.eclipse.jdt.core.search.SearchMatch;
 import org.eclipse.jdt.internal.compiler.ast.*;
 import org.eclipse.jdt.internal.compiler.env.IBinaryType;
 import org.eclipse.jdt.internal.compiler.lookup.*;
@@ -151,9 +150,10 @@ protected void matchReportReference(ASTNode reference, IJavaElement element, Bin
 				Binding nameBinding = qNameRef.binding;
 				if (nameBinding instanceof FieldBinding)
 					reportDeclaration((FieldBinding)nameBinding, locator, declPattern.knownFields);
-				int otherMax = qNameRef.otherBindings == null ? 0 : qNameRef.otherBindings.length;
-				for (int i = 0; i < otherMax; i++)
-					reportDeclaration(qNameRef.otherBindings[i], locator, declPattern.knownFields);
+				if (qNameRef.otherBindings != null) {
+					for (FieldBinding fieldBinding: qNameRef.otherBindings)
+						reportDeclaration(fieldBinding, locator, declPattern.knownFields);
+				}
 			} else if (reference instanceof SingleNameReference) {
 				reportDeclaration((FieldBinding)((SingleNameReference) reference).binding, locator, declPattern.knownFields);
 			}
@@ -274,9 +274,9 @@ protected void reportDeclaration(FieldBinding fieldBinding, MatchLocator locator
 			TypeDeclaration typeDecl = scope.referenceContext;
 			FieldDeclaration fieldDecl = null;
 			FieldDeclaration[] fieldDecls = typeDecl.fields;
-			for (int i = 0, length = fieldDecls.length; i < length; i++) {
-				if (CharOperation.equals(bindingName, fieldDecls[i].name)) {
-					fieldDecl = fieldDecls[i];
+			for (FieldDeclaration decl: fieldDecls) {
+				if (CharOperation.equals(bindingName, decl.name)) {
+					fieldDecl = decl;
 					break;
 				}
 			} 

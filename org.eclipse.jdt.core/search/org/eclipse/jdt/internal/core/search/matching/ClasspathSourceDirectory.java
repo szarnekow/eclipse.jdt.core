@@ -63,8 +63,7 @@ String[] directoryList(String qualifiedPackageName) {
 			IResource[] members = ((IContainer) container).members();
 			dirList = new String[members.length];
 			int index = 0;
-			for (int i = 0, l = members.length; i < l; i++) {
-				IResource m = members[i];
+			for (IResource m: members) {
 				String name;
 				if (m.getType() == IResource.FILE && org.eclipse.jdt.internal.core.util.Util.isJavaLikeFileName(name = m.getName()))
 					dirList[index++] = name;
@@ -102,8 +101,8 @@ public NameEnvironmentAnswer findClass(String sourceFileWithoutExtension, String
 	
 	String sourceFolderPath = this.sourceFolder.getFullPath().toString() + IPath.SEPARATOR;
 	char[][] javaLikeExtensions = Util.getJavaLikeExtensions();
-	for (int i = 0, length = javaLikeExtensions.length; i < length; i++) {
-		String extension = new String(javaLikeExtensions[i]);
+	for (char[] javaLikeExtension: javaLikeExtensions) {
+		String extension = new String(javaLikeExtension);
 		String sourceFileName = sourceFileWithoutExtension + extension;
 		if (!doesFileExist(sourceFileName, qualifiedPackageName)) continue; // most common case
 	

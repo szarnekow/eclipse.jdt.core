@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -47,19 +48,20 @@ public class JavaSearchNameEnvironment implements INameEnvironment, SuffixConsta
 	 */
 	HashMap<String, CompilationUnit> workingCopies;
 	
-public JavaSearchNameEnvironment(IJavaProject javaProject, org.eclipse.jdt.core.ICompilationUnit[] copies) {
+public JavaSearchNameEnvironment(IJavaProject javaProject, ICompilationUnit[] copies) {
 	computeClasspathLocations(javaProject.getProject().getWorkspace().getRoot(), (JavaProject) javaProject);
 	try {
-		int length = copies == null ? 0 : copies.length;
+		int length = copies==null ? 0 : copies.length;
 		this.workingCopies = new HashMap<String, CompilationUnit>(length);
-		for (int i = 0; i < length; i++) {
-			CompilationUnit workingCopy = (CompilationUnit) copies[i];
-			IPackageDeclaration[] pkgs = workingCopy.getPackageDeclarations();
-			String pkg = pkgs.length > 0 ? pkgs[0].getElementName() : ""; //$NON-NLS-1$
-			String cuName = workingCopy.getElementName();
-			String mainTypeName = Util.getNameWithoutJavaLikeExtension(cuName);
-			String qualifiedMainTypeName = pkg.length() == 0 ? mainTypeName : pkg.replace('.', '/') + '/' + mainTypeName;
-			this.workingCopies.put(qualifiedMainTypeName, workingCopy);
+		if (copies != null) {
+			for (ICompilationUnit copy: copies) {
+				IPackageDeclaration[] pkgs = copy.getPackageDeclarations();
+				String pkg = pkgs.length > 0 ? pkgs[0].getElementName() : ""; //$NON-NLS-1$
+				String cuName = copy.getElementName();
+				String mainTypeName = Util.getNameWithoutJavaLikeExtension(cuName);
+				String qualifiedMainTypeName = pkg.length() == 0 ? mainTypeName : pkg.replace('.', '/') + '/' + mainTypeName;
+				this.workingCopies.put(qualifiedMainTypeName, (CompilationUnit) copy);
+			}
 		}
 	} catch (JavaModelException e) {
 		// working copy doesn't exist: cannot happen
@@ -67,8 +69,8 @@ public JavaSearchNameEnvironment(IJavaProject javaProject, org.eclipse.jdt.core.
 }
 
 public void cleanup() {
-	for (int i = 0, length = this.locations.length; i < length; i++) {
-		this.locations[i].cleanup();
+	for (ClasspathLocation location: this.locations) {
+		location.cleanup();
 	}
 }
 
@@ -86,8 +88,7 @@ private void computeClasspathLocations(IWorkspaceRoot workspaceRoot, JavaProject
 	ClasspathLocation[] cpLocations = new ClasspathLocation[length];
 	int index = 0;
 	JavaModelManager manager = JavaModelManager.getJavaModelManager();
-	for (int i = 0; i < length; i++) {
-		PackageFragmentRoot root = (PackageFragmentRoot) roots[i];
+	for (IPackageFragmentRoot root: roots) {
 		IPath path = root.getPath();
 		try {
 			if (root.isArchive()) {
@@ -100,7 +101,8 @@ private void computeClasspathLocations(IWorkspaceRoot workspaceRoot, JavaProject
 					// just resize cpLocations
 					System.arraycopy(cpLocations, 0, cpLocations = new ClasspathLocation[cpLocations.length-1], 0, index);
 				} else if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
-					cpLocations[index++] = new ClasspathSourceDirectory((IContainer)target, root.fullExclusionPatternChars(), root.fullInclusionPatternChars());
+					PackageFragmentRoot fragmentRoot = (PackageFragmentRoot) root;
+					cpLocations[index++] = new ClasspathSourceDirectory((IContainer)target, fragmentRoot.fullExclusionPatternChars(), fragmentRoot.fullInclusionPatternChars());
 				} else {
 					cpLocations[index++] = ClasspathLocation.forBinaryFolder((IContainer) target, false, ((ClasspathEntry) root.getRawClasspathEntry()).getAccessRuleSet());
 				}
@@ -120,8 +122,7 @@ private NameEnvironmentAnswer findClass(String qualifiedTypeName, char[] typeNam
 		binaryFileName = null, qBinaryFileName = null, 
 		sourceFileName = null, qSourceFileName = null, 
 		qPackageName = null;
-	for (int i = 0, length = this.locations.length; i < length; i++) {
-		ClasspathLocation location = this.locations[i];
+	for (ClasspathLocation location: this.locations) {
 		NameEnvironmentAnswer answer;
 		if (location instanceof ClasspathSourceDirectory) {
 			if (sourceFileName == null) {
@@ -186,9 +187,10 @@ public boolean isPackage(char[][] compoundName, char[] packageName) {
 }
 
 public boolean isPackage(String qualifiedPackageName) {
-	for (int i = 0, length = this.locations.length; i < length; i++)
-		if (this.locations[i].isPackage(qualifiedPackageName))
+	for (ClasspathLocation location: this.locations) {
+		if (location.isPackage(qualifiedPackageName))
 			return true;
+	}
 	return false;
 }
 
