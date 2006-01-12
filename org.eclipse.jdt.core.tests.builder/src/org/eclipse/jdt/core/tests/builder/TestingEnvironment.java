@@ -28,7 +28,7 @@ public class TestingEnvironment {
 	private boolean fWasBuilt = false;
 
 	private IWorkspace fWorkspace = null;
-	private Hashtable fProjects = null;
+	private Hashtable<String, IProject> fProjects = null;
 
 	private void addBuilderSpecs(String projectName) {
 		try {
@@ -145,7 +145,11 @@ public class TestingEnvironment {
 		addEntry(projectPath, entry);
 		return path;
 	}
-	
+
+	public void addProject(IProject project){
+		fProjects.put(project.getName(), project);
+	}
+
 	public IPath addProject(String projectName){
 		return addProject(projectName, "1.4");
 	}
@@ -157,7 +161,7 @@ public class TestingEnvironment {
 			if ((AbstractCompilerTest.getPossibleComplianceLevels()  & AbstractCompilerTest.F_1_5) == 0)
 				throw new RuntimeException("This test should run on top of a 1.5 JRE");
 			IJavaProject javaProject = JavaCore.create(project);
-			Map options = new HashMap();
+			Map<String, String> options = new HashMap<String, String>();
 			options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
 			options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);	
 			options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_5);	
@@ -461,7 +465,7 @@ public class TestingEnvironment {
 			}
 		}
 		try {
-			ArrayList problems = new ArrayList();
+			ArrayList<Problem> problems = new ArrayList<Problem>();
 			IMarker[] markers = resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
 			for (int i = 0; i < markers.length; i++)
 				problems.add(new Problem(markers[i], storeRange));
@@ -539,14 +543,14 @@ public class TestingEnvironment {
 	* Returns the core project.
 	*/
 	public IProject getProject(String projectName) {
-		return (IProject)fProjects.get(projectName);
+		return fProjects.get(projectName);
 	}
 	
 	/**
 	* Returns the core project.
 	*/
 	public IProject getProject(IPath projectPath) {
-		return (IProject)fProjects.get(projectPath.lastSegment());
+		return fProjects.get(projectPath.lastSegment());
 	}
 
 	/**
@@ -641,7 +645,7 @@ public class TestingEnvironment {
 	public void openEmptyWorkspace() {
 		close();
 		openWorkspace();
-		fProjects = new Hashtable(10);
+		fProjects = new Hashtable<String, IProject>(10);
 		setup();
 	}
 	

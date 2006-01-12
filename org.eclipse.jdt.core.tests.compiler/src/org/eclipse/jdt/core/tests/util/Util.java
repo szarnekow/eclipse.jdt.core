@@ -185,7 +185,7 @@ public static void createJar(String[] pathsAndContents, Map options, String jarP
 	zip(classesDir, jarPath);
 }
 public static void createJar(String[] pathsAndContents, String jarPath, String compliance) throws IOException {
-	Map options = new HashMap();
+	Map<String, String> options = new HashMap<String, String>();
 	options.put(CompilerOptions.OPTION_Compliance, compliance);
 	options.put(CompilerOptions.OPTION_Source, compliance);
 	options.put(CompilerOptions.OPTION_TargetPlatform, compliance);
