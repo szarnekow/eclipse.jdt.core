@@ -64,7 +64,7 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 	public static Test suite() {
 		Test suite = buildSuite(testClass());
 		TESTS_COUNT = suite.countTestCases();
-		createPrintStream(testClass().getName(), LOG_STREAMS, TESTS_COUNT, null);
+		createPrintStream(testClass(), LOG_STREAMS, TESTS_COUNT, null);
 		return suite;
 	}
 
@@ -89,7 +89,7 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 		if (LOG_DIR != null) {
 			logPerfResult(LOG_STREAMS, TESTS_COUNT);
 		}
-		
+
 		// Print statistics
 		if (TESTS_COUNT == 0) {
 			System.out.println("-------------------------------------");
@@ -115,7 +115,7 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 	}
 	/**
 	 * Simple type name requestor: only count classes and interfaces.
-	 * @deprecated
+	* @deprecated as it uses a deprecated interface
 	 */
 	class SearchTypeNameRequestor implements ITypeNameRequestor {
 		int count = 0;
@@ -250,12 +250,10 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 			WAIT_UNTIL_READY_TO_SEARCH,
 			null);
 
-		// Clean memory
-		runGc();
-
 		// Measures
 		for (int i=0; i<MEASURES_COUNT; i++) {
 			cleanCategoryTableCache(true);
+			runGc();
 			startMeasuring();
 			for (int j=0; j<ITERATIONS_COUNT; j++) {
 				new SearchEngine().searchAllTypeNames(
@@ -301,12 +299,10 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 		// Warm up
 		search("JavaCore", TYPE, ALL_OCCURRENCES);
 
-		// Clean memory
-		runGc();
-
 		// Measures
 		for (int i=0; i<MEASURES_COUNT; i++) {
 			cleanCategoryTableCache(true);
+			runGc();
 			startMeasuring();
 			search("JavaCore", TYPE, ALL_OCCURRENCES);
 			stopMeasuring();
@@ -336,12 +332,10 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 		// Warm up
 		search("FILE", FIELD, ALL_OCCURRENCES);
 
-		// Clean memory
-		runGc();
-
 		// Measures
 		for (int i=0; i<MEASURES_COUNT; i++) {
 			cleanCategoryTableCache(false);
+			runGc();
 			startMeasuring();
 			search("FILE", FIELD, ALL_OCCURRENCES);
 			stopMeasuring();
@@ -407,12 +401,10 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 		// Warm up
 		search("String", CONSTRUCTOR, ALL_OCCURRENCES);
 
-		// Clean memory
-		runGc();
-
 		// Measures
 		for (int i=0; i<MEASURES_COUNT; i++) {
 			cleanCategoryTableCache(false);
+			runGc();
 			startMeasuring();
 			search("String", CONSTRUCTOR, ALL_OCCURRENCES);
 			stopMeasuring();

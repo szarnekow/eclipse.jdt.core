@@ -13,18 +13,12 @@ package org.eclipse.jdt.core.tests.performance;
 import java.io.ByteArrayInputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import junit.framework.*;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jdt.core.*;
@@ -32,7 +26,6 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.search.*;
 import org.eclipse.jdt.core.tests.model.AbstractJavaModelTests.ProblemRequestor;
-import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.core.*;
 
 /**
@@ -95,6 +88,7 @@ protected void setUp() throws Exception {
 	} else if (BIG_PROJECT_TYPE_PATH == null) {
 		setUpBigProjectInfo();
 	}
+	assertNotNull("We should have found "+BIG_PROJECT_NAME+" project in workspace!!!", BIG_PROJECT);
 }
 private void setUpBigProject() throws CoreException {
 	try {
@@ -292,71 +286,6 @@ protected void assertElementsEqual(String message, String expected, IJavaElement
 	assertEquals(message, expected, actual);
 }
 
-/**
- * @see org.eclipse.jdt.core.tests.model.AbstractJavaModelTests#createJavaProject(String, String[], String[], String[][], String[][], String[], String[][], String[][], boolean[], String, String[], String[][], String[][], String)
- */
-protected IJavaProject createJavaProject(final String projectName, final String[] sourceFolders, final String projectOutput, final String compliance) throws CoreException {
-	final IJavaProject[] result = new IJavaProject[1];
-	IWorkspaceRunnable create = new IWorkspaceRunnable() {
-		public void run(IProgressMonitor monitor) throws CoreException {
-			
-			// create classpath entries 
-			IProject project = ENV.getProject(projectName);
-			IPath projectPath = project.getFullPath();
-			int sourceLength = sourceFolders == null ? 0 : sourceFolders.length;
-			IClasspathEntry[] entries = new IClasspathEntry[sourceLength];
-			for (int i= 0; i < sourceLength; i++) {
-				IPath sourcePath = new Path(sourceFolders[i]);
-				int segmentCount = sourcePath.segmentCount();
-				if (segmentCount > 0) {
-					// create folder and its parents
-					IContainer container = project;
-					for (int j = 0; j < segmentCount; j++) {
-						IFolder folder = container.getFolder(new Path(sourcePath.segment(j)));
-						if (!folder.exists()) {
-							folder.create(true, true, null);
-						}
-						container = folder;
-					}
-				}
-				// create source entry
-				entries[i] = 
-					JavaCore.newSourceEntry(
-						projectPath.append(sourcePath), 
-						new IPath[0],
-						new IPath[0], 
-						null
-					);
-			}
-			
-			// create project's output folder
-			IPath outputPath = new Path(projectOutput);
-			if (outputPath.segmentCount() > 0) {
-				IFolder output = project.getFolder(outputPath);
-				if (!output.exists()) {
-					output.create(true, true, null);
-				}
-			}
-			
-			// set classpath and output location
-			IJavaProject javaProject = ENV.getJavaProject(projectName);
-			javaProject.setRawClasspath(entries, projectPath.append(outputPath), null);
-			
-			// set compliance level options
-			if ("1.5".equals(compliance)) {
-				Map options = new HashMap();
-				options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
-				options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);	
-				options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_5);	
-				javaProject.setOptions(options);
-			}
-			
-			result[0] = javaProject;
-		}
-	};
-	ResourcesPlugin.getWorkspace().run(create, null);	
-	return result[0];
-}
 private NameLookup getNameLookup(JavaProject project) throws JavaModelException {
 	return project.newNameLookup((WorkingCopyOwner)null);
 }
@@ -736,7 +665,7 @@ public void testPerfSearchAllTypeNamesAndReconcile() throws CoreException {
 public void testPerfSeekPackageFragments() throws CoreException {
 	assertNotNull("We should have the 'BigProject' in workspace!", BIG_PROJECT);
 	class PackageRequestor implements IJavaElementRequestor {
-		ArrayList pkgs = new ArrayList();
+		ArrayList<IPackageFragment> pkgs = new ArrayList<IPackageFragment>();
 		public void acceptField(IField field) {}
 		public void acceptInitializer(IInitializer initializer) {}
 		public void acceptMemberType(IType type) {}

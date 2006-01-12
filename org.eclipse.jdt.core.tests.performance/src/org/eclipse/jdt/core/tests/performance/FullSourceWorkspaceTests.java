@@ -30,6 +30,7 @@ import org.eclipse.jdt.internal.compiler.batch.Main;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.eclipse.jdt.internal.core.search.processing.IJob;
 import org.eclipse.test.performance.Dimension;
@@ -41,7 +42,8 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 
 	// Final static variables
 	final static boolean DEBUG = "true".equals(System.getProperty("debug"));
-	final static Hashtable INITIAL_OPTIONS = JavaCore.getOptions();
+	final static boolean PRINT = "true".equals(System.getProperty("print"));
+	final static Hashtable<String, String> INITIAL_OPTIONS = JavaCore.getOptions();
 	
 	// Garbage collect constants
 	final static int MAX_GC = 10; // Max gc iterations
@@ -51,6 +53,12 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	// Workspace variables
 	protected static TestingEnvironment ENV = null;
 	protected static IJavaProject[] ALL_PROJECTS;
+	protected static IJavaProject JDT_CORE_PROJECT;
+	protected static ICompilationUnit PARSER_WORKING_COPY;
+	protected final static String BIG_PROJECT_NAME = "BigProject";
+	protected static JavaProject BIG_PROJECT;
+	protected final static String GENERICS_PROJECT_NAME = "P15";
+	protected static IJavaProject GENERICS_PROJECT;
 	
 	// Index variables
 	protected static IndexManager INDEX_MANAGER = JavaModelManager.getJavaModelManager().getIndexManager();
@@ -58,16 +66,37 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	// Tests infos
 	protected static int ALL_TESTS_COUNT = 0;
 	protected static int TEST_POSITION = 0;
-	protected static List TESTS_NAME_LIST;
+	protected static List<String> TESTS_NAME_LIST;
 
 	// Tests counters
-	protected final static int MEASURES_COUNT = 10;
+	protected final static int MEASURES_COUNT;
+	static {
+		String measures = System.getProperty("measures", "10");
+		int count = 10;
+		try {
+			count = Integer.parseInt(measures);
+			if (count < 0 || count > 20) {
+				System.out.println("INFO: Measures parameter ("+count+") is ignored as it is an invalid value! (should be between 0 and 20)");
+				count = 10;
+			} else if (count != 10) {
+				System.out.println("WARNING: Measures count has been changed while running this test = "+count+" instead of 10 normally!");
+			}
+		}
+		catch (NumberFormatException nfe) {
+			// use default value
+			System.out.println("INFO: Specified 'measures' VM argument (="+measures+") is ignored as it is not an integer (0-20)!");
+		}
+		MEASURES_COUNT = count;
+	}
 
 	// Scenario information
 	String scenarioReadableName, scenarioShortName;
 	StringBuffer scenarioComment;
-	static Map SCENARII_COMMENT = new HashMap();
-	
+	static Map<Class, StringBuffer[]> SCENARII_COMMENT = new HashMap<Class, StringBuffer[]>();
+
+	// Time measuring
+	long startMeasuring, testDuration;
+
 	/**
 	 * Variable used for log files.
 	 * Log files are used in conjonction with {@link JdtCorePerformanceMeter} class.
@@ -79,53 +108,19 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	 * 
 	 */
 	// Store directory where to put files
+	private final static File INVALID_DIR = new File("Invalid");
 	protected static File LOG_DIR;
 	// Types of statistic which can be stored.
 	protected final static String[] LOG_TYPES = { "cpu", "elapsed" };
 	// Main version which is logged
-	protected final static String LOG_VERSION = "_v31_"; // TODO (frederic) see whether this could be computed automatically
-	// Standard deviation threshold. Statistic should not be take into account when it's reached
-	protected final static double STDDEV_THRESHOLD = 0.1; // default is 10%
-
-	/**
-	 * @param name
-	 */
-	public FullSourceWorkspaceTests(String name) {
-		super(name);
+	protected final static String LOG_VERSION;
+	static {
+		String version = Main.bind("compiler.version");
+		LOG_VERSION = "v_"+version.substring(version.indexOf('.')+1, version.indexOf(','));
 	}
-
-	/**
-	 * Create test suite for a given TestCase class.
-	 * 
-	 * Use this method for all JDT/Core performance test using full source workspace.
-	 * All test count is computed to know when tests are about to be finished.
-	 *
-	 * It also init log dir to create log file if specified
-	 * @see #initLogDir()
-	 * 
-	 * @param testClass TestCase test class
-	 * @return test suite
-	 */
-	protected static Test buildSuite(Class testClass) {
-
-		// Create tests
-		TestSuite suite = new TestSuite(testClass.getName());
-		List tests = buildTestsList(testClass);
-		int size = tests.size();
-		TESTS_NAME_LIST = new ArrayList(size);
-		for (int i=0; i<size; i++) {
-			FullSourceWorkspaceTests test = (FullSourceWorkspaceTests)tests.get(i);
-			suite.addTest(test);
-			TESTS_NAME_LIST.add(test.getName());
-		}
-		ALL_TESTS_COUNT += suite.testCount();
-
-		// Init log dir
-		initLogDir();
-		
-		// Return created tests
-		return suite;
-	}
+	// Patch version currently applied: may be null!
+	protected final static String PATCH_ID = System.getProperty("patch");
+	protected static String RUN_ID;
 
 	/**
 	 * Initialize log directory.
@@ -141,22 +136,107 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	 */
 	protected static void initLogDir() {
 		String logDir = System.getProperty("logDir");
+		File dir = null;
 		if (logDir != null) {
-			File dir = new File(logDir);
+			// Verify that parent log dir is valid if exist
+			dir = new File(logDir);
 			if (dir.exists()) {
-				if (dir.isDirectory()) {
-					LOG_DIR = dir;
-				} else {
-					System.err.println(logDir+" is not a valid directory. Log files will NOT be written!");
+				if (!dir.isDirectory()) {
+					System.err.println(logDir+" is not a valid directory, log files will NOT be written!");
+					dir = INVALID_DIR;
 				}
 			} else {
-				if (dir.mkdir()) {
-					LOG_DIR = dir;
-				} else {
-					System.err.println("Cannot create "+logDir+". Log files will NOT be written!");
+				// Create parent dir if necessary
+				int n=0;
+				boolean created = false;
+				while (!created && n<3) {
+					created = dir.mkdir();
+					if (!created) {
+						dir = dir.getParentFile();
+					}
+					n++;
+				}
+				if (!created) {
+					System.err.println("Cannot create "+logDir+", log files will NOT be written!");
+					dir = INVALID_DIR;
+				}
+			}
+			
+			// Create Log dir
+			String[] subdirs = (PATCH_ID == null) 
+				? new String[] {LOG_VERSION, RUN_ID }
+				: new String[] {LOG_VERSION, PATCH_ID, RUN_ID };
+			for (int i=0; i<subdirs.length; i++) {
+				dir = new File(dir, subdirs[i]);
+				if (dir.exists()) {
+					if (!dir.isDirectory()) {
+						System.err.println(dir.getPath()+" is not a valid directory, log files will NOT be written!");
+						dir= INVALID_DIR;
+						break;
+					}
+				} else if (!dir.mkdirs()) {
+					System.err.println("Cannot create "+dir.getPath()+", log files will NOT be written!");
+					dir = INVALID_DIR;
+					break;
 				}
 			}
 		}
+		LOG_DIR = dir;
+	}
+
+	// Standard deviation threshold. Statistic should not be take into account when it's reached
+	protected final static double STDDEV_THRESHOLD = 0.1; // default is 10%
+
+	/**
+	 * @param name
+	 */
+	public FullSourceWorkspaceTests(String name) {
+		super(name);
+	}
+
+	protected static String suiteTypeShortName(Class testClass) {
+		String className = testClass.getName();
+		int startIndex = className.indexOf("FullSourceWorkspace");
+		int endIndex = className.lastIndexOf("Test");
+		if (startIndex < 0) return null;
+		startIndex += "FullSourceWorkspace".length();
+		return className.substring(startIndex, endIndex);
+	}
+
+	/**
+	 * Create test suite for a given TestCase class.
+	 * 
+	 * Use this method for all JDT/Core performance test using full source workspace.
+	 * All test count is computed to know when tests are about to be finished.
+	 *
+	 * @param testClass TestCase test class
+	 * @return test suite
+	 */
+	static Test buildSuite(Class testClass) {
+
+		// Create tests
+		String className = testClass.getName();
+		TestSuite suite = new TestSuite(className);
+		List tests = buildTestsList(testClass);
+		int size = tests.size();
+		TESTS_NAME_LIST = new ArrayList<String>(size);
+		for (int i=0; i<size; i++) {
+			FullSourceWorkspaceTests test = (FullSourceWorkspaceTests)tests.get(i);
+			suite.addTest(test);
+			TESTS_NAME_LIST.add(test.getName());
+		}
+		ALL_TESTS_COUNT += suite.testCount();
+		
+		// Init log dir if necessary
+		if (LOG_DIR == null) {
+			if (RUN_ID == null) {
+				RUN_ID = suiteTypeShortName(testClass);
+			}
+			initLogDir();
+		}
+		
+		// Return created tests
+		return suite;
 	}
 
 	/**
@@ -169,18 +249,18 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	 * This method does nothing if log files directory has not been initialized
 	 * (which should be the case most of times and especially while running nightly/integration build performance tests).
 	 */
-	protected static void createPrintStream(String className, PrintStream[] logStreams, int count, String prefix) {
+	static void createPrintStream(Class testClass, PrintStream[] logStreams, int count, String prefix) {
 		if (LOG_DIR != null) {
-			String testTypeName = className.substring(className.indexOf("FullSourceWorkspace")+"FullSourceWorkspace".length(), className.lastIndexOf("Test"));
 			for (int i=0, ln=LOG_TYPES.length; i<ln; i++) {
-				File logFile = new File(LOG_DIR, "Perfs"+testTypeName+LOG_VERSION+LOG_TYPES[i]+".log");
+				String suiteTypeName = suiteTypeShortName(testClass);
+				File logFile = new File(LOG_DIR, suiteTypeName+'_'+LOG_TYPES[i]+".log");
 				try {
 					boolean fileExist = logFile.exists();
 					logStreams[i] = new PrintStream(new FileOutputStream(logFile, true));
 					if (!fileExist && logStreams[i] != null) {
 						logStreams[i].print("Date  \tTime  \t");
 						for (int j=0; j<count; j++) {
-							String testName = ((String) TESTS_NAME_LIST.get(j)).substring(4+(prefix==null?0:prefix.length())); // 4="test".length()
+							String testName = TESTS_NAME_LIST.get(j).substring(4+(prefix==null?0:prefix.length())); // 4="test".length()
 							logStreams[i].print(testName+'\t');
 						}
 						logStreams[i].println("Comment");
@@ -208,7 +288,7 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 			free = Runtime.getRuntime().freeMemory();
 			System.gc();
 			delta = Runtime.getRuntime().freeMemory() - free;
-			if (DEBUG) System.out.println("Loop gc "+ ++iterations + " (free="+free+", delta="+delta+")");
+//			if (DEBUG) System.out.println("Loop gc "+ ++iterations + " (free="+free+", delta="+delta+")");
 			try {
 				Thread.sleep(TIME_GC);
 			} catch (InterruptedException e) {
@@ -246,7 +326,7 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 			dFormat2.setMaximumFractionDigits(2);
 			try {
 				// Store CPU Time
-				JdtCorePerformanceMeter.Statistics cpuStats = (JdtCorePerformanceMeter.Statistics) JdtCorePerformanceMeter.CPU_TIMES.get(this.scenarioReadableName);
+				JdtCorePerformanceMeter.Statistics cpuStats = JdtCorePerformanceMeter.CPU_TIMES.get(this.scenarioReadableName);
 				if (cpuStats != null) {
 					double percent = cpuStats.stddev/cpuStats.average;
 					if (percent > STDDEV_THRESHOLD) {
@@ -263,7 +343,7 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 					Thread.sleep(1000);
 				}
 				// Store Elapsed time
-				JdtCorePerformanceMeter.Statistics elapsedStats = (JdtCorePerformanceMeter.Statistics) JdtCorePerformanceMeter.ELAPSED_TIMES.get(this.scenarioReadableName);
+				JdtCorePerformanceMeter.Statistics elapsedStats = JdtCorePerformanceMeter.ELAPSED_TIMES.get(this.scenarioReadableName);
 				if (elapsedStats != null) {
 					double percent = elapsedStats.stddev/elapsedStats.average;
 					if (percent > STDDEV_THRESHOLD) {
@@ -285,7 +365,7 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 		}
 
 		// Update comment buffers
-		StringBuffer[] scenarioComments = (StringBuffer[]) SCENARII_COMMENT.get(getClass());
+		StringBuffer[] scenarioComments = SCENARII_COMMENT.get(getClass());
 		if (scenarioComments == null) {
 			scenarioComments = new StringBuffer[LOG_TYPES.length];
 			SCENARII_COMMENT.put(getClass(), scenarioComments);
@@ -350,9 +430,19 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 			ENV.openEmptyWorkspace();
 			setUpFullSourceWorkspace();
 		}
+
+		// Verify that all used projects were found in wksp
+		assertNotNull("We should have found "+JavaCore.PLUGIN_ID+" project in workspace!!!", JDT_CORE_PROJECT);
 		
 		// Increment test position
 		TEST_POSITION++;
+		
+		// Print test name
+		System.out.println("--------------------------------------------------------------------------------");
+		System.out.println("Running "+this.scenarioReadableName+"...");
+
+		// Time measuring
+		this.testDuration = 0;
 	}
 	/**
 	 * @deprecated Use {@link #tagAsGlobalSummary(String,Dimension,boolean)} instead
@@ -396,6 +486,18 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 		if (DEBUG) System.out.println(shortName);
 		if (fingerprint) super.tagAsSummary(shortName, dimensions);
 	}
+	public void startMeasuring() {
+		super.startMeasuring();
+		this.startMeasuring = System.currentTimeMillis();
+	}
+	public void stopMeasuring() {
+		super.stopMeasuring();
+		this.testDuration += System.currentTimeMillis() - this.startMeasuring;
+	}
+	public void commitMeasurements() {
+		System.out.println("	Test duration = "+this.testDuration+"ms");
+		super.commitMeasurements();
+	}
 	/**
 	 * Override super implementation to:
 	 *	<ul>
@@ -416,7 +518,7 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	/*
 	 * Returns the OS path to the directory that contains this plugin.
 	 */
-	private static String getPluginDirectoryPath() {
+	static String getPluginDirectoryPath() {
 		try {
 			URL platformURL = Platform.getBundle("org.eclipse.jdt.core.tests.performance").getEntry("/");
 			return new File(Platform.asLocalURL(platformURL).getFile()).getAbsolutePath();
@@ -432,13 +534,22 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	private static void setUpFullSourceWorkspace() throws IOException, CoreException {
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		final IWorkspaceRoot workspaceRoot = workspace.getRoot();
-		if (workspaceRoot.getProjects().length == 0) {
-			String fullSourceZipPath = getPluginDirectoryPath() + File.separator + "full-source-R3_0.zip";
+		IProject[] projects = workspaceRoot.getProjects();
+		int projectsLength = projects.length;
+		if (projectsLength == 0) {
 			final String targetWorkspacePath = workspaceRoot.getLocation().toFile().getCanonicalPath();
 
-			if (DEBUG) System.out.print("Unzipping "+fullSourceZipPath+"...");
+			// Print for log in case of project creation troubles...
+			String fullSourceZipPath = getPluginDirectoryPath() + File.separator + "full-source-R3_1.zip";
+			long start = System.currentTimeMillis();
+			System.out.println("Unzipping "+fullSourceZipPath);
+			System.out.print("	in "+targetWorkspacePath+"...");
+
+			// Unzip file
 			Util.unzip(fullSourceZipPath, targetWorkspacePath);
-		
+			System.out.println(" "+(System.currentTimeMillis()-start)+"ms.");
+
+			// Create and open projects
 			workspace.run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) throws CoreException {
 					File targetWorkspaceDir = new File(targetWorkspacePath);
@@ -452,19 +563,41 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 					}
 				}
 			}, null);
-			if (DEBUG) System.out.println("done!");
+		} else {
+			for (int i = 0; i < projectsLength; i++) {
+				ENV.addProject(projects[i]);
+			}
 		}
 		String jdkLib = Util.getJavaClassLibs()[0];
 		JavaCore.setClasspathVariable("JRE_LIB", new Path(jdkLib), null);
 		
-		// workaround bug 73253 Project references not set on project open 
-		if (DEBUG) System.out.print("Set projects classpaths...");
+		// Set classpaths (workaround bug 73253 Project references not set on project open)
+		long start = System.currentTimeMillis();
+		System.out.print("Set projects classpaths...");
 		ALL_PROJECTS = JavaCore.create(workspaceRoot).getJavaProjects();
 		int length = ALL_PROJECTS.length;
 		for (int i = 0; i < length; i++) {
+			String projectName = ALL_PROJECTS[i].getElementName();
+			if (JavaCore.PLUGIN_ID.equals(projectName)) {
+				JDT_CORE_PROJECT = ALL_PROJECTS[i];
+			} else if (BIG_PROJECT_NAME.equals(projectName)) {
+				BIG_PROJECT = (JavaProject) ALL_PROJECTS[i];
+			} else if (GENERICS_PROJECT_NAME.equals(projectName)) {
+				GENERICS_PROJECT = (JavaProject) ALL_PROJECTS[i];
+			}
 			ALL_PROJECTS[i].setRawClasspath(ALL_PROJECTS[i].getRawClasspath(), null);
+			// Make Big project dependent from jdt.core one
+//			IClasspathEntry[] bigProjectEntries = BIG_PROJECT.getRawClasspath();
+//			int bpeLength = bigProjectEntries.length;
+//			System.arraycopy(bigProjectEntries, 0, bigProjectEntries = new IClasspathEntry[bpeLength+1], 0, bpeLength);
+//			bigProjectEntries[bpeLength] = JavaCore.newProjectEntry(JDT_CORE_PROJECT.getPath());
 		}
-		if (DEBUG) System.out.println("done!");
+		
+		// Initialize Parser wokring copy
+		IJavaElement element = JDT_CORE_PROJECT.findType("org.eclipse.jdt.internal.compiler.parser.Parser");
+		assertTrue("Parser should exist in org.eclipse.jdt.core project!", element != null && element.exists());
+		PARSER_WORKING_COPY = (ICompilationUnit) element.getParent();
+		System.out.println("("+(System.currentTimeMillis()-start)+"ms)");
 	}
 
 	/*
@@ -562,7 +695,73 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 			System.out.println("Could not delete directory " + directory.getPath()); //$NON-NLS-1$
 	}
 
-	private void collectAllFiles(File root, ArrayList collector, FileFilter fileFilter) {
+	/**
+	 * @see org.eclipse.jdt.core.tests.model.AbstractJavaModelTests#createJavaProject(String, String[], String[], String[][], String[][], String[], String[][], String[][], boolean[], String, String[], String[][], String[][], String)
+	 */
+	protected IJavaProject createJavaProject(final String projectName, final String[] sourceFolders, final String projectOutput, final String compliance) throws CoreException {
+		final IJavaProject[] result = new IJavaProject[1];
+		IWorkspaceRunnable create = new IWorkspaceRunnable() {
+			public void run(IProgressMonitor monitor) throws CoreException {
+				
+				// create classpath entries 
+				IProject project = ENV.getProject(projectName);
+				IPath projectPath = project.getFullPath();
+				int sourceLength = sourceFolders == null ? 0 : sourceFolders.length;
+				IClasspathEntry[] entries = new IClasspathEntry[sourceLength];
+				for (int i= 0; i < sourceLength; i++) {
+					IPath sourcePath = new Path(sourceFolders[i]);
+					int segmentCount = sourcePath.segmentCount();
+					if (segmentCount > 0) {
+						// create folder and its parents
+						IContainer container = project;
+						for (int j = 0; j < segmentCount; j++) {
+							IFolder folder = container.getFolder(new Path(sourcePath.segment(j)));
+							if (!folder.exists()) {
+								folder.create(true, true, null);
+							}
+							container = folder;
+						}
+					}
+					// create source entry
+					entries[i] = 
+						JavaCore.newSourceEntry(
+							projectPath.append(sourcePath), 
+							new IPath[0],
+							new IPath[0], 
+							null
+						);
+				}
+				
+				// create project's output folder
+				IPath outputPath = new Path(projectOutput);
+				if (outputPath.segmentCount() > 0) {
+					IFolder output = project.getFolder(outputPath);
+					if (!output.exists()) {
+						output.create(true, true, null);
+					}
+				}
+				
+				// set classpath and output location
+				IJavaProject javaProject = ENV.getJavaProject(projectName);
+				javaProject.setRawClasspath(entries, projectPath.append(outputPath), null);
+				
+				// set compliance level options
+				if ("1.5".equals(compliance)) {
+					Map<String, String> options = new HashMap<String, String>();
+					options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
+					options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);	
+					options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_5);	
+					javaProject.setOptions(options);
+				}
+				
+				result[0] = javaProject;
+			}
+		};
+		ResourcesPlugin.getWorkspace().run(create, null);	
+		return result[0];
+	}
+
+	private void collectAllFiles(File root, ArrayList<File> collector, FileFilter fileFilter) {
 		File[] files = root.listFiles(fileFilter);
 		for (int i = 0; i < files.length; i++) {
 			final File currentFile = files[i];
@@ -575,7 +774,7 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	}
 
 	protected File[] getAllFiles(File root, FileFilter fileFilter) {
-		ArrayList files = new ArrayList();
+		ArrayList<File> files = new ArrayList<File>();
 		if (root.isDirectory()) {
 			collectAllFiles(root, files, fileFilter);
 			File[] result = new File[files.size()];
@@ -633,10 +832,10 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	 * @param javaProject Project to collect units
 	 * @return List of org.eclipse.jdt.core.ICompilationUnit
 	 */
-	protected List getProjectCompilationUnits(IJavaProject javaProject) throws JavaModelException {
+	protected List<ICompilationUnit> getProjectCompilationUnits(IJavaProject javaProject) throws JavaModelException {
 		IPackageFragmentRoot[] fragmentRoots = javaProject.getPackageFragmentRoots();
 		int length = fragmentRoots.length;
-		List allUnits = new ArrayList();
+		List<ICompilationUnit> allUnits = new ArrayList<ICompilationUnit>();
 		for (int i=0; i<length; i++) {
 			if (fragmentRoots[i] instanceof JarPackageFragmentRoot) continue;
 			IJavaElement[] packages= fragmentRoots[i].getChildren();
@@ -657,12 +856,12 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	 * @param splitSize Size of the arrays
 	 * @return List of ICompilationUnit[]
 	 */
-	protected List splitListInSmallArrays(List units, int splitSize) throws JavaModelException {
+	protected List<ICompilationUnit[]> splitListInSmallArrays(List<ICompilationUnit> units, int splitSize) throws JavaModelException {
 		int size = units.size();
-		if (size == 0) return Collections.EMPTY_LIST;
+		if (size == 0) return Collections.emptyList();
 		int length = size / splitSize;
 		int remind = size%splitSize;
-		List splitted = new ArrayList(remind==0?length:length+1);
+		List<ICompilationUnit[]> splitted = new ArrayList<ICompilationUnit[]>(remind==0?length:length+1);
 		if (length == 0) {
 			ICompilationUnit[] sublist = new ICompilationUnit[size];
 			units.toArray(sublist);
@@ -678,10 +877,10 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 		}
 		if (remind > 0) {
 			if (remind< 10) {
-				ICompilationUnit[] lastList = (ICompilationUnit[]) splitted.remove(length-1);
+				ICompilationUnit[] lastList = splitted.remove(length-1);
 				System.arraycopy(lastList, 0, lastList = new ICompilationUnit[splitSize+remind], 0, splitSize);
 				for (int i=ptr, j=splitSize; i<size; i++, j++) {
-					lastList[j] = (ICompilationUnit) units.get(i);
+					lastList[j] = units.get(i);
 				}
 				splitted.add(lastList);
 			} else {
@@ -699,7 +898,17 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	 * @throws IOException
 	 * @throws CoreException
 	 */
-	protected void startBuild(Hashtable options, boolean noWarning) throws IOException, CoreException {
+	protected void startBuild(Hashtable<String, String> options, boolean noWarning) throws IOException, CoreException {
+		startBuild(null, options, noWarning);
+	}
+
+	/**
+	 * Start a build on workspace using given options.
+	 * @param options
+	 * @throws IOException
+	 * @throws CoreException
+	 */
+	protected void startBuild(IPath projectPath, Hashtable<String, String> options, boolean noWarning) throws IOException, CoreException {
 		if (DEBUG) System.out.print("\tstart build...");
 		JavaCore.setOptions(options);
 		
@@ -708,13 +917,17 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 		
 		// Measure
 		startMeasuring();
-		ENV.fullBuild();
+		if (projectPath == null) {
+			ENV.fullBuild();
+		} else {
+			ENV.fullBuild(projectPath);
+		}
 		stopMeasuring();
 		
 		// Verify markers
 		IMarker[] markers = ResourcesPlugin.getWorkspace().getRoot().findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-		List resources = new ArrayList();
-		List messages = new ArrayList();
+		List<String> resources = new ArrayList<String>();
+		List<Object> messages = new ArrayList<Object>();
 		int warnings = 0;
 		for (int i = 0, length = markers.length; i < length; i++) {
 			IMarker marker = markers[i];
@@ -811,16 +1024,16 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 	 *  0: default options
 	 *  1: all options
 	 */
-	protected Hashtable warningOptions(int kind) {
+	protected Hashtable<String, String> warningOptions(int kind) {
 
 		// Values
-		Hashtable optionsMap = null;
+		Hashtable<String,String> optionsMap = null;
 		switch (kind) {
 			case 0:
 				optionsMap = JavaCore.getDefaultOptions();
 				break;
 			default:
-				optionsMap = new Hashtable(350);
+				optionsMap = new Hashtable<String, String>(350);
 				break;
 		}
 		if (kind == 0) {
@@ -879,7 +1092,7 @@ public abstract class FullSourceWorkspaceTests extends TestCase {
 			optionsMap.put(CompilerOptions.OPTION_ReportSpecialParameterHidingField, enabled); 
 			optionsMap.put(CompilerOptions.OPTION_InlineJsr, enabled);
 		}
-		
+
 		// Ignore 3.1 options
 		optionsMap.put(CompilerOptions.OPTION_ReportMissingSerialVersion, CompilerOptions.IGNORE); 
 		optionsMap.put(CompilerOptions.OPTION_ReportEnumIdentifier, CompilerOptions.IGNORE); 

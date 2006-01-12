@@ -21,7 +21,7 @@ import org.eclipse.test.internal.performance.eval.StatisticsSession;
 
 public class JdtCorePerformanceMeter extends OSPerformanceMeter {
 
-    public static Map CPU_TIMES = null, ELAPSED_TIMES = null;
+    public static Map<String, Statistics> CPU_TIMES = null, ELAPSED_TIMES = null;
 	
 	public static final class Statistics {
 		public long count;
@@ -43,8 +43,8 @@ public class JdtCorePerformanceMeter extends OSPerformanceMeter {
 	
 	public JdtCorePerformanceMeter(String scenarioId) {
 		super(scenarioId);
-		CPU_TIMES = new HashMap();
-		ELAPSED_TIMES = new HashMap();
+		CPU_TIMES = new HashMap<String, Statistics>();
+		ELAPSED_TIMES = new HashMap<String, Statistics>();
     }
 
 	/*

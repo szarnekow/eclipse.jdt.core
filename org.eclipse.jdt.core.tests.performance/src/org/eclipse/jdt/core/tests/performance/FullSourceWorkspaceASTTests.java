@@ -19,7 +19,6 @@ import junit.framework.*;
 
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.*;
-import org.eclipse.test.performance.Performance;
 
 /**
  */
@@ -41,13 +40,13 @@ public class FullSourceWorkspaceASTTests extends FullSourceWorkspaceTests {
 	}
 
 	static {
-//		TESTS_PREFIX = "testPerfDom";
+//		TESTS_PREFIX = "testDomAstCreationJLS2";
 	}
 
 	public static Test suite() {
         Test suite = buildSuite(testClass());
         TESTS_COUNT = suite.countTestCases();
-        createPrintStream(testClass().getName(), LOG_STREAMS, TESTS_COUNT, null);
+        createPrintStream(testClass(), LOG_STREAMS, TESTS_COUNT, null);
         return suite;
     }
 
@@ -575,12 +574,12 @@ public class FullSourceWorkspaceASTTests extends FullSourceWorkspaceTests {
 	/**
 	 * @deprecated To reduce deprecated warnings
 	 */
+	@Deprecated
 	public void testDomAstCreationJLS2() throws JavaModelException {
 		tagAsSummary("DOM>Creation>Src>JLS2", true); // put in fingerprint
-		setComment(Performance.EXPLAINS_DEGRADATION_COMMENT, "Currently investigating performance issue on this test...");
 
 		ICompilationUnit unit = getCompilationUnit("org.eclipse.jdt.core", "org.eclipse.jdt.internal.compiler.parser", "Parser.java");
-		Hashtable options = JavaCore.getOptions();
+		Hashtable<String, String> options = JavaCore.getOptions();
 		options.put(JavaCore.COMPILER_PB_NON_NLS_STRING_LITERAL, JavaCore.IGNORE);
 		JavaCore.setOptions(options);
 		createAST(unit, AST.JLS2);
@@ -604,14 +603,14 @@ public class FullSourceWorkspaceASTTests extends FullSourceWorkspaceTests {
 		for (int i = 0; i < ALL_PROJECTS.length; i++) {
 			// Get project compilation units
 			if (DEBUG) System.out.print("\t- "+ALL_PROJECTS[i].getElementName());
-			List units = getProjectCompilationUnits(ALL_PROJECTS[i]);
+			List<ICompilationUnit> units = getProjectCompilationUnits(ALL_PROJECTS[i]);
 			int size = units.size();
 			if (size == 0) {
 				if (DEBUG) System.out.println(": empty!");
 				continue;
 			}
 			unitsCount += size;
-			List unitsArrays = splitListInSmallArrays(units, 20);
+			List<ICompilationUnit[]> unitsArrays = splitListInSmallArrays(units, 20);
 			int n = unitsArrays.size();
 			if (DEBUG)
 				if (n==1)
@@ -619,7 +618,7 @@ public class FullSourceWorkspaceASTTests extends FullSourceWorkspaceTests {
 				else
 					System.out.print(": "+size+" units to proceed ("+n+" steps): ");
 			while (unitsArrays.size() > 0) {
-				ICompilationUnit[] unitsArray = (ICompilationUnit[]) unitsArrays.remove(0);
+				ICompilationUnit[] unitsArray = unitsArrays.remove(0);
 				if (DEBUG) System.out.print('.');
 				int length = unitsArray.length;
 				CompilationUnit[] compilationUnits = new CompilationUnit[length];
@@ -643,9 +642,7 @@ public class FullSourceWorkspaceASTTests extends FullSourceWorkspaceTests {
 		return unitsCount;
 	}
 
-	/**
-	 * @deprecated To reduce deprecated warnings
-	 */
+	@Deprecated // To reduce deprecated warnings
 	public void testWkspDomAstCreationJLS2() throws JavaModelException {
 		tagAsSummary("DOM>Creation>Wksp>JLS2", true); // put in fingerprint
 		runAstCreation(AST.JLS2);
