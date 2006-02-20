@@ -670,8 +670,21 @@ class CompilationUnitResolver extends Compiler {
 					// no need to keep resolving if no more ASTs and no more binding keys are needed
 					// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=114935
 					// cleanup remaining units
+					
+					// jgarms: eagerly cleaning up the compilation units
+					// causes NPEs later for CompilationParticipants,
+					// as the scope is null.
+					// For now turn off this cleanup.
+					
 					for (; i < this.totalUnits; i++) {
-						this.unitsToProcess[i].cleanUp();
+						// In order to have constants resolved,
+						// we need to resolve these units
+						unit = this.unitsToProcess[i];
+						if (unit.scope != null) {
+							unit.scope.faultInTypes();
+						}
+						unit.resolve();
+					//	this.unitsToProcess[i].cleanUp();
 						this.unitsToProcess[i] = null;
 					}
 					break;

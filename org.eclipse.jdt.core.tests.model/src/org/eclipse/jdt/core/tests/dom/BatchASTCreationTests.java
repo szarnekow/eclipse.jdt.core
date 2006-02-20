@@ -1571,8 +1571,11 @@ public class BatchASTCreationTests extends AbstractASTTests {
 	/*
 	 * Ensures that unrequested compilation units are not resolved
 	 * (regression test for bug 114935 ASTParser.createASTs parses more CUs then required)
+	 * 
+	 * jgarms@bea.com: Disabled for APT branch, as unrequested compilation units
+	 * can be used later. This is a regression from 3.1.1
 	 */
-	public void test070() throws CoreException {
+	public void DISABLED_test070() throws CoreException {
 		MarkerInfo[] markerInfos = createMarkerInfos(new String[] {
 			"/P/p1/X.java",
 			"package p1;\n" +
