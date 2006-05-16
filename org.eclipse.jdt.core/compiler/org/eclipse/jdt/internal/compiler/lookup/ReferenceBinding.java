@@ -595,13 +595,13 @@ public FieldBinding[] fields() {
 public ReferenceBinding findSuperTypeErasingTo(int wellKnownErasureID, boolean erasureIsClass) {
 
     // do not allow type variables to match with erasures for free
-    if (this.id == wellKnownErasureID || (!isTypeVariable() && erasure().id == wellKnownErasureID)) return this;
+    if (this.id == wellKnownErasureID || (!isTypeVariable() && !isIntersectionType()  && erasure().id == wellKnownErasureID)) return this;
 
     ReferenceBinding currentType = this;
     // iterate superclass to avoid recording interfaces if searched supertype is class
     if (erasureIsClass) {
 		while ((currentType = currentType.superclass()) != null) { 
-			if (currentType.id == wellKnownErasureID || (!currentType.isTypeVariable() && currentType.erasure().id == wellKnownErasureID))
+			if (currentType.id == wellKnownErasureID || (!currentType.isTypeVariable() && !currentType.isIntersectionType() && currentType.erasure().id == wellKnownErasureID))
 				return currentType;
 		}    
 		return null;
@@ -630,7 +630,7 @@ public ReferenceBinding findSuperTypeErasingTo(int wellKnownErasureID, boolean e
 			
 	for (int i = 0; i < nextPosition; i++) {
 		currentType = interfacesToVisit[i];
-		if (currentType.id == wellKnownErasureID || (!currentType.isTypeVariable() && currentType.erasure().id == wellKnownErasureID))
+		if (currentType.id == wellKnownErasureID || (!currentType.isTypeVariable() && !currentType.isIntersectionType() && currentType.erasure().id == wellKnownErasureID))
 			return currentType;
 
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();

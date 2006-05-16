@@ -31025,7 +31025,7 @@ public void test0984() {
 		false /* do not skip javac for this peculiar test */);
 }
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=141330
-public void _test0985() {
+public void test0985() {
 	this.runNegativeTest(
 			new String[] {
 					"X.java", // =================
