@@ -4529,5 +4529,53 @@ the right of e1."
 		if (index == -1) {
 			assertEquals("unexpected bytecode sequence", expectedOutput, actualOutput);
 		}
+	}
+	
+    // https://bugs.eclipse.org/bugs/show_bug.cgi?id=141810
+	public void test130() {
+		this.runConformTest(
+				new String[] {
+					"X.java",
+					"public class X {\n" + 
+					"   public static void main(String[] args) {\n" + 
+					"      for(Action a : Action.values()) {\n" + 
+					"         switch(a) {\n" + 
+					"         case ONE:\n" + 
+					"            System.out.print(\"1\");\n" + 
+					"            break;\n" + 
+					"         case TWO:\n" + 
+					"            System.out.print(\"2\");\n" + 
+					"            break;\n" + 
+					"         default:\n" + 
+					"            System.out.print(\"default\");\n" + 
+					"         }\n" + 
+					"      }\n" + 
+					"   }\n" + 
+					"}",
+					"Action.java",
+					"enum Action { ONE, TWO }"
+				},
+				"12"
+			);
+		
+		this.runConformTest(
+			new String[] {
+				"Action.java",
+				"enum Action {ONE, TWO, THREE}"
+			},
+			"",
+			null,
+			false,
+			null
+		);
+		
+		this.executeClass(
+			"X.java",
+			"12default",
+			null,
+			false,
+			null,
+			null,
+			null);	
 	}	
 }

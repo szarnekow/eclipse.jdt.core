@@ -2552,7 +2552,7 @@ public void generateSyntheticBodyForSwitchTable(SyntheticMethodBinding methodBin
 				this.aload_0();
 				this.getstatic(fieldBinding);
 				this.invokeEnumOrdinal(enumBinding.constantPoolName());
-				this.generateInlinedValue(fieldBinding.id);
+				this.generateInlinedValue(fieldBinding.id + 1); // zero should not be returned see bug 141810
 				this.iastore();
 				anyExceptionHandler.placeEnd();
 				this.goto_(endLabel);
