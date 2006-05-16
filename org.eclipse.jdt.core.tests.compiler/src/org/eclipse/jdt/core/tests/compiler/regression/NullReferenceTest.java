@@ -6279,7 +6279,7 @@ public void _test0902_notNull_protection_tag() {
 }
 
 // null analysis -- notNull protection tag
-public void _test0903_notNull_protection_tag() {
+public void test0903_notNull_protection_tag() {
 	this.runConformTest(
 		new String[] {
 			"X.java",
@@ -6481,8 +6481,7 @@ public void test1008() {
 		"");
 }
 
-// TODO (philippe) reenable once fixed
-public void _test1009() {
+public void test1009() {
 	this.runNegativeTest(
 		new String[] {
 			"X.java",
@@ -6947,8 +6946,7 @@ public void _test1026() {
 		"SUCCESS");
 }
 
-// TODO (philippe) reenable once fixed
-public void _test1027() {
+public void test1027() {
 	this.runConformTest(
 		new String[] {
 			"X.java",
@@ -7043,8 +7041,7 @@ public void test1030() {
 		"----------\n");
 }
 
-// TODO (philippe) reenable once fixed
-public void _test1031() {
+public void test1031() {
 	this.runNegativeTest(
 		new String[] {
 			"X.java",

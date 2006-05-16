@@ -27478,7 +27478,7 @@ public void test0882() {
 		"----------\n");
 }
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=121369 - variation
-public void _test0883() {
+public void test0883() {
 	this.runNegativeTest(
 		new String[] {
 			"X.java", // =================
