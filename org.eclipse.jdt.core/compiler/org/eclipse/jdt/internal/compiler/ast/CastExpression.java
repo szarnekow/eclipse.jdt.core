@@ -248,21 +248,20 @@ public class CastExpression extends Expression {
 				int argumentLength = originalArgumentTypes.length;
 				if (binding.isVarargs()) {
 					int paramLength = binding.parameters.length;
-				   if (paramLength == argumentLength) {
+					if (paramLength == argumentLength) {
 						int varargsIndex = paramLength - 1;
 						ArrayBinding varargsType = (ArrayBinding) binding.parameters[varargsIndex];
 						TypeBinding lastArgType = alternateArgumentTypes[varargsIndex];
-						// originalType may be compatible already, but cast mandated to clarify between varargs/non-varargs call
-						int dimensions = lastArgType.dimensions();
-						if (varargsType.dimensions < dimensions) {
+						// originalType may be compatible already, but cast mandated
+						// to clarify between varargs/non-varargs call
+						if (varargsType.dimensions != lastArgType.dimensions()) {
 							return;
-						} else if (varargsType.dimensions == dimensions) {
-							if (lastArgType.isCompatibleWith(varargsType.elementsType())
-									&& lastArgType.isCompatibleWith(varargsType)) {
-								return;
-							}
-						}						
-				   }
+						}
+						if (lastArgType.isCompatibleWith(varargsType.elementsType())
+								&& lastArgType.isCompatibleWith(varargsType)) {
+							return;
+						}
+					}
 				}
 				for (int i = 0; i < argumentLength; i++) {
 					if (originalArgumentTypes[i] != alternateArgumentTypes[i]) {
