@@ -110,45 +110,102 @@ public class ClassFile
 		char fileSeparatorChar = File.separatorChar;
 		String fileSeparator = File.separator;
 		File f;
-		// First we ensure that the outputPath exists
 		outputPath = outputPath.replace('/', fileSeparatorChar);
-		// To be able to pass the mkdirs() method we need to remove the extra file separator at the end of the outDir name
-		if (outputPath.endsWith(fileSeparator)) {
-			outputPath = outputPath.substring(0, outputPath.length() - 1);
-		}
-		f = new File(outputPath);
-		if (f.exists()) {
-			if (!f.isDirectory()) {
-				final String message = Messages.bind(Messages.output_isFile, f.getAbsolutePath());
-				throw new IOException(message);
+			// these could be optimized out if we normalized paths once and for
+			// all
+		relativeFileName = relativeFileName.replace('/', fileSeparatorChar);
+		String outputDirPath, fileName;
+		int separatorIndex = relativeFileName.lastIndexOf(fileSeparatorChar);
+		if (separatorIndex == -1) {
+			if (outputPath.endsWith(fileSeparator)) {
+				outputDirPath = outputPath.substring(0, outputPath.length() - 1);
+				fileName = outputPath + relativeFileName;
+			} else {
+				outputDirPath = outputPath;
+				fileName = outputPath + fileSeparator + relativeFileName;
 			}
 		} else {
-			// we have to create that directory
-			if (!f.mkdirs()) {
-				final String message = Messages.bind(Messages.output_notValidAll, f.getAbsolutePath());
-				throw new IOException(message);
+			if (outputPath.endsWith(fileSeparator)) {
+				outputDirPath = outputPath + 
+					relativeFileName.substring(0, separatorIndex);
+				fileName = outputPath + relativeFileName;
+			} else {
+				outputDirPath = outputPath + fileSeparator +
+					relativeFileName.substring(0, separatorIndex);
+				fileName = outputPath + fileSeparator + relativeFileName;
 			}
 		}
-		StringBuffer outDir = new StringBuffer(outputPath);
-		outDir.append(fileSeparator);
-		StringTokenizer tokenizer =
-			new StringTokenizer(relativeFileName, fileSeparator);
-		String token = tokenizer.nextToken();
-		while (tokenizer.hasMoreTokens()) {
-			f = new File(outDir.append(token).append(fileSeparator).toString());
+		f = new File(outputDirPath);
+		f.mkdirs();
+		if (f.isDirectory()) {
+			return fileName;
+		} else {
+			// the directory creation failed for some reason - retry using
+			// a slower algorithm so as to refine the diagnostic
+			if (outputPath.endsWith(fileSeparator)) {
+				outputPath = outputPath.substring(0, outputPath.length() - 1);
+			}
+			f = new File(outputPath);
+			boolean checkFileType = false;
 			if (f.exists()) {
-				// The outDir already exists, so we proceed the next entry
-				// System.out.println("outDir: " + outDir + " already exists.");
+			  	checkFileType = true; // pre-existed
 			} else {
-				// Need to add the outDir
-				if (!f.mkdir()) {
-					throw new IOException(Messages.bind(Messages.output_notValid, f.getName()));
+				// we have to create that directory
+				if (!f.mkdirs()) {
+				  	if (f.exists()) {
+				  	  	// someone else created f -- need to check its type
+				  	  	checkFileType = true;
+				  	} else {
+				  	  	// no one could create f -- complain
+	    				throw new IOException(Messages.bind(
+	    					Messages.output_notValidAll, f.getAbsolutePath()));
+				  	}
 				}
 			}
-			token = tokenizer.nextToken();
+			if (checkFileType) {
+			  	if (!f.isDirectory()) {
+	    			throw new IOException(Messages.bind(
+	    				Messages.output_isFile, f.getAbsolutePath()));
+			  	}
+			}
+			StringBuffer outDir = new StringBuffer(outputPath);
+			outDir.append(fileSeparator);
+			StringTokenizer tokenizer =
+				new StringTokenizer(relativeFileName, fileSeparator);
+			String token = tokenizer.nextToken();
+			while (tokenizer.hasMoreTokens()) {
+				f = new File(outDir.append(token).append(fileSeparator).toString());
+			  	checkFileType = false; // reset
+				if (f.exists()) {
+				  	checkFileType = true; // this is suboptimal, but it catches corner cases
+				  						  // in which a regular file pre-exists
+				} else {
+				// we have to create that directory
+	    			if (!f.mkdir()) {
+	    			  	if (f.exists()) {
+	    			  	  	// someone else created f -- need to check its type
+	    			  	  	checkFileType = true;
+	    			  	} else {
+	    			  	  	// no one could create f -- complain
+	        				throw new IOException(Messages.bind(
+	        					Messages.output_notValid, 
+	        						outDir.substring(outputPath.length() + 1, 
+	        							outDir.length() - 1),
+	        						outputPath));
+	    			  	}
+	    			}
+				}
+	    		if (checkFileType) {
+	    		  	if (!f.isDirectory()) {
+	        			throw new IOException(Messages.bind(
+	        				Messages.output_isFile, f.getAbsolutePath()));
+	    		  	}
+	    		}
+				token = tokenizer.nextToken();
+			}
+			// token contains the last one
+			return outDir.append(token).toString();
 		}
-		// token contains the last one
-		return outDir.append(token).toString();
 	}
 
 	/**

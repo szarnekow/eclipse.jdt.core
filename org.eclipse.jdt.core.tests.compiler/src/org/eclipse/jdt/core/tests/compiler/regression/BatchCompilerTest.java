@@ -2914,8 +2914,88 @@ public void test053(){
         + " -1.5 -g -preserveAllLocals"
         + " -d \"" + OUTPUT_DIR + File.separator + "X.java\"",
 		"", 
-		"No .class file created for file X.class in ---OUTPUT_DIR_PLACEHOLDER---/X.java because of an IOException: The output directory is a file : ---OUTPUT_DIR_PLACEHOLDER---/X.java\n",
-        true);
+		"No .class file created for file X.class in ---OUTPUT_DIR_PLACEHOLDER" +
+			"---/X.java because of an IOException: Regular file " +
+			"---OUTPUT_DIR_PLACEHOLDER---/X.java cannot be used " +
+			"as output directory\n",
+		true);
+}
+// suggested by https://bugs.eclipse.org/bugs/show_bug.cgi?id=141522
+// only checking messages (the bug itself involves concurrent access to
+// the file system and a true test case would call for instrumented
+// code)
+public void test054(){
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"public class X {}",
+			"f", // create simple file f
+			""
+        },
+        "\"" + OUTPUT_DIR +  File.separator + "X.java\""
+        + " -1.5 -g -preserveAllLocals"
+        + " -d \"" + OUTPUT_DIR + "/f/out\"",
+		"", 
+		"No .class file created for file X.class in ---OUTPUT_DIR_PLACEHOLDER" +
+			"---/f/out because of an IOException: " +
+			"Could not create output directory ---OUTPUT_DIR_PLACEHOLDER---/f/out\n",
+		true);
+}
+// suggested by https://bugs.eclipse.org/bugs/show_bug.cgi?id=141522
+// only checking messages (the bug itself involves concurrent access to
+// the file system and a true test case would call for instrumented
+// code)
+// this test only works on appropriate file systems
+public void test055(){
+	if (File.separatorChar == '/') {
+	  	String tentativeOutputDirNameTail = 
+	      	File.separator + "out";
+	  	File outputDirectory = new File(OUTPUT_DIR + tentativeOutputDirNameTail);
+	  	outputDirectory.mkdirs();
+	  	outputDirectory.setReadOnly(); 
+	  	// read-only directories do not prevent file creation 
+	  	// on under-gifted file systems
+		this.runConformTest(
+			new String[] {
+				"p/X.java",
+				"package p;\n" +
+				"public class X {}",
+	        },
+	        "\"" + OUTPUT_DIR +  File.separator + "p/X.java\""
+	        + " -1.5 -g -preserveAllLocals"
+	        + " -d \"" + OUTPUT_DIR + "/out\"",
+			"", 
+			"No .class file created for file p/X.class in " +
+				"---OUTPUT_DIR_PLACEHOLDER---/out because of " +
+				"an IOException: Could not create subdirectory p into output directory " +
+				"---OUTPUT_DIR_PLACEHOLDER---/out\n",
+			false /* do not flush output directory */);
+	}
+}
+// suggested by https://bugs.eclipse.org/bugs/show_bug.cgi?id=141522
+// only checking messages (the bug itself involves concurrent access to
+// the file system and a true test case would call for instrumented
+// code)
+public void test056(){
+  	String tentativeOutputDirNameTail = 
+      	File.separator + "out";
+	this.runConformTest(
+		new String[] {
+			"p/X.java",
+			"package p;\n" +
+			"public class X {}",
+			"out/p", // create simple file out/p
+			""
+        },
+        "\"" + OUTPUT_DIR +  File.separator + "p/X.java\""
+        + " -1.5 -g -preserveAllLocals"
+        + " -d \"" + OUTPUT_DIR + tentativeOutputDirNameTail + "\"",
+		"", 
+		"No .class file created for file p/X.class in " +
+			"---OUTPUT_DIR_PLACEHOLDER---/out" + 
+			" because of an IOException: Regular file ---OUTPUT_DIR_PLACEHOLDER---" + 
+			"/out/p cannot be used as output directory\n",
+		true);
 }
 public static Class testClass() {
 	return BatchCompilerTest.class;
