@@ -31548,4 +31548,29 @@ public void _test0997() {
 			},
 			"SUCCESS");
 }
+//regression test for https://bugs.eclipse.org/bugs/show_bug.cgi?id=144261
+public void test0998() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"class X {\n" + 
+			"    static abstract class Generic<F> {\n" + 
+			"        static class Inner {\n" + 
+			"            static class InnerInner { }\n" + 
+			"            InnerInner createTableModel() {\n" + 
+			"                return new InnerInner();\n" + 
+			"            }\n" + 
+			"        }\n" + 
+			"    }\n" + 
+			"    static class SubGeneric<S> extends Generic<S> {\n" + 
+			"        static class SubInner extends Inner {\n" + 
+			"            InnerInner createTableModel() {\n" + 
+			"                return super.createTableModel(); \n" + 
+			"            }\n" + 
+			"        }\n" + 
+			"    }\n" + 
+			"}",
+		},
+		"");
+}
 }
