@@ -6656,6 +6656,21 @@ public class GenericTypeTest extends AbstractComparableTest {
 			"----------\n"
 			 // cannot select from a type variable
 		);
+		if (false)
+		this.runConformTest(
+			new String[] {
+				"X.java",
+				" public class X <T extends XC> {\n" + 
+				" 	T.MXC f;\n" + 
+				" 	public static void main(String[] args) {\n" + 
+				"		System.out.println(\"SUCCESS\");\n" + 
+				"	}\n" + 
+				" }\n" + 
+				" class XC {\n" + 
+				" 	class MXC {}\n" + 
+				" }\n",
+			},
+			"SUCCESS");
 	}
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=69375 - equivalence of wildcards
 	public void test0230() {
@@ -8701,6 +8716,35 @@ public class GenericTypeTest extends AbstractComparableTest {
 			"----------\n"
 			// 5: cannot select from a type variable
 			// 5: operator + cannot be applied to int,<any>.j
+			// 5: incompatible type, found : <nulltype>, required: int
+		);
+		if (false)	
+		this.runNegativeTest(
+			new String[] {
+				"X.java", //---------------------------
+				"public class X<T extends X<T>> {\n" + 
+				"  	static int CONSTANT = 1;\n" + 
+				"  	private int i = 1;\n" + 
+				"  	private int i() {return i;}\n" + 
+				"  	private static class M { private static int j = 2; }\n" + 
+				"  	public int foo(T t) { return t.i + t.i() + T.M.j; }\n" + 
+				"  	public int foo2(T t) { return T.CONSTANT; }\n" + // why is this allowed?
+				"}\n" +
+				"class Y extends Zork {\n" +
+				"}\n"
+			},
+			"----------\n" + 
+			"1. WARNING in X.java (at line 6)\n" + 
+			"	public int foo(T t) { return t.i + t.i() + T.M.j; }\n" + 
+			"	                                           ^^^^^\n" + 
+			"Read access to enclosing field X<T>.M.j is emulated by a synthetic accessor method. Increasing its visibility will improve your performance\n" + 
+			"----------\n" + 
+			"2. ERROR in X.java (at line 9)\n" + 
+			"	class Y extends Zork {\n" + 
+			"	                ^^^^\n" + 
+			"Zork cannot be resolved to a type\n" + 
+			"----------\n"
+		// 5: operator + cannot be applied to int,<any>.j
 			// 5: incompatible type, found : <nulltype>, required: int
 		);
 	}
@@ -28701,6 +28745,18 @@ public void test0917() {
 		"----------\n"
 		// cannot select from a type variable
 	);
+	if (false)
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"public class X<T extends A> extends X2<T.M> { }\n" +
+			"class X2<T> { }\n" +
+			"class A { static class M {} }"
+		},
+		"");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=128423 - variation
+public void _test0917a() {
 	this.runNegativeTest(
 		new String[] {
 			"X.java",
@@ -28711,10 +28767,11 @@ public void test0917() {
 		"1. ERROR in X.java (at line 1)\n" + 
 		"	public class X<T> extends X2<T.clazz> { }\n" + 
 		"	                             ^^^^^^^\n" + 
-		"Illegal qualified access from the type parameter T\n" + 
-		"----------\n"
-		// cannot select from a type variable
-	);
+		"T.clazz cannot be resolved to a type\n" + 
+		"----------\n");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=128423 - variation
+public void test0917b() {
 	this.runNegativeTest(
 		new String[] {
 			"X.java",
@@ -28725,9 +28782,10 @@ public void test0917() {
 		"	public class X<T> { Class<T> c = T.class; }\n" + 
 		"	                                 ^^^^^^^\n" + 
 		"Illegal class literal for the type parameter T\n" + 
-		"----------\n"
-		// cannot select from a type variable
-	);
+		"----------\n");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=128423 - variation
+public void test0917c() {
 	this.runNegativeTest(
 		new String[] {
 			"X.java",
@@ -28739,9 +28797,7 @@ public void test0917() {
 		"	public class X<T> extends X2<T.class> { }\n" + 
 		"	                               ^^^^^\n" + 
 		"Syntax error on token \"class\", Identifier expected\n" + 
-		"----------\n"
-		// cannot select from a type variable
-	);
+		"----------\n");
 }
 
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=128560
@@ -31228,7 +31284,7 @@ public void test0988() {
 			"The return type is incompatible with AbstractEditPart.getViewer()\n" + 
 			"----------\n");
 }
-//	https://bugs.eclipse.org/bugs/show_bug.cgi?id=142653
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=142653
 public void test0989() {
 	this.runNegativeTest(
 			new String[] {
@@ -31333,5 +31389,163 @@ public void test0992() {
 			"	^^^^^^^^^^^^^^\n" + 
 			"Type safety: The method add(Object) belongs to the raw type Collection. References to generic type Collection<E> should be parameterized\n" + 
 			"----------\n");
+}
+
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=142897
+public void _test0993() {
+	this.runConformTest(
+			new String[] {
+				"X.java",//===================
+				"public class X {\n" + 
+				"  public class Inner {\n" + 
+				"    Inner() {\n" +
+				"      System.out.println(\"SUCCESS\");\n" +
+				"    }\n" +
+				"  }\n" + 
+				"  public static void main(String[] args) {\n" +
+				"    new ATest<X>();\n" +
+				"  }\n" + 
+				"}\n" + 
+				"\n" + 
+				"class ATest<T extends X> {\n" + 
+				"   public ATest() {\n" + 
+				"      T instance = makeInstance();\n" + 
+				"      X.Inner peq = instance.new Inner(); //**\n" + 
+				"   }\n" + 
+				"\n" + 
+				"   private T makeInstance() {\n" + 
+				"      return (T) new X();\n" + 
+				"   }\n" + 
+				"}", // =================
+			},
+			"SUCCESS");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=142897 - variation
+public void _test0994() {
+	this.runConformTest(
+			new String[] {
+				"X.java",//===================
+				"public class X {\n" + 
+				"  public class Inner {\n" + 
+				"    Inner() {\n" +
+				"      System.out.println(\"SUCCESS\");\n" +
+				"    }\n" +
+				"  }\n" + 
+				"  void foo(boolean b, X1 x1, X2 x2) {\n" + 
+				"	  (b ? x1 : x2).new Inner();\n" + 
+				"  }\n" + 
+				"  public static void main(String[] args) {\n" +
+				"    new X().foo(true, new X1(), new X2());\n" +
+				"  }\n" + 
+				"}\n" + 
+				"\n" + 
+				"class X1 extends X implements Comparable<X1> {\n" +
+				"  public int compareTo(X1 other) {\n" +
+				"    return 0;\n" + 
+				"  }\n" + 
+				"}\n" + 
+				"class X2 extends X implements Comparable<X2> {\n" +
+				"  public int compareTo(X2 other) {\n" +
+				"    return 0;\n" + 
+				"  }\n" + 
+				"}\n", // =================
+			},
+			"SUCCESS");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=142964
+public void _test0995() {
+	this.runNegativeTest(
+			new String[] {
+				"X.java",//===================
+				"public class X {\n" + 
+				"  public class Inner {\n" + 
+				"  }\n" + 
+				"  void foo(boolean b, X1 x1, X2 x2) {\n" + 
+				"	  Comparable<? extends X> cx1 = b ? x1 : x2;\n" + 
+				"	  Comparable<X> cx2 = b ? x1 : x2;\n" + 
+				"	  String s = b ? x1 : x2;\n" + 
+				"  }\n" + 
+				"}\n" + 
+				"\n" + 
+				"abstract class X1 extends X implements Comparable<X1> {}\n" + 
+				"abstract class X2 extends X implements Comparable<X2> {}", // =================
+			},
+			"SUCCESS");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=143793
+public void test0996() {
+	this.runNegativeTest(
+			new String[] {
+				"X.java",//===================
+				"import java.util.ArrayList;\n" + 
+				"import java.util.List;\n" + 
+				"\n" + 
+				"public class X<T> {\n" + 
+				"\n" + 
+				"  private T aObject = null;\n" + 
+				"\n" + 
+				"  public static <U> List<U> castList(final List<? extends Object> pList, final Class<U> pClass) {\n" + 
+				"    final List<U> result = new ArrayList<U>();\n" + 
+				"    for (Object o:pList) {\n" + 
+				"      if (pClass.isInstance(o)) {\n" + 
+				"        result.add(pClass.cast(o));\n" + 
+				"      }\n" + 
+				"    }\n" + 
+				"    return result;\n" + 
+				"  }\n" + 
+				"\n" + 
+				"  /**\n" + 
+				"   * @param pArgs\n" + 
+				"   */\n" + 
+				"  public static void main(final String[] pArgs) {\n" + 
+				"    final List<Object> l1 = new ArrayList<Object>();\n" + 
+				"    l1.add(new X<String>());\n" + 
+				"    l1.add(new X<String>());\n" + 
+				"    final List<X<?>> l2 = castList(l1, X.class);\n" + 
+				"    System.exit(0);\n" + 
+				"  }\n" + 
+				"}\n", // =================
+			},
+			"----------\n" + 
+			"1. WARNING in X.java (at line 6)\n" + 
+			"	private T aObject = null;\n" + 
+			"	          ^^^^^^^\n" + 
+			"The field X<T>.aObject is never read locally\n" + 
+			"----------\n" + 
+			"2. ERROR in X.java (at line 25)\n" + 
+			"	final List<X<?>> l2 = castList(l1, X.class);\n" + 
+			"	                      ^^^^^^^^^^^^^^^^^^^^^\n" + 
+			"Type mismatch: cannot convert from List<X> to List<X<?>>\n" + 
+			"----------\n");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=142897 - variation
+public void _test0997() {
+	this.runConformTest(
+			new String[] {
+				"X.java",//===================
+				"public class X implements Outer {\n" +
+				"  public static void main(String[] args) {\n" +
+				"    new ATest<X>();\n" +
+				"  }\n" + 
+				"}\n" +
+				"interface Outer {\n" + 
+				"  public class Inner {\n" + 
+				"    Inner() {\n" +
+				"      System.out.println(\"SUCCESS\");\n" +
+				"    }\n" +
+				"  }\n" + 
+				"}\n" + 
+				"\n" + 
+				"class ATest<T extends Outer> {\n" + 
+				"   public ATest() {\n" + 
+				"      Outer.Inner peq = new T.Inner(); //**\n" + 
+				"   }\n" + 
+				"\n" + 
+				"   private T makeInstance() {\n" + 
+				"      return (T) new X();\n" + 
+				"   }\n" + 
+				"}", // =================
+			},
+			"SUCCESS");
 }
 }
