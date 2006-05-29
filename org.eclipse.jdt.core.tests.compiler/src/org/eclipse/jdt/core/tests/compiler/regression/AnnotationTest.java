@@ -6565,4 +6565,49 @@ public void test199() {
 		},
 		"");
 }
+// JLS 3 - 9.6: cannot override Object's methods
+public void test200() {
+    this.runNegativeTest(
+        new String[] {
+            "X.java",
+			"@interface X {\n" + 
+			"  int clone();\n" + 
+			"  String finalize();\n" + 
+			"  boolean getClass();\n" + 
+			"  long notify();\n" + 
+			"  double notifyAll();\n" + 
+			"  float wait();\n" + 
+			"}\n",
+        },
+		"----------\n" + 
+		"1. ERROR in X.java (at line 2)\n" + 
+		"	int clone();\n" + 
+		"	    ^^^^^^^\n" + 
+		"The annotation type X cannot override the method Object.clone()\n" + 
+		"----------\n" + 
+		"2. ERROR in X.java (at line 3)\n" + 
+		"	String finalize();\n" + 
+		"	       ^^^^^^^^^^\n" + 
+		"The annotation type X cannot override the method Object.finalize()\n" + 
+		"----------\n" + 
+		"3. ERROR in X.java (at line 4)\n" + 
+		"	boolean getClass();\n" + 
+		"	        ^^^^^^^^^^\n" + 
+		"The annotation type X cannot override the method Object.getClass()\n" + 
+		"----------\n" + 
+		"4. ERROR in X.java (at line 5)\n" + 
+		"	long notify();\n" + 
+		"	     ^^^^^^^^\n" + 
+		"The annotation type X cannot override the method Object.notify()\n" + 
+		"----------\n" + 
+		"5. ERROR in X.java (at line 6)\n" + 
+		"	double notifyAll();\n" + 
+		"	       ^^^^^^^^^^^\n" + 
+		"The annotation type X cannot override the method Object.notifyAll()\n" + 
+		"----------\n" + 
+		"6. ERROR in X.java (at line 7)\n" + 
+		"	float wait();\n" + 
+		"	      ^^^^^^\n" + 
+		"The annotation type X cannot override the method Object.wait()\n" + 
+		"----------\n");
 }
