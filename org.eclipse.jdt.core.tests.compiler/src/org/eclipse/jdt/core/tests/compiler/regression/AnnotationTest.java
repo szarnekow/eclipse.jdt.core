@@ -6611,3 +6611,37 @@ public void test200() {
 		"The annotation type X cannot override the method Object.wait()\n" + 
 		"----------\n");
 }
+//JLS 3 - 9.6: cannot override Annotation's methods
+public void test201() {
+    this.runNegativeTest(
+        new String[] {
+            "X.java",
+			"@interface X {\n" + 
+			"  char hashCode();\n" + 
+			"  int annotationType();\n" + 
+			"  Class toString();\n" + 
+			"}\n",
+        },
+		"----------\n" + 
+		"1. ERROR in X.java (at line 2)\n" + 
+		"	char hashCode();\n" + 
+		"	     ^^^^^^^^^^\n" + 
+		"The annotation type X cannot override the method Annotation.hashCode()\n" + 
+		"----------\n" + 
+		"2. ERROR in X.java (at line 3)\n" + 
+		"	int annotationType();\n" + 
+		"	    ^^^^^^^^^^^^^^^^\n" + 
+		"The annotation type X cannot override the method Annotation.annotationType()\n" + 
+		"----------\n" + 
+		"3. WARNING in X.java (at line 4)\n" + 
+		"	Class toString();\n" + 
+		"	^^^^^\n" + 
+		"Class is a raw type. References to generic type Class<T> should be parameterized\n" + 
+		"----------\n" + 
+		"4. ERROR in X.java (at line 4)\n" + 
+		"	Class toString();\n" + 
+		"	      ^^^^^^^^^^\n" + 
+		"The annotation type X cannot override the method Annotation.toString()\n" + 
+		"----------\n");
+}
+}
