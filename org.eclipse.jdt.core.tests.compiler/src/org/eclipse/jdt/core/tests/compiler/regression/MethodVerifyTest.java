@@ -5097,7 +5097,7 @@ public class MethodVerifyTest extends AbstractComparableTest {
 		);
 	}
 	//	https://bugs.eclipse.org/bugs/show_bug.cgi?id=142653 - variation
-	public void test089() {
+	public void _test089() {
 		this.runNegativeTest(
 			new String[] {
 				"X.java",//===================
