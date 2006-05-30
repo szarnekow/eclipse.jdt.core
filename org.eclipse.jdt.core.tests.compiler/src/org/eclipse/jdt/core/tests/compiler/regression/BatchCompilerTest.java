@@ -898,8 +898,75 @@ public void test012(){
         " \n" + 
         " Warning options:\n" + 
         "    -deprecation     + deprecation outside deprecated code\n" + 
-        "    -nowarn            disable all warnings\n" + 
-        "    -warn:none         disable all warnings\n" + 
+        "    -nowarn -warn:none disable all warnings\n" + 
+        "    -?:warn -help:warn display advanced warning options\n" + 
+        " \n" + 
+        " Debug options:\n" + 
+        "    -g[:lines,vars,source] custom debug info\n" + 
+        "    -g:lines,source  + both lines table and source debug info\n" + 
+        "    -g                 all debug info\n" + 
+        "    -g:none            no debug info\n" + 
+        "    -preserveAllLocals preserve unused local vars for debug purpose\n" + 
+        " \n" + 
+        " Ignored options:\n" + 
+        "    -J<option>         pass option to virtual machine (ignored)\n" + 
+        "    -X<option>         specify non-standard option (ignored)\n" + 
+        "    -X                 print non-standard options and exit (ignored)\n" + 
+        "    -O                 optimize for execution time (ignored)\n" + 
+        " \n" + 
+        " Advanced options:\n" + 
+        "    @<file>            read command line arguments from file\n" + 
+        "    -maxProblems <n>   max number of problems per compilation unit (100 by\n" + 
+        "                       default)\n" + 
+        "    -log <file>        log to a file. If the file extension is ''.xml'', then\n" + 
+        "                       the log will be a xml file.\n" + 
+        "    -proceedOnError    do not stop at first error, dumping class files with\n" + 
+        "                       problem methods\n" + 
+        "    -verbose           enable verbose output\n" + 
+        "    -referenceInfo     compute reference info\n" + 
+        "    -progress          show progress (only in -log mode)\n" + 
+        "    -time              display speed information \n" + 
+        "    -noExit            do not call System.exit(n) at end of compilation (n==0\n" + 
+        "                       if no error)\n" + 
+        "    -repeat <n>        repeat compilation process <n> times for perf analysis\n" + 
+        "    -inlineJSR         inline JSR bytecode (implicit if target >= 1.5)\n" + 
+        "    -enableJavadoc     consider references in javadoc\n" + 
+        "    -Xemacs            used to enable emacs-style output\n" + 
+        " \n" + 
+        "    -? -help           print this help message\n" + 
+        "    -v -version        print compiler version\n" + 
+        "    -showversion       print compiler version and continue\n" + 
+        "\n";
+
+	this.runConformTest(
+		new String[0],
+        " -help -referenceInfo",
+		MessageFormat.format(expectedOutput, new String[] {
+			Main.bind("compiler.name"),
+			Main.bind("compiler.version"),
+			Main.bind("compiler.copyright")
+		// because misc.version is mono-line - reconsider if this changes
+//		MessageFormat.format(expectedOutput, new String[] {
+//				Main.bind("misc.version", new String[] {
+//					Main.bind("compiler.name"),
+//					Main.bind("compiler.version"),
+//					Main.bind("compiler.copyright")
+//				}),
+				// File.pathSeparator
+		}),
+        "", true);
+}
+//command line - help
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=144248
+// Progressive help text modifies the help options and messages.
+public void test012b(){
+	final String expectedOutput =
+        "{0} {1}\n" + 
+        "{2}\n" + 
+        " \n" + 
+        " Warning options:\n" + 
+        "    -deprecation     + deprecation outside deprecated code\n" + 
+        "    -nowarn -warn:none disable all warnings\n" + 
         "    -warn:<warnings separated by ,>    enable exactly the listed warnings\n" + 
         "    -warn:+<warnings separated by ,>   enable additional warnings\n" + 
         "    -warn:-<warnings separated by ,>   disable specific warnings\n" + 
@@ -962,46 +1029,13 @@ public void test012(){
         "      varargsCast        + varargs argument need explicit cast\n" + 
         "      warningToken       + unhandled warning token in @SuppressWarnings\n" + 
         " \n" + 
-        " Debug options:\n" + 
-        "    -g[:lines,vars,source] custom debug info\n" + 
-        "    -g:lines,source  + both lines table and source debug info\n" + 
-        "    -g                 all debug info\n" + 
-        "    -g:none            no debug info\n" + 
-        "    -preserveAllLocals preserve unused local vars for debug purpose\n" + 
-        " \n" + 
-        " Ignored options:\n" + 
-        "    -J<option>         pass option to virtual machine (ignored)\n" + 
-        "    -X<option>         specify non-standard option (ignored)\n" + 
-        "    -X                 print non-standard options and exit (ignored)\n" + 
-        "    -O                 optimize for execution time (ignored)\n" + 
-        " \n" + 
         " Advanced options:\n" + 
-        "    @<file>            read command line arguments from file\n" + 
-        "    -maxProblems <n>   max number of problems per compilation unit (100 by\n" + 
-        "                       default)\n" + 
-        "    -log <file>        log to a file. If the file extension is ''.xml'', then\n" + 
-        "                       the log will be a xml file.\n" + 
-        "    -proceedOnError    do not stop at first error, dumping class files with\n" + 
-        "                       problem methods\n" + 
-        "    -verbose           enable verbose output\n" + 
-        "    -referenceInfo     compute reference info\n" + 
-        "    -progress          show progress (only in -log mode)\n" + 
-        "    -time              display speed information \n" + 
-        "    -noExit            do not call System.exit(n) at end of compilation (n==0\n" + 
-        "                       if no error)\n" + 
-        "    -repeat <n>        repeat compilation process <n> times for perf analysis\n" + 
-        "    -inlineJSR         inline JSR bytecode (implicit if target >= 1.5)\n" + 
-        "    -enableJavadoc     consider references in javadoc\n" + 
-        "    -Xemacs            used to enable emacs-style output\n" + 
-        " \n" + 
-        "    -? -help           print this help message\n" + 
-        "    -v -version        print compiler version\n" + 
-        "    -showversion       print compiler version and continue\n" + 
+        "    -? -help           print the help message\n" + 
         "\n";
 
 	this.runConformTest(
 		new String[0],
-        " -help -referenceInfo",
+        " -help:warn -referenceInfo",
 		MessageFormat.format(expectedOutput, new String[] {
 			Main.bind("compiler.name"),
 			Main.bind("compiler.version"),
