@@ -228,6 +228,53 @@ public void test010() {
 	options,
 	null);
 }
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=144426
+public void test011() {
+	this.runNegativeTest(
+			new String[] {
+				"X.java",
+				"public class X {\n" + 
+				"        public static void main(String[] args) {\n" + 
+				"                int x = 2;\n" + 
+				"                if (true) {\n" + 
+				"                        int x = 4;\n" + 
+				"                }\n" + 
+				"        }\n" + 
+				"}\n",
+			},
+			"----------\n" + 
+			"1. ERROR in X.java (at line 5)\n" + 
+			"	int x = 4;\n" + 
+			"	    ^\n" + 
+			"Duplicate local variable x\n" + 
+			"----------\n");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=144426 - variation
+public void test012() {
+	this.runNegativeTest(
+			new String[] {
+				"X.java",
+				"public class X {\n" + 
+				"        public static void main(String[] args) {\n" + 
+				"                int x = x = 0;\n" + 
+				"                if (true) {\n" + 
+				"                        int x = x = 1;\n" + 
+				"                }\n" + 
+				"        }\n" + 
+				"}\n",
+			},
+			"----------\n" + 
+			"1. WARNING in X.java (at line 3)\n" + 
+			"	int x = x = 0;\n" + 
+			"	    ^^^^^^^^^\n" + 
+			"The assignment to variable x has no effect\n" + 
+			"----------\n" + 
+			"2. ERROR in X.java (at line 5)\n" + 
+			"	int x = x = 1;\n" + 
+			"	    ^\n" + 
+			"Duplicate local variable x\n" + 
+			"----------\n");
+}
 public static Class testClass() {
 	return LocalVariableTest.class;
 }
