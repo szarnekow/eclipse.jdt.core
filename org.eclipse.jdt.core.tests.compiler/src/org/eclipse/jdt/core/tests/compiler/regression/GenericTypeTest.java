@@ -31722,4 +31722,21 @@ public void test1002() {
 		"Bound mismatch: The type Bar<E,F> is not a valid substitute for the bounded parameter <V extends Bar<U,Foo<U,V>>> of the type Foo<U,V>\n" + 
 		"----------\n");
 }
+public void test1003() {
+	this.runConformTest(
+		new String[] {
+			"B.java",
+			"class B {\n" + 
+			"}\n" + 
+			"class S<BB extends B, SS extends S<BB, SS, TT>, TT extends T<BB, SS, TT>> {\n" + 
+			"	BB b;\n" + 
+			"	TT t;\n" + 
+			"}\n" + 
+			"class T<BB extends B, SS extends S<BB, SS, TT>, TT extends T<BB, SS, TT>> {\n" + 
+			"	BB b;\n" + 
+			"	SS t;\n" + 
+			"}\n", // =================
+		},
+		"");
+}
 }
