@@ -31739,4 +31739,19 @@ public void test1003() {
 		},
 		"");
 }
+public void test1004() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" + 
+			"	<B> B getOtherValue() {\n" + 
+			"		return null;\n" + 
+			"	}\n" + 
+			"	<A> A getValue() {\n" + 
+			"		return getOtherValue();\n" + 
+			"	}\n" + 
+			"}", // =================
+		},
+		"");
+}
 }
