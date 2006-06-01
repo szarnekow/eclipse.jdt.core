@@ -829,7 +829,7 @@ public abstract class Scope implements TypeConstants, TypeIds {
 		if (!currentType.canBeSeenBy(this))
 			return new ProblemFieldBinding(currentType, fieldName, ProblemReasons.ReceiverTypeNotVisible);
 
-		FieldBinding field = currentType.getField(fieldName, true /*resolve*/);
+		FieldBinding field = currentType.getField(fieldName, needResolve);
 		if (field != null) {
 			if (invocationSite == null
 				? field.canBeSeenBy(getCurrentPackage())
