@@ -1734,22 +1734,18 @@ public abstract class Scope implements TypeConstants, TypeIds {
 						if (methodBinding == null)
 							methodBinding = classScope.findMethod(receiverType, selector, argumentTypes, invocationSite);
 						if (methodBinding != null) { // skip it if we did not find anything
-							if (methodBinding.isValidBinding()) {
-								if (foundMethod == null) {
-									if (!methodBinding.isStatic()) {
-										if (insideConstructorCall) {
-											return new ProblemMethodBinding(
-												methodBinding, // closest match
-												methodBinding.selector,
-												methodBinding.parameters,
-												ProblemReasons.NonStaticReferenceInConstructorInvocation);
-										} else if (insideStaticContext) {
-											return new ProblemMethodBinding(
-												methodBinding, // closest match
-												methodBinding.selector,
-												methodBinding.parameters,
-												ProblemReasons.NonStaticReferenceInStaticContext);
-										}
+							if (foundMethod == null) {
+								if (methodBinding.isValidBinding()) {
+									if (!methodBinding.isStatic() && (insideConstructorCall || insideStaticContext)) {
+										if (foundProblem != null && foundProblem.problemId() != ProblemReasons.NotVisible)
+											return foundProblem; // takes precedence
+										return new ProblemMethodBinding(
+											methodBinding, // closest match
+											methodBinding.selector,
+											methodBinding.parameters,
+											insideConstructorCall
+												? ProblemReasons.NonStaticReferenceInConstructorInvocation
+												: ProblemReasons.NonStaticReferenceInStaticContext);
 									}
 
 									if (receiverType == methodBinding.declaringClass
@@ -1767,41 +1763,34 @@ public abstract class Scope implements TypeConstants, TypeIds {
 											}
 											return methodBinding;
 									}
-								}
-							} else {
-								if (foundMethod == null) {
+
+									if (foundProblem == null) {
+										// only remember the methodBinding if its the first one found
+										// remember that private methods are visible if defined directly by an enclosing class
+										if (depth > 0) {
+											invocationSite.setDepth(depth);
+											invocationSite.setActualReceiverType(receiverType);
+										}
+										foundMethod = methodBinding;
+									}
+								} else { // methodBinding is a problem method
 									if (methodBinding.problemId() != ProblemReasons.NotVisible && methodBinding.problemId() != ProblemReasons.NotFound)
 										return methodBinding; // return the error now
 									if (foundProblem == null || (foundProblem.problemId() == ProblemReasons.NotVisible && methodBinding.problemId() == ProblemReasons.NotFound))
 										foundProblem = methodBinding; // hold onto the first not visible/found error and keep the second not found if first is not visible
-								} else if (methodBinding.problemId() == ProblemReasons.Ambiguous) {
-									// make the user qualify the method, likely wants the first inherited method (javac generates an ambiguous error instead)
+								}
+							} else { // found a valid method so check to see if this is a hiding case
+								if (methodBinding.problemId() == ProblemReasons.Ambiguous
+									|| (foundMethod.declaringClass != methodBinding.declaringClass
+										&& (receiverType == methodBinding.declaringClass || receiverType.getMethods(selector) != Binding.NO_METHODS)))
+									// ambiguous case -> must qualify the method (javac generates an ambiguous error instead)
+									// otherwise if a method was found, complain when another is found in an 'immediate' enclosing type (that is, not inherited)
+									// NOTE: Unlike fields, a non visible method hides a visible method
 									return new ProblemMethodBinding(
 										methodBinding, // closest match
 										selector,
 										argumentTypes,
 										ProblemReasons.InheritedNameHidesEnclosingName);
-								}
-							}
-
-							if (foundMethod != null && foundMethod.declaringClass != methodBinding.declaringClass)
-								if (receiverType == methodBinding.declaringClass || (receiverType.getMethods(selector)) != Binding.NO_METHODS)
-									// if a method was found, complain when another is found in an 'immediate' enclosing type (that is, not inherited)
-									// NOTE: Unlike fields, a non visible method hides a visible method
-									return new ProblemMethodBinding(
-										methodBinding, // closest match
-										methodBinding.selector,
-										methodBinding.parameters,
-										ProblemReasons.InheritedNameHidesEnclosingName);
-
-							if (foundMethod == null && foundProblem == null) {
-								// only remember the methodBinding if its the first one found
-								// remember that private methods are visible if defined directly by an enclosing class
-								if (depth > 0) {
-									invocationSite.setDepth(depth);
-									invocationSite.setActualReceiverType(receiverType);
-								}
-								foundMethod = methodBinding;
 							}
 						}
 					}
