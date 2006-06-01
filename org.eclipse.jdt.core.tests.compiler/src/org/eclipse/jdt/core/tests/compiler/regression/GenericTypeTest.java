@@ -31573,4 +31573,126 @@ public void test0998() {
 		},
 		"");
 }
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=144879
+public void test0999() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"import java.util.*;\n" + 
+			"public class X {\n" + 
+			"	public static final <T,E extends T> Iterator<T> chain(Iterator<E>... it) {\n" + 
+			"		return null;\n" + 
+			"	}\n" + 
+			"	void foo1() {\n" + 
+			"		List<Integer> l1 = Arrays.asList(1, 2, 3);\n" + 
+			"		List<Float> l2 = Arrays.asList(4f, 5f, 6f);\n" + 
+			"		Iterator<Number> it1 = X.chain(new Iterator[] { l1.iterator(), l2.iterator() });\n" + 
+			"	}\n" + 
+			"	void foo2() {\n" + 
+			"		List<Integer> l1 = Arrays.asList(1, 2, 3);\n" + 
+			"		List<Float> l2 = Arrays.asList(4f, 5f, 6f);\n" + 
+			"		Iterator<Number> it2 = X.chain(l1.iterator(), l2.iterator());\n" + 
+			"	}\n" + 
+			"	void foo3() {\n" + 
+			"		List<Integer> l1 = Arrays.asList(1, 2, 3);\n" + 
+			"		Iterator<Number> it2 = X.chain(l1.iterator(), l1.iterator());\n" + 
+			"	}\n" + 
+			"}", // =================
+		},
+		"----------\n" + 
+		"1. WARNING in X.java (at line 9)\n" + 
+		"	Iterator<Number> it1 = X.chain(new Iterator[] { l1.iterator(), l2.iterator() });\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type safety: Unchecked invocation chain(Iterator...) of the generic method chain(Iterator<E>...) of type X\n" + 
+		"----------\n" + 
+		"2. WARNING in X.java (at line 9)\n" + 
+		"	Iterator<Number> it1 = X.chain(new Iterator[] { l1.iterator(), l2.iterator() });\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type safety: The expression of type Iterator needs unchecked conversion to conform to Iterator<Number>\n" + 
+		"----------\n" + 
+		"3. ERROR in X.java (at line 14)\n" + 
+		"	Iterator<Number> it2 = X.chain(l1.iterator(), l2.iterator());\n" + 
+		"	                         ^^^^^\n" + 
+		"The method chain(Iterator<E>...) in the type X is not applicable for the arguments (Iterator<Integer>, Iterator<Float>)\n" + 
+		"----------\n" + 
+		"4. WARNING in X.java (at line 18)\n" + 
+		"	Iterator<Number> it2 = X.chain(l1.iterator(), l1.iterator());\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type safety : A generic array of Iterator<Integer> is created for a varargs parameter\n" + 
+		"----------\n");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=144879
+public void test1000() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"import java.util.*;\n" + 
+			"public class X {\n" + 
+			"	public static final <T> Iterator<T> chain(Iterator<? extends T>... it) {\n" + 
+			"		return null;\n" + 
+			"	}\n" + 
+			"	void foo1() {\n" + 
+			"		List<Integer> l1 = Arrays.asList(1, 2, 3);\n" + 
+			"		List<Float> l2 = Arrays.asList(4f, 5f, 6f);\n" + 
+			"		Iterator<Number> it1 = X.chain(new Iterator[] { l1.iterator(), l2.iterator() });\n" + 
+			"	}\n" + 
+			"	void foo2() {\n" + 
+			"		List<Integer> l1 = Arrays.asList(1, 2, 3);\n" + 
+			"		List<Float> l2 = Arrays.asList(4f, 5f, 6f);\n" + 
+			"		Iterator<Number> it2 = X.chain(l1.iterator(), l2.iterator());\n" + 
+			"	}\n" + 
+			"	void foo3() {\n" + 
+			"		List<Integer> l1 = Arrays.asList(1, 2, 3);\n" + 
+			"		Iterator<Number> it2 = X.chain(l1.iterator(), l1.iterator());\n" + 
+			"	}\n" + 
+			"}", // =================
+		},
+		"----------\n" + 
+		"1. WARNING in X.java (at line 9)\n" + 
+		"	Iterator<Number> it1 = X.chain(new Iterator[] { l1.iterator(), l2.iterator() });\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type safety: Unchecked invocation chain(Iterator...) of the generic method chain(Iterator<? extends T>...) of type X\n" + 
+		"----------\n" + 
+		"2. WARNING in X.java (at line 9)\n" + 
+		"	Iterator<Number> it1 = X.chain(new Iterator[] { l1.iterator(), l2.iterator() });\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type safety: The expression of type Iterator needs unchecked conversion to conform to Iterator<Number>\n" + 
+		"----------\n" + 
+		"3. WARNING in X.java (at line 14)\n" + 
+		"	Iterator<Number> it2 = X.chain(l1.iterator(), l2.iterator());\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type safety : A generic array of Iterator<? extends Number&Comparable<?>> is created for a varargs parameter\n" + 
+		"----------\n" + 
+		"4. ERROR in X.java (at line 14)\n" + 
+		"	Iterator<Number> it2 = X.chain(l1.iterator(), l2.iterator());\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type mismatch: cannot convert from Iterator<Number&Comparable<?>> to Iterator<Number>\n" + 
+		"----------\n" + 
+		"5. WARNING in X.java (at line 18)\n" + 
+		"	Iterator<Number> it2 = X.chain(l1.iterator(), l1.iterator());\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type safety : A generic array of Iterator<? extends Integer> is created for a varargs parameter\n" + 
+		"----------\n" + 
+		"6. ERROR in X.java (at line 18)\n" + 
+		"	Iterator<Number> it2 = X.chain(l1.iterator(), l1.iterator());\n" + 
+		"	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Type mismatch: cannot convert from Iterator<Integer> to Iterator<Number>\n" + 
+		"----------\n");
+}
+public void test1001() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" + 
+			"	static class Box<T> {}\n" + 
+			"	static class ABox<T extends A> {}\n" + 
+			"	static class A {}\n" + 
+			"	\n" + 
+			"	void foo(ABox<? extends A> a1, ABox<?> a2) {\n" + 
+			"		a1 = a2;	\n" + 
+			"	}\n" + 
+			"}", // =================
+		},
+		"");
+}
 }
