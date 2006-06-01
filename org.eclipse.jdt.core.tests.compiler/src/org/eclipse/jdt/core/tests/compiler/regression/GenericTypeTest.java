@@ -31695,4 +31695,31 @@ public void test1001() {
 		},
 		"");
 }
+public void test1002() {
+	this.runNegativeTest(
+		new String[] {
+			"Base.java",
+			"class Base {\n" + 
+			"}\n" + 
+			"class Foo<U extends Base, V extends Bar<U, Foo<U, V>>> {\n" + 
+			"	U u;\n" + 
+			"	V v;\n" + 
+			"}\n" + 
+			"class Bar<E extends Base, F extends Foo<E, Bar<E, F>>> {\n" + 
+			"	E e;\n" + 
+			"	F f;\n" + 
+			"}\n", // =================
+		},
+		"----------\n" + 
+		"1. ERROR in Base.java (at line 3)\n" + 
+		"	class Foo<U extends Base, V extends Bar<U, Foo<U, V>>> {\n" + 
+		"	                                           ^^^\n" + 
+		"Bound mismatch: The type Foo<U,V> is not a valid substitute for the bounded parameter <F extends Foo<E,Bar<E,F>>> of the type Bar<E,F>\n" + 
+		"----------\n" + 
+		"2. ERROR in Base.java (at line 7)\n" + 
+		"	class Bar<E extends Base, F extends Foo<E, Bar<E, F>>> {\n" + 
+		"	                                           ^^^\n" + 
+		"Bound mismatch: The type Bar<E,F> is not a valid substitute for the bounded parameter <V extends Bar<U,Foo<U,V>>> of the type Foo<U,V>\n" + 
+		"----------\n");
+}
 }
