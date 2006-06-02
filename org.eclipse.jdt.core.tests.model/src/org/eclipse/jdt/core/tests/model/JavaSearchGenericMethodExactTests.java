@@ -31,7 +31,7 @@ public class JavaSearchGenericMethodExactTests extends JavaSearchGenericMethodTe
 
 	public static Test suite() {
 		TestSuite suite = new Suite(JavaSearchGenericMethodExactTests.class.getName());
-		List tests = buildTestsList(JavaSearchGenericMethodExactTests.class, 1, 0/* do not sort*/);
+		List tests = buildTestsList(JavaSearchGenericMethodExactTests.class, 1);
 		for (int index=0, size=tests.size(); index<size; index++) {
 			suite.addTest((Test)tests.get(index));
 		}

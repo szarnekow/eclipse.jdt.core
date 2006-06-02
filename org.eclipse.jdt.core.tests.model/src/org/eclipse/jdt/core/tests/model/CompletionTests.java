@@ -44,7 +44,7 @@ static {
 }
 public static Test suite() {
 	// TODO (david) make execution independant from tests order
-	return buildModelTestSuite(CompletionTests.class, 1/*sort ascending order*/);
+	return buildModelTestSuite(CompletionTests.class, ALPHABETICAL_SORT);
 }
 public void testParameterNames1() throws CoreException, IOException {
 	Map options = COMPLETION_PROJECT.getOptions(true);
