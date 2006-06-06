@@ -6634,29 +6634,6 @@ public class GenericTypeTest extends AbstractComparableTest {
 	}
 	// can resolve member through type variable
 	public void test0229() {
-		this.runNegativeTest(
-			new String[] {
-				"X.java",
-				" public class X <T extends XC> {\n" + 
-				" 	T.MXC f;\n" + 
-				" 	public static void main(String[] args) {\n" + 
-				"		System.out.println(\"SUCCESS\");\n" + 
-				"	}\n" + 
-				" }\n" + 
-				"\n" + 
-				" class XC {\n" + 
-				" 	class MXC {}\n" + 
-				" }\n",
-			},
-			"----------\n" + 
-			"1. ERROR in X.java (at line 2)\r\n" + 
-			"	T.MXC f;\r\n" + 
-			"	^^^^^\n" + 
-			"Illegal qualified access from the type parameter T\n" + 
-			"----------\n"
-			 // cannot select from a type variable
-		);
-		if (false)
 		this.runConformTest(
 			new String[] {
 				"X.java",
@@ -8696,39 +8673,6 @@ public class GenericTypeTest extends AbstractComparableTest {
 				"  	private static class M { private static int j = 2; }\n" + 
 				"  	public int foo(T t) { return t.i + t.i() + T.M.j; }\n" + 
 				"  	public int foo2(T t) { return T.CONSTANT; }\n" + // why is this allowed?
-				"}\n"
-			},
-			"----------\n" + 
-			"1. WARNING in X.java (at line 5)\n" + 
-			"	private static class M { private static int j = 2; }\n" + 
-			"	                     ^\n" + 
-			"The type X<T>.M is never used locally\n" + 
-			"----------\n" + 
-			"2. WARNING in X.java (at line 5)\n" + 
-			"	private static class M { private static int j = 2; }\n" + 
-			"	                                            ^\n" + 
-			"The field X<T>.M.j is never read locally\n" + 
-			"----------\n" + 
-			"3. ERROR in X.java (at line 6)\n" + 
-			"	public int foo(T t) { return t.i + t.i() + T.M.j; }\n" + 
-			"	                                           ^^^\n" + 
-			"T.M cannot be resolved\n" + 
-			"----------\n"
-			// 5: cannot select from a type variable
-			// 5: operator + cannot be applied to int,<any>.j
-			// 5: incompatible type, found : <nulltype>, required: int
-		);
-		if (false)	
-		this.runNegativeTest(
-			new String[] {
-				"X.java", //---------------------------
-				"public class X<T extends X<T>> {\n" + 
-				"  	static int CONSTANT = 1;\n" + 
-				"  	private int i = 1;\n" + 
-				"  	private int i() {return i;}\n" + 
-				"  	private static class M { private static int j = 2; }\n" + 
-				"  	public int foo(T t) { return t.i + t.i() + T.M.j; }\n" + 
-				"  	public int foo2(T t) { return T.CONSTANT; }\n" + // why is this allowed?
 				"}\n" +
 				"class Y extends Zork {\n" +
 				"}\n"
@@ -8744,7 +8688,7 @@ public class GenericTypeTest extends AbstractComparableTest {
 			"	                ^^^^\n" + 
 			"Zork cannot be resolved to a type\n" + 
 			"----------\n"
-		// 5: operator + cannot be applied to int,<any>.j
+			// 5: operator + cannot be applied to int,<any>.j
 			// 5: incompatible type, found : <nulltype>, required: int
 		);
 	}
@@ -28745,18 +28689,9 @@ public void test0917() {
 		"----------\n"
 		// cannot select from a type variable
 	);
-	if (false)
-	this.runConformTest(
-		new String[] {
-			"X.java",
-			"public class X<T extends A> extends X2<T.M> { }\n" +
-			"class X2<T> { }\n" +
-			"class A { static class M {} }"
-		},
-		"");
 }
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=128423 - variation
-public void _test0917a() {
+public void test0917a() {
 	this.runNegativeTest(
 		new String[] {
 			"X.java",
@@ -28767,8 +28702,10 @@ public void _test0917a() {
 		"1. ERROR in X.java (at line 1)\n" + 
 		"	public class X<T> extends X2<T.clazz> { }\n" + 
 		"	                             ^^^^^^^\n" + 
-		"T.clazz cannot be resolved to a type\n" + 
-		"----------\n");
+		"Illegal qualified access from the type parameter T\n" + 
+		"----------\n"
+		// cannot select from a type variable
+	);
 }
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=128423 - variation
 public void test0917b() {
@@ -31392,7 +31329,7 @@ public void test0992() {
 }
 
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=142897
-public void _test0993() {
+public void test0993() {
 	this.runConformTest(
 			new String[] {
 				"X.java",//===================
@@ -31421,7 +31358,7 @@ public void _test0993() {
 			"SUCCESS");
 }
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=142897 - variation
-public void _test0994() {
+public void test0994() {
 	this.runConformTest(
 			new String[] {
 				"X.java",//===================
@@ -31519,7 +31456,7 @@ public void test0996() {
 			"----------\n");
 }
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=142897 - variation
-public void _test0997() {
+public void test0997() {
 	this.runConformTest(
 			new String[] {
 				"X.java",//===================
