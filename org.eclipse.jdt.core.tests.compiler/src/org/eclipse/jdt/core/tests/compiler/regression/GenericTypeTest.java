@@ -31754,4 +31754,29 @@ public void test1004() {
 		},
 		"");
 }
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=145420
+public void test1005() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"public class X<T1,T2> {\n" + 
+			"\n" + 
+			"    private static final Object NULL_REF = new Object();\n" + 
+			"    private Object data;\n" + 
+			"\n" + 
+			"    private static <RT> RT unwrap(Object obj) {\n" + 
+			"        return (RT)(obj == NULL_REF ? null : obj);\n" + 
+			"    }\n" + 
+			"\n" + 
+			"    public T1 getAsT1() {\n" + 
+			"        return unwrap(data);\n" + 
+			"    }\n" + 
+			"\n" + 
+			"    public T2 getAsT2() {\n" + 
+			"        return unwrap(data);\n" + 
+			"    }\n" + 
+			"}", // =================
+		},
+		"");
+}
 }
