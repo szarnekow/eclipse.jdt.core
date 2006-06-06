@@ -850,7 +850,7 @@ public abstract class Scope implements TypeConstants, TypeIds {
 				((SourceTypeBinding) currentType).scope.connectTypeHierarchy();
 				itsInterfaces = currentType.superInterfaces();
 			}
-			if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+			if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 				if (interfacesToVisit == null) {
 					interfacesToVisit = itsInterfaces;
 					nextPosition = interfacesToVisit.length;
@@ -899,7 +899,7 @@ public abstract class Scope implements TypeConstants, TypeIds {
 					}
 				} else {
 					ReferenceBinding[] itsInterfaces = anInterface.superInterfaces();
-					if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+					if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 						int itsLength = itsInterfaces.length;
 						if (nextPosition + itsLength >= interfacesToVisit.length)
 							System.arraycopy(interfacesToVisit, 0, interfacesToVisit = new ReferenceBinding[nextPosition + itsLength + 5], 0, nextPosition);
@@ -961,7 +961,7 @@ public abstract class Scope implements TypeConstants, TypeIds {
 				((SourceTypeBinding) currentType).scope.connectTypeHierarchy();
 				itsInterfaces = currentType.superInterfaces();
 			}
-			if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+			if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 				if (interfacesToVisit == null) {
 					interfacesToVisit = itsInterfaces;
 					nextPosition = interfacesToVisit.length;
@@ -1012,7 +1012,7 @@ public abstract class Scope implements TypeConstants, TypeIds {
 					}
 				} else {
 					ReferenceBinding[] itsInterfaces = anInterface.superInterfaces();
-					if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+					if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 						int itsLength = itsInterfaces.length;
 						if (nextPosition + itsLength >= interfacesToVisit.length)
 							System.arraycopy(interfacesToVisit, 0, interfacesToVisit = new ReferenceBinding[nextPosition + itsLength + 5], 0, nextPosition);
@@ -1289,7 +1289,7 @@ public abstract class Scope implements TypeConstants, TypeIds {
 
 	protected void findMethodInSuperInterfaces(ReferenceBinding currentType, char[] selector, ObjectVector found) {
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();
-		if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+		if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 			ReferenceBinding[] interfacesToVisit = itsInterfaces;
 			int nextPosition = interfacesToVisit.length;
 			for (int i = 0; i < nextPosition; i++) {
@@ -1298,7 +1298,7 @@ public abstract class Scope implements TypeConstants, TypeIds {
 				MethodBinding[] currentMethods = currentType.getMethods(selector);
 				if (currentMethods.length > 0)
 					found.addAll(currentMethods);
-				if ((itsInterfaces = currentType.superInterfaces()) != Binding.NO_SUPERINTERFACES) {
+				if ((itsInterfaces = currentType.superInterfaces()) != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 					int itsLength = itsInterfaces.length;
 					if (nextPosition + itsLength >= interfacesToVisit.length)
 						System.arraycopy(interfacesToVisit, 0, interfacesToVisit = new ReferenceBinding[nextPosition + itsLength + 5], 0, nextPosition);

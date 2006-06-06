@@ -610,7 +610,8 @@ public ReferenceBinding findSuperTypeErasingTo(int wellKnownErasureID, boolean e
 	int nextPosition = 0;
 	do {
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();
-		if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+		// be resilient to unitialized interfaces (144976)
+		if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) { // null check for extra resilience (144976)
 			if (interfacesToVisit == null) {
 				interfacesToVisit = itsInterfaces;
 				nextPosition = interfacesToVisit.length;
@@ -634,7 +635,7 @@ public ReferenceBinding findSuperTypeErasingTo(int wellKnownErasureID, boolean e
 			return currentType;
 
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();
-		if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+		if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 			int itsLength = itsInterfaces.length;
 			if (nextPosition + itsLength >= interfacesToVisit.length)
 				System.arraycopy(interfacesToVisit, 0, interfacesToVisit = new ReferenceBinding[nextPosition + itsLength + 5], 0, nextPosition);
@@ -728,7 +729,7 @@ public boolean hasIncompatibleSuperType(ReferenceBinding otherType) {
 			return true;
 
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();
-		if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+		if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 			if (interfacesToVisit == null) {
 				interfacesToVisit = itsInterfaces;
 				nextPosition = interfacesToVisit.length;
@@ -754,7 +755,7 @@ public boolean hasIncompatibleSuperType(ReferenceBinding otherType) {
 			return true;				
 
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();
-		if (itsInterfaces != Binding.NO_SUPERINTERFACES) {
+		if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) {
 			int itsLength = itsInterfaces.length;
 			if (nextPosition + itsLength >= interfacesToVisit.length)
 				System.arraycopy(interfacesToVisit, 0, interfacesToVisit = new ReferenceBinding[nextPosition + itsLength + 5], 0, nextPosition);
@@ -789,7 +790,7 @@ public boolean implementsInterface(ReferenceBinding anInterface, boolean searchH
 	ReferenceBinding currentType = this;
 	do {
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();
-		if (itsInterfaces != Binding.NO_SUPERINTERFACES && itsInterfaces != null) { // in code assist cases when source types are added late, may not be finished connecting hierarchy
+		if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES && itsInterfaces != null) { // in code assist cases when source types are added late, may not be finished connecting hierarchy
 			if (interfacesToVisit == null) {
 				interfacesToVisit = itsInterfaces;
 				nextPosition = interfacesToVisit.length;
@@ -813,7 +814,7 @@ public boolean implementsInterface(ReferenceBinding anInterface, boolean searchH
 			return true;
 
 		ReferenceBinding[] itsInterfaces = currentType.superInterfaces();
-		if (itsInterfaces != Binding.NO_SUPERINTERFACES && itsInterfaces != null) { // in code assist cases when source types are added late, may not be finished connecting hierarchy
+		if (itsInterfaces != null && itsInterfaces != Binding.NO_SUPERINTERFACES) { // in code assist cases when source types are added late, may not be finished connecting hierarchy
 			int itsLength = itsInterfaces.length;
 			if (nextPosition + itsLength >= interfacesToVisit.length)
 				System.arraycopy(interfacesToVisit, 0, interfacesToVisit = new ReferenceBinding[nextPosition + itsLength + 5], 0, nextPosition);
