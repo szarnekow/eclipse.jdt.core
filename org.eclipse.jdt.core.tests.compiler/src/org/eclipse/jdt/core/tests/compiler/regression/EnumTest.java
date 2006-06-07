@@ -2951,33 +2951,13 @@ public void test094() {
 		"        [pc: 0, line: 1]\n" + 
 		"  \n" + 
 		"  // Method descriptor #29 (Ljava/lang/String;)LX;\n" + 
-		"  // Stack: 3, Locals: 4\n" + 
+		"  // Stack: 2, Locals: 1\n" + 
 		"  public static X valueOf(java.lang.String arg0);\n" + 
-		"     0  getstatic X.ENUM$VALUES : X[] [10]\n" + 
-		"     3  dup\n" + 
-		"     4  astore_1\n" + 
-		"     5  arraylength\n" + 
-		"     6  istore_2\n" + 
-		"     7  goto 27\n" + 
-		"    10  aload_0\n" + 
-		"    11  aload_1\n" + 
-		"    12  iload_2\n" + 
-		"    13  aaload\n" + 
-		"    14  dup\n" + 
-		"    15  astore_3\n" + 
-		"    16  invokevirtual X.name() : java.lang.String [30]\n" + 
-		"    19  invokevirtual java.lang.String.equals(java.lang.Object) : boolean [34]\n" + 
-		"    22  ifeq 27\n" + 
-		"    25  aload_3\n" + 
-		"    26  areturn\n" + 
-		"    27  iinc 2 -1\n" + 
-		"    30  iload_2\n" + 
-		"    31  ifge 10\n" + 
-		"    34  new java.lang.IllegalArgumentException [40]\n" + 
-		"    37  dup\n" + 
-		"    38  aload_0\n" + 
-		"    39  invokespecial java.lang.IllegalArgumentException(java.lang.String) [42]\n" + 
-		"    42  athrow\n" + 
+		"     0  ldc <Class X> [1]\n" + 
+		"     2  aload_0\n" + 
+		"     3  invokestatic java.lang.Enum.valueOf(java.lang.Class, java.lang.String) : java.lang.Enum [30]\n" + 
+		"     6  checkcast X [1]\n" + 
+		"     9  areturn\n" + 
 		"      Line numbers:\n" + 
 		"        [pc: 0, line: 1]\n"; 
 		
@@ -4492,35 +4472,16 @@ public void test129() {
 		"        [pc: 0, line: 1]\n" + 
 		"  \n" + 
 		"  // Method descriptor #42 (Ljava/lang/String;)LX;\n" + 
-		"  // Stack: 3, Locals: 4\n" + 
+		"  // Stack: 2, Locals: 1\n" + 
 		"  public static X valueOf(java.lang.String arg0);\n" + 
-		"     0  getstatic X.ENUM$VALUES : X[] [27]\n" + 
-		"     3  dup\n" + 
-		"     4  astore_1\n" + 
-		"     5  arraylength\n" + 
-		"     6  istore_2\n" + 
-		"     7  goto 27\n" + 
-		"    10  aload_0\n" + 
-		"    11  aload_1\n" + 
-		"    12  iload_2\n" + 
-		"    13  aaload\n" + 
-		"    14  dup\n" + 
-		"    15  astore_3\n" + 
-		"    16  invokevirtual X.name() : java.lang.String [43]\n" + 
-		"    19  invokevirtual java.lang.String.equals(java.lang.Object) : boolean [47]\n" + 
-		"    22  ifeq 27\n" + 
-		"    25  aload_3\n" + 
-		"    26  areturn\n" + 
-		"    27  iinc 2 -1\n" + 
-		"    30  iload_2\n" + 
-		"    31  ifge 10\n" + 
-		"    34  new java.lang.IllegalArgumentException [53]\n" + 
-		"    37  dup\n" + 
-		"    38  aload_0\n" + 
-		"    39  invokespecial java.lang.IllegalArgumentException(java.lang.String) [55]\n" + 
-		"    42  athrow\n" + 
+		"     0  ldc <Class X> [1]\n" + 
+		"     2  aload_0\n" + 
+		"     3  invokestatic java.lang.Enum.valueOf(java.lang.Class, java.lang.String) : java.lang.Enum [43]\n" + 
+		"     6  checkcast X [1]\n" + 
+		"     9  areturn\n" + 
 		"      Line numbers:\n" + 
-		"        [pc: 0, line: 1]\n"; 
+		"        [pc: 0, line: 1]\n" + 
+		"}"; 
 		
 	int index = actualOutput.indexOf(expectedOutput);
 	if (index == -1 || expectedOutput.length() == 0) {
@@ -4579,7 +4540,7 @@ public void test130() {
 		null);	
 }	
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=145732
-public void _test131() {
+public void test131() {
 	this.runConformTest(
          new String[] {
         		 "X.java",
