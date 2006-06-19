@@ -31716,4 +31716,58 @@ public void test1005() {
 		},
 		"");
 }
+public void test1006() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"class Reference<T> {\n" + 
+			"	T target;\n" + 
+			"	Reference(T target) {\n" + 
+			"		this.target = target;\n" + 
+			"	}\n" + 
+			"	T deref() {\n" + 
+			"		return this.target;\n" + 
+			"	}\n" + 
+			"	static <U> Reference<U> create(U u) {\n" + 
+			"		return new Reference<U>(u);\n" + 
+			"	}\n" + 
+			"}\n" + 
+			"class BaseObject {}\n" + 
+			"class Person extends BaseObject {}\n" + 
+			"class Building extends BaseObject {}\n" + 
+			"\n" + 
+			"public class X {\n" + 
+			"	void foo(Building b, Person p) {\n" + 
+			"		Reference<Building> bRef = Reference.create(b);\n" + 
+			"		Reference<Person> pRef = Reference.create(p);\n" + 
+			"\n" + 
+			"		final Building building = bRef.deref();\n" + 
+			"		final Person person = pRef.deref();\n" + 
+			"	}\n" + 
+			"}", // =================
+		},
+		"");
+}
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=147381
+public void test1007() {
+	this.runNegativeTest(
+		new String[] {
+			"GenericsProblem.java",
+			"public class GenericsProblem {\n" + 
+			"	public <T> void test(T val) {\n" + 
+			"		GenericsProblem gp = new GenericsProblem();\n" + 
+			"		// this is fine with both\n" + 
+			"		Class<? extends GenericsProblem> cl2 = gp.getClass();\n" + 
+			"		// This fails on Sun\'s compiler\n" + 
+			"		Class<? extends T> cl = val.getClass();\n" + 
+			"	}\n" + 
+			"}\n",
+		},
+		"----------\n" + 
+		"1. ERROR in GenericsProblem.java (at line 7)\n" + 
+		"	Class<? extends T> cl = val.getClass();\n" + 
+		"	                        ^^^^^^^^^^^^^^\n" + 
+		"Type mismatch: cannot convert from Class<capture-of ? extends Object> to Class<? extends T>\n" + 
+		"----------\n");
+}		
 }
