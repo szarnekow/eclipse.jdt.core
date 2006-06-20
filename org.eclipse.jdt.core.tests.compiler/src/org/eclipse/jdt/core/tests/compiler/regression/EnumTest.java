@@ -4396,7 +4396,7 @@ public void test129() {
 		"  private static final synthetic X[] ENUM$VALUES;\n" + 
 		"  \n" + 
 		"  // Method descriptor #12 ()V\n" + 
-		"  // Stack: 10, Locals: 0\n" + 
+		"  // Stack: 4, Locals: 0\n" + 
 		"  static {};\n" + 
 		"     0  new X [1]\n" + 
 		"     3  dup\n" + 
