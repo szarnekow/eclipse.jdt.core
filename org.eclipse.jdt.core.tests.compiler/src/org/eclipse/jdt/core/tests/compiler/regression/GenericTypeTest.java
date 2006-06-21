@@ -31769,5 +31769,48 @@ public void test1007() {
 		"	                        ^^^^^^^^^^^^^^\n" + 
 		"Type mismatch: cannot convert from Class<capture-of ? extends Object> to Class<? extends T>\n" + 
 		"----------\n");
-}		
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=111086
+public void _test1008() {
+	this.runNegativeTest(
+		new String[] {
+			"SortedList.java",
+			"import java.util.*;\n" + 
+			"\n" + 
+			"public class SortedList<E extends Comparable> extends LinkedList<E> {\n" + 
+			"	@Override\n" + 
+			"	public boolean add(E e) {\n" + 
+			"		int index = Collections.binarySearch(this, e);\n" + 
+			"		if (index < 0)\n" + 
+			"			super.add(-index - 1, e);\n" + 
+			"		return true;\n" + 
+			"	}\n" + 
+			"}", // =================
+		},
+		"----------\n" + 
+		"1. ERROR in GenericsProblem.java (at line 7)\n" + 
+		"	Class<? extends T> cl = val.getClass();\n" + 
+		"	                        ^^^^^^^^^^^^^^\n" + 
+		"Type mismatch: cannot convert from Class<capture-of ? extends Object> to Class<? extends T>\n" + 
+		"----------\n");
+}	
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=111086 - variation
+public void _test1009() {
+	this.runConformTest(
+		new String[] {
+			"SortedList.java",
+			"import java.util.*;\n" + 
+			"\n" + 
+			"public class SortedList<E extends Comparable<E>> extends LinkedList<E> {\n" + 
+			"	@Override\n" + 
+			"	public boolean add(E e) {\n" + 
+			"		int index = Collections.binarySearch(this, e);\n" + 
+			"		if (index < 0)\n" + 
+			"			super.add(-index - 1, e);\n" + 
+			"		return true;\n" + 
+			"	}\n" + 
+			"}", // =================
+		},
+		"");
+}	
 }
