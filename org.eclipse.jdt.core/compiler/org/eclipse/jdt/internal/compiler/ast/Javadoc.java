@@ -521,7 +521,8 @@ public class Javadoc extends ASTNode {
 
 			// Look for undocumented thrown exception
 			for (int i = 0; i < boundExceptionLength; i++) {
-				ReferenceBinding exceptionBinding = (ReferenceBinding) md.binding.thrownExceptions[i].erasure();
+				ReferenceBinding exceptionBinding = md.binding.thrownExceptions[i];
+				if (exceptionBinding != null) exceptionBinding = (ReferenceBinding) exceptionBinding.erasure();
 				boolean found = false;
 				for (int j = 0; j < maxRef && !found; j++) {
 					if (typeReferences[j] != null) {
