@@ -112,8 +112,7 @@ public TypeBinding capture(Scope scope, int position) {
  *   A = F   corresponds to:      F.collectSubstitutes(..., A, ..., 0)
  *   A >> F   corresponds to:   F.collectSubstitutes(..., A, ..., 2)
  */
-public void collectSubstitutes(Scope scope, TypeBinding actualType,
-		Map substitutes, int constraint) {
+public void collectSubstitutes(Scope scope, TypeBinding actualType, Map substitutes, int constraint) {
 	// no substitute by default
 }
 
