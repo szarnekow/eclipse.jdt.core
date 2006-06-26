@@ -579,7 +579,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 				if (localErrorCount == 0) {
 					this.printlnErr("----------"); //$NON-NLS-1$
 				}
-				this.printlnErr(problem.isError() ?
+				this.printErr(problem.isError() ?
 						Main.bind(
 								"requestor.error", //$NON-NLS-1$
 								Integer.toString(globalErrorCount),
@@ -590,7 +590,7 @@ public class Main implements ProblemSeverities, SuffixConstants {
 										new String(problem.getOriginatingFileName())));
 				try {
 					final String errorReportSource = ((DefaultProblem) problem).errorReportSource(unitSource);
-					if (errorReportSource.length() != 0) this.printlnErr(errorReportSource);
+					this.printlnErr(errorReportSource);
 					this.printlnErr(problem.getMessage());
 				} catch (Exception e) {
 					this.printlnErr(Main.bind(
