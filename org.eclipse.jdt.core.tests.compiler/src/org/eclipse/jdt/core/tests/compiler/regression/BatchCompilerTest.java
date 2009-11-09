@@ -45,9 +45,9 @@ public class BatchCompilerTest extends AbstractRegressionTest {
 	private static final Main MAIN = new Main(null/*outWriter*/, null/*errWriter*/, false/*systemExit*/, null/*options*/, null/*progress*/);
 
 	static {
-//	TESTS_NAMES = new String[] { "test000" };
-//	TESTS_NUMBERS = new int[] { 288 };
-//	TESTS_RANGE = new int[] { 107, -1 };
+//		TESTS_NAMES = new String[] { "test292_warn_options" };
+//		TESTS_NUMBERS = new int[] { 295 };
+//		TESTS_RANGE = new int[] { 107, -1 };
 	}
 public BatchCompilerTest(String name) {
 	super(name);
@@ -1543,6 +1543,14 @@ public void test012(){
         "    -nowarn -warn:none disable all warnings\n" +
         "    -?:warn -help:warn display advanced warning options\n" +
         " \n" +
+        " Error options:\n" + 
+        "    -err:<warnings separated by ,>    convert exactly the listed warnings\n" + 
+        "                                      to be reported as errors\n" + 
+        "    -err:+<warnings separated by ,>   enable additional warnings to be\n" + 
+        "                                      reported as errors\n" + 
+        "    -err:-<warnings separated by ,>   disable specific warnings to be\n" + 
+        "                                      reported as errors\n" + 
+        " \n" + 
         " Debug options:\n" +
         "    -g[:lines,vars,source] custom debug info\n" +
         "    -g:lines,source  + both lines table and source debug info\n" +
@@ -1641,6 +1649,7 @@ public void test012b(){
         "      allDeadCode          dead code including trivial if(DEBUG) check\n" +
         "      allDeprecation       deprecation including inside deprecated code\n" +
         "      allJavadoc           invalid or missing javadoc\n" +
+        "      allOver-ann          all missing @Override annotations\n" +
         "      assertIdentifier   + ''assert'' used as identifier\n" +
         "      boxing               autoboxing conversion\n" +
         "      charConcat         + char[] in String concat\n" +
@@ -1674,7 +1683,7 @@ public void test012b(){
         "      noEffectAssign     + assignment without effect\n" +
         "      null                 potential missing or redundant null check\n" +
         "      nullDereference    + missing null check\n" +
-        "      over-ann             missing @Override annotation\n" +
+        "      over-ann             missing @Override annotation (superclass)\n" +
         "      paramAssign          assignment to a parameter\n" +
         "      pkgDefaultMethod   + attempt to override package-default method\n" +
         "      raw                + usage of raw type\n" +
@@ -1813,6 +1822,7 @@ public void test012b(){
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.missingJavadocTagsOverriding\" value=\"disabled\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.missingJavadocTagsVisibility\" value=\"public\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.missingOverrideAnnotation\" value=\"ignore\"/>\n" +
+			"		<option key=\"org.eclipse.jdt.core.compiler.problem.missingOverrideAnnotationForInterfaceMethodImplementation\" value=\"enabled\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.missingSerialVersion\" value=\"warning\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.missingSynchronizedOnInheritedMethod\" value=\"ignore\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.noEffectAssignment\" value=\"warning\"/>\n" +
@@ -1831,6 +1841,7 @@ public void test012b(){
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.staticAccessReceiver\" value=\"warning\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.suppressWarnings\" value=\"enabled\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.syntheticAccessEmulation\" value=\"ignore\"/>\n" +
+			"		<option key=\"org.eclipse.jdt.core.compiler.problem.tasks\" value=\"warning\"/>\n" + 
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.typeParameterHiding\" value=\"warning\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation\" value=\"warning\"/>\n" +
 			"		<option key=\"org.eclipse.jdt.core.compiler.problem.undocumentedEmptyBlock\" value=\"ignore\"/>\n" +
@@ -6157,7 +6168,7 @@ public void test152() {
 		"\"" + OUTPUT_DIR +  File.separator + "X.java\""
 		+ " -warn:-nullDereferences -proc:none -d \"" + OUTPUT_DIR + "\"",
 		"",
-		"invalid warning: nullDereferences. Ignoring warning and compiling\n" +
+		"invalid warning token: 'nullDereferences'. Ignoring warning and compiling\n" +
 		"----------\n" +
 		"1. WARNING in ---OUTPUT_DIR_PLACEHOLDER---/X.java (at line 4)\n" +
 		"	s.toString();\n" +
@@ -8486,7 +8497,7 @@ public void test214_warn_options() {
 		"\"" + OUTPUT_DIR +  File.separator + "X.java\""
 		+ " -warn:null,-unused -proc:none -d \"" + OUTPUT_DIR + "\"",
 		"",
-		"invalid warning option: -warn:null,-unused. Must specify a warning token\n",
+		"usage of \'-\' for \'-unused\' is illegal there\n",
 		true);
 }
 // https://bugs.eclipse.org/bugs/show_bug.cgi?id=210518
@@ -8507,7 +8518,7 @@ public void test215_warn_options() {
 		"\"" + OUTPUT_DIR +  File.separator + "X.java\""
 		+ " -warn:null,+unused -proc:none -d \"" + OUTPUT_DIR + "\"",
 		"",
-		"invalid warning option: -warn:null,+unused. Must specify a warning token\n",
+		"usage of \'+\' for \'+unused\' is illegal there\n",
 		true);
 }
 // https://bugs.eclipse.org/bugs/show_bug.cgi?id=211588
@@ -11053,5 +11064,145 @@ public void test291_jar_ref_in_jar() throws Exception {
 		"<null>", 
 		actual, 
 		true/*show line serators*/);
+}
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=163194
+// -warn option - regression tests to check option allOver-ann
+public void test292_warn_options() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"interface A {\n" +
+			"  void m();\n" +
+			"}" +
+			"interface B extends A{\n" +
+			"  void m();\n" +
+			"}" +
+			"public class X implements A{\n" +
+			"  public void m(){}\n" +
+			"  public String toString(){return \"HelloWorld\";}\n" +
+			"}",
+		},
+		"\"" + OUTPUT_DIR +  File.separator + "X.java\""
+		+ " -sourcepath \"" + OUTPUT_DIR + "\""
+		+ " -warn:allOver-ann -1.6 -proc:none -d \"" + OUTPUT_DIR + "\"",
+		"",
+		"----------\n" +
+		"1. WARNING in ---OUTPUT_DIR_PLACEHOLDER---/X.java (at line 4)\n" +
+		"	void m();\n" +
+		"	     ^^^\n" +
+		"The method m() of type B should be tagged with @Override since it actually overrides a superinterface method\n" +
+		"----------\n" +
+		"2. WARNING in ---OUTPUT_DIR_PLACEHOLDER---/X.java (at line 6)\n" +
+		"	public void m(){}\n" +
+		"	            ^^^\n"+
+		"The method m() of type X should be tagged with @Override since it actually overrides a superinterface method\n" +
+		"----------\n" +
+		"3. WARNING in ---OUTPUT_DIR_PLACEHOLDER---/X.java (at line 7)\n" +
+		"	public String toString(){return \"HelloWorld\";}\n" +
+		"	              ^^^^^^^^^^\n" +
+		"The method toString() of type X should be tagged with @Override since it actually overrides a superclass method\n" +
+		"----------\n" +
+		"3 problems (3 warnings)",
+		true);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=280784
+public void test293(){
+	createCascadedJars();
+	this.runNegativeTest(
+		new String[] {
+			"src/p/X.java",
+			"package p;\n" +
+			"/** */\n" +
+			"public class X {\n" +
+			"  A a;\n" +
+			"}",
+		},
+		"\"" + OUTPUT_DIR +  File.separator + "src/p/X.java\""
+		+ " -cp \"" + LIB_DIR + File.separator + "lib3.jar[~p/A]\""
+		+ " -sourcepath \"" + OUTPUT_DIR +  File.separator + "src\""
+		+ " -1.5 -g -preserveAllLocals"
+		+ " -proceedOnError -referenceInfo -err:+discouraged"
+		+ " -d \"" + OUTPUT_DIR + File.separator + "bin\" ",
+		"",
+		"----------\n" +
+		"1. ERROR in ---OUTPUT_DIR_PLACEHOLDER---/src/p/X.java (at line 4)\n" +
+		"	A a;\n" +
+		"	^\n" +
+		"Discouraged access: The type A is not accessible due to restriction on classpath entry ---LIB_DIR_PLACEHOLDER---/lib3.jar\n" +
+		"----------\n" +
+		"1 problem (1 error)",
+		true);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=280784
+public void test294(){
+	this.runConformTest(
+		new String[] {
+			"src/X.java",
+			"public class X {\n" +
+			"}",
+		},
+		"\"" + OUTPUT_DIR +  File.separator + "src/X.java\""
+		+ " -cp \"" + LIB_DIR + "\""
+		+ " -sourcepath \"" + OUTPUT_DIR +  File.separator + "src\""
+		+ " -1.5 -g -preserveAllLocals"
+		+ " -proceedOnError -referenceInfo -err:+discouraged2"
+		+ " -d \"" + OUTPUT_DIR + File.separator + "bin\" ",
+		"",
+		"invalid error token: \'discouraged2\'. Ignoring this error token and compiling\n",
+		true);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=280784
+public void test295(){
+	this.runNegativeTest(
+		new String[] {
+			"src/X.java",
+			"public class X {\n" +
+			"}",
+		},
+		"\"" + OUTPUT_DIR +  File.separator + "src/X.java\""
+		+ " -cp \"" + LIB_DIR + "\""
+		+ " -sourcepath \"" + OUTPUT_DIR +  File.separator + "src\""
+		+ " -1.5 -g -preserveAllLocals"
+		+ " -proceedOnError -referenceInfo -err:raw,+discouraged"
+		+ " -d \"" + OUTPUT_DIR + File.separator + "bin\" ",
+		"",
+		"usage of \'+\' for \'+discouraged\' is illegal there\n",
+		true);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=280784
+public void test296(){
+	this.runNegativeTest(
+		new String[] {
+			"src/X.java",
+			"public class X {\n" +
+			"}",
+		},
+		"\"" + OUTPUT_DIR +  File.separator + "src/X.java\""
+		+ " -cp \"" + LIB_DIR + "\""
+		+ " -sourcepath \"" + OUTPUT_DIR +  File.separator + "src\""
+		+ " -1.5 -g -preserveAllLocals"
+		+ " -proceedOnError -referenceInfo -err:"
+		+ " -d \"" + OUTPUT_DIR + File.separator + "bin\" ",
+		"",
+		"invalid error configuration: \'-err:\'\n",
+		true);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=280784
+public void test297(){
+	this.runNegativeTest(
+		new String[] {
+			"src/X.java",
+			"public class X {\n" +
+			"}",
+		},
+		"\"" + OUTPUT_DIR +  File.separator + "src/X.java\""
+		+ " -cp \"" + LIB_DIR + "\""
+		+ " -sourcepath \"" + OUTPUT_DIR +  File.separator + "src\""
+		+ " -1.5 -g -preserveAllLocals"
+		+ " -proceedOnError -referenceInfo -err"
+		+ " -d \"" + OUTPUT_DIR + File.separator + "bin\" ",
+		"",
+		"invalid error configuration: \'-err\'\n",
+		true);
 }
 }

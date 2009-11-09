@@ -349,17 +349,20 @@ public abstract class AbstractJavaModelTests extends SuiteOfTestCases {
 		assertSearchResults("Unexpected search results", expected, collector);
 	}
 	protected void assertSearchResults(String message, String expected, Object collector) {
+		assertSearchResults(message, expected, collector, true /* assertion */);
+	}
+	protected void assertSearchResults(String message, String expected, Object collector, boolean assertion) {
 		String actual = collector.toString();
 		if (!expected.equals(actual)) {
 			if (this.displayName) System.out.println(getName()+" actual result is:");
 			System.out.print(displayString(actual, this.tabs));
 			System.out.println(",");
 		}
-		assertEquals(
-			message,
-			expected,
-			actual
-		);
+		if (assertion) {
+			assertEquals(message, expected, actual);
+		} else {
+			assumeEquals(message, expected, actual);
+		}
 	}
 	protected void assertScopeEquals(String expected, IJavaSearchScope scope) {
 		String actual = scope.toString();
@@ -1672,13 +1675,15 @@ public abstract class AbstractJavaModelTests extends SuiteOfTestCases {
 	 */
 	public void deleteResource(IResource resource) throws CoreException {
 		int retryCount = 0; // wait 1 minute at most
+		IStatus status = null;
 		while (++retryCount <= 6) {
-			if (org.eclipse.jdt.core.tests.util.Util.delete(resource)) {
+			status = org.eclipse.jdt.core.tests.util.Util.delete(resource);
+			if (status.isOK()) {
 				return;
 			}
 			System.gc();
 		}
-		throw new RuntimeException("Could not delete " + resource.getFullPath());
+		throw new CoreException(status);
 	}
 	/**
 	 * Returns true if this delta is flagged as having changed children.
