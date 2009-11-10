@@ -20,10 +20,15 @@ import junit.framework.Test;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.search.*;
@@ -10808,4 +10813,217 @@ public void testBug266837() throws Exception {
 	search("f266837", FIELD, DECLARATIONS, requestor);
 }
 
+/**
+ * @bug 286379: [search] Problem while searching class
+ * @test Ensure that no IAE occurs when there is a change in JavaLikeNames.
+ * @see "https://bugs.eclipse.org/bugs/show_bug.cgi?id=286379"
+ */
+public void testBug286379a() throws CoreException {
+	IContentType javaContentType = Platform.getContentTypeManager().getContentType(JavaCore.JAVA_SOURCE_CONTENT_TYPE);
+	ICompilationUnit cu = null;
+	try {
+		assertNotNull("We should have got a Java Source content type!", javaContentType);
+		javaContentType.addFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		createJavaProject("P");
+		createFolder("/P/p");			
+		createFile(
+			"/P/p/Xtorem.torem",
+			"package p;\n" +
+			"public class Xtorem {\n" +
+			"}"
+		);
+		waitUntilIndexesReady();
+		cu = getCompilationUnit("/P/p/Xtorem.torem");
+		cu.becomeWorkingCopy(null);
+		IType type = cu.getType("Xtorem");
+		
+		// Ensure that the Xtorem class is really found
+		TestCollector collector = new TestCollector();
+		new SearchEngine().search(
+				SearchPattern.createPattern(type, IJavaSearchConstants.DECLARATIONS),
+				new SearchParticipant[] {SearchEngine.getDefaultSearchParticipant()},
+				SearchEngine.createWorkspaceScope(),
+				collector,
+				null
+			);
+		assertSearchResults("p/Xtorem.torem p.Xtorem", collector);
+		
+		// Ensure that removal of the content type doesn't cause any further exception
+		// during the search and also ensure that the search doesn't return any result
+		javaContentType.removeFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);		
+		collector = new TestCollector();
+		new SearchEngine().search(
+				SearchPattern.createPattern(type, IJavaSearchConstants.DECLARATIONS),
+				new SearchParticipant[] {SearchEngine.getDefaultSearchParticipant()},
+				SearchEngine.createWorkspaceScope(),
+				collector,
+				null
+			);
+		assertSearchResults("No results expected", "", collector);
+	} finally {
+		if (cu != null)
+			cu.discardWorkingCopy();
+		if (javaContentType != null)
+			javaContentType.removeFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		deleteProject("P");
+	}
+}
+
+/**
+ * This is similar to testBug286379a, except that it ensures that IAE doesn't occur 
+ * at a different place
+ */
+public void testBug286379b() throws CoreException {
+	IContentType javaContentType = Platform.getContentTypeManager().getContentType(JavaCore.JAVA_SOURCE_CONTENT_TYPE);
+	try {
+		assertNotNull("We should have got a Java Source a content type!", javaContentType);
+		javaContentType.addFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		createJavaProject("P");
+		createFolder("/P/p");			
+		createFile(
+			"/P/p/Xtorem.torem",
+			"package p;\n" +
+			"public class Xtorem {\n" +
+			"}"
+		);	
+		
+		// Ensure that the class Xtorem is really found
+		TypeNameMatchCollector collector = new TypeNameMatchCollector();
+		new SearchEngine().searchAllTypeNames(
+				null,
+				new char[][] {"Xtorem".toCharArray()},
+				SearchEngine.createWorkspaceScope(),
+				collector,
+				IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
+				null);
+		assertSearchResults("Xtorem (not open) [in Xtorem.torem [in p [in <project root> [in P]]]]", collector);
+		
+		// Ensure that removal of the content type doesn't cause any further exception
+		// during the search and also ensure that the search doesn't return any result
+		javaContentType.removeFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		collector = new TypeNameMatchCollector();
+		new SearchEngine().searchAllTypeNames(
+				null,
+				new char[][] {"Xtorem".toCharArray()},
+				SearchEngine.createWorkspaceScope(),
+				collector,
+				IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
+				null);
+		assertSearchResults("No results expected", "", collector);
+	} finally {
+		if (javaContentType != null)
+			javaContentType.removeFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		deleteProject("P");
+	}
+}
+
+/**
+ * If any javaLikeNames are added, this ensures that such files can get searched 
+ * at least on the restart of the workspace. 
+ * If any javaLikeNames are deleted, this ensures that the index file is regenerated.
+ */
+public void testBug286379c() throws CoreException {
+	class TestResourceChangeListener implements IResourceChangeListener {
+		boolean valid = false;
+		public void resourceChanged(IResourceChangeEvent event) {
+			this.valid = validate(event.getDelta());
+		}
+		/*
+		 * Ensure that the listener receives a delta concerning the resource
+		 * with the new extension...
+		 */
+		private boolean validate(IResourceDelta delta) {
+	        IResourceDelta[] children = delta.getAffectedChildren();
+	        int length = children.length;
+	        if (length == 0) {
+	        	IResource resource = delta.getResource();
+	        	if (resource.getType() == IResource.FILE &&
+	        		resource.getName().equals("Xtorem.torem")) {
+	        		return true;
+	        	}
+	        } else {
+		        for (int i=0; i<length; i++) {
+		        	if (validate(children[i])) return true;
+		        }
+	        }
+	        return false;
+        }
+	}
+
+	IContentType javaContentType = Platform.getContentTypeManager().getContentType(JavaCore.JAVA_SOURCE_CONTENT_TYPE);
+	TestResourceChangeListener changeListener = new TestResourceChangeListener();
+	try {
+		// Create resource
+		createJavaProject("P");
+		createFolder("/P/p");			
+		createFile(
+			"/P/p/Xtorem.torem",
+			"package p;\n" +
+			"public class Xtorem {\n" +
+			"}"
+		);
+		
+		// Wait to be sure that indexes are ready after the resource creation
+		waitUntilIndexesReady();
+
+		// Add the resource listener
+		getWorkspace().addResourceChangeListener(changeListener, IResourceChangeEvent.POST_CHANGE);
+
+		// Change the file extension
+		assertNotNull("We should have got a Java Source a content type!", javaContentType);
+		javaContentType.addFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		
+		// Wait for all the resource event before continuing
+		// Note that if we are not waiting for this event occurring then the search may
+		// fail as we don't get any specific event from the platform to refresh the indexes.
+		// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=118619
+		int counter = 0;
+		while (!changeListener.valid) {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException ie) {
+				// skip
+			}
+			assertTrue("We should have got a resource event within a 10s delay!", counter++ < 100);
+		}
+
+		// Search for the new type with new extension
+		TypeNameMatchCollector collector = new TypeNameMatchCollector();
+		new SearchEngine().searchAllTypeNames(
+				null,
+				new char[][] {"Xtorem".toCharArray()},
+				SearchEngine.createWorkspaceScope(),
+				collector,
+				IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
+				null);
+		assertSearchResults("Unexpected search results!",
+			"Xtorem (not open) [in Xtorem.torem [in p [in <project root> [in P]]]]",
+			collector);
+		
+		// Delete the file specification
+		javaContentType.removeFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		
+		// Restarting should update the index file to remove the references of any .torem files
+		simulateExit();
+		simulateRestart();		
+		waitUntilIndexesReady();
+
+		// Search for the new type with new extension
+		collector = new TypeNameMatchCollector();
+		new SearchEngine().searchAllTypeNames(
+				null,
+				new char[][] {"Xtorem".toCharArray()},
+				SearchEngine.createWorkspaceScope(),
+				collector,
+				IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
+				null);
+		assertSearchResults("No search results expected", "", collector);
+	} finally {
+		getWorkspace().removeResourceChangeListener(changeListener);
+		if (javaContentType != null)
+			javaContentType.removeFileSpec("torem", IContentType.FILE_EXTENSION_SPEC);
+		deleteProject("P");
+	}
+}
 }

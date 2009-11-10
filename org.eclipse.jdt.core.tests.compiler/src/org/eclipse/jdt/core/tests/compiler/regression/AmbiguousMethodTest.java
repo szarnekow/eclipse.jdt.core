@@ -10,6 +10,10 @@
  *******************************************************************************/
 package org.eclipse.jdt.core.tests.compiler.regression;
 
+import java.util.Map;
+
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+
 import junit.framework.*;
 
 public class AmbiguousMethodTest extends AbstractComparableTest {
@@ -26,6 +30,11 @@ public class AmbiguousMethodTest extends AbstractComparableTest {
 		return AmbiguousMethodTest.class;
 	}
 
+	protected Map getCompilerOptions() {
+		Map compilerOptions = super.getCompilerOptions();
+		compilerOptions.put(CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation, CompilerOptions.DISABLED);
+		return compilerOptions;
+	}
 	public void test000() {
 		this.runConformTest(
 			new String[] {
@@ -3426,5 +3435,97 @@ public void test077() {
 		},
 		""
 	);
+}
+
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=287592
+public void test078() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"class X {\n" +
+			"	class Field<T> { T value; }\n" +
+			"	<T> void a(T value) {}\n" +
+			"	<T> void a(Field<T> field) {}\n" +
+			"	<T extends Number> void b(T value) {}\n" +
+			"	<T> void b(Field<T> field) {}\n" +
+			"	void c(String value) {}\n" +
+			"	void c(Field<String> field) {}\n" +
+			"	void test(X x) {\n" +
+			"		x.a(null);\n" +
+			"		x.<String>a(null);\n" +
+			"		x.b(null);\n" +
+			"		x.<Integer>b(null);\n" +
+			"		x.c(null);\n" +
+			"	}\n" +
+			"}"
+		},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 12)\n" + 
+		"	x.b(null);\n" + 
+		"	  ^\n" + 
+		"The method b(Number) is ambiguous for the type X\n" + 
+		"----------\n" + 
+		"2. ERROR in X.java (at line 13)\n" + 
+		"	x.<Integer>b(null);\n" + 
+		"	           ^\n" + 
+		"The method b(Integer) is ambiguous for the type X\n" + 
+		"----------\n" + 
+		"3. ERROR in X.java (at line 14)\n" + 
+		"	x.c(null);\n" + 
+		"	  ^\n" + 
+		"The method c(String) is ambiguous for the type X\n" + 
+		"----------\n"
+	);
+}
+
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=292350
+public void test079() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"interface I<T> {}\n" +
+			"class A {}\n" +
+			"class B extends A {}\n" +
+			"interface One {\n" +
+			"    I<B> x() throws IllegalAccessError;\n" +
+			"    <T extends A> I<T> y() throws IllegalAccessError;\n" +
+			"}\n" +
+			"interface Two extends One {\n" +
+			"    <T extends A> I<T> x() throws IllegalAccessError;\n" +
+			"    I<B> y() throws IllegalAccessError;\n" +
+			"}\n" +
+			"class X {\n" +
+			"    void x(Two t) { t.x(); }\n" +
+			"    void y(Two t) { t.y(); }\n" +
+			"}"
+		},
+		""
+	);
+}
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=293384
+public void test080() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"public class X<Tout extends Object> {\n" +
+			"   static public abstract class BaseA {};\n" +
+			"	static public abstract class BaseB extends BaseA {};\n" +
+			"	static public class Real extends BaseB {};\n" +
+			"	static BaseA ask(String prompt) {\n" +
+			"	    Real impl = new Real();\n" +
+			"	    return (BaseA) ask(prompt, impl);\n" +
+			"	}\n" +
+			"	static BaseA ask(String prompt, Real impl) {\n" +
+			"	    return null;\n" +
+			"	}\n" +
+			"	static <T extends BaseA> T ask(String prompt, T impl) {\n" +
+			"	    return null;\n" +
+			"	}\n" +
+			"	static public void main(String[] args) {\n" +
+			"        System.out.println(\"SUCCESS\");\n" +
+			"	}\n" +
+			"}\n"
+		},
+		"SUCCESS");
 }
 }

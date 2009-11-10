@@ -25,7 +25,6 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.search.*;
 import org.eclipse.jdt.core.tests.model.AbstractJavaModelTests;
 import org.eclipse.jdt.internal.core.search.processing.IJob;
-import org.eclipse.test.performance.Performance;
 
 /**
  */
@@ -518,8 +517,7 @@ public class FullSourceWorkspaceSearchTests extends FullSourceWorkspaceTests imp
 	 */
 	public void testSearchMethod() throws CoreException {
 		tagAsSummary("Search method occurences (no resolution)", false); // do NOT put in fingerprint
-		setComment(Performance.EXPLAINS_DEGRADATION_COMMENT, "Test is not enough stable and will be replaced by another one...");
-
+		
 		// Wait for indexing end
 		AbstractJavaModelTests.waitUntilIndexesReady();
 

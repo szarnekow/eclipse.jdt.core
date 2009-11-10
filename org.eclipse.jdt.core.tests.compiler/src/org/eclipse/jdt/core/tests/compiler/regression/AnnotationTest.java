@@ -44,7 +44,7 @@ public class AnnotationTest extends AbstractComparableTest {
 	// All specified tests which do not belong to the class are skipped...
 	static {
 //		TESTS_NAMES = new String[] { "test127" };
-//		TESTS_NUMBERS = new int[] { 269 };
+//		TESTS_NUMBERS = new int[] { 278 };
 //		TESTS_RANGE = new int[] { 249, -1 };
 	}
 
@@ -3304,102 +3304,116 @@ public class AnnotationTest extends AbstractComparableTest {
 
     // https://bugs.eclipse.org/bugs/show_bug.cgi?id=84791 - variation
     public void test111() {
-        this.runNegativeTest(
-            new String[] {
-                "X.java",
-				"import java.lang.annotation.Annotation;\n" +
-				"import java.util.Arrays;\n" +
-				"\n" +
-				"@interface Ann {\n" +
-				"	int foo();\n" +
-				"}\n" +
-				"\n" +
-				"interface Iface extends Ann {\n" +
-				"}\n" +
-				"\n" +
-				"abstract class Klass implements Ann {\n" +
-				"}\n" +
-				"\n" +
-				"class SubKlass extends Klass {\n" +
-				"	public Class<? extends Annotation> annotationType() {\n" +
-				"		return null;\n" +
-				"	}\n" +
-				"}\n" +
-				"\n" +
-				"class AnnImpl implements Ann {\n" +
-				"    public boolean equals(Object obj) { return false; }\n" +
-				"    public int hashCode() { return 0; }\n" +
-				"    public String toString() { return null; }\n" +
-				"    public Class<? extends Annotation> annotationType() { return null; }\n" +
-				"    public int foo() { return 0; }\n" +
-				"}\n" +
-				"\n" +
-				"public class X {\n" +
-				"	public static void main(String[] args) {\n" +
-				"		Class c = SubKlass.class;\n" +
-				"		System.out.println(\"Classes:\");\n" +
-				"		while (c != Object.class) {\n" +
-				"			System.out.println(\"-> \" + c.getName());\n" +
-				"			c = c.getSuperclass();\n" +
-				"		}\n" +
-				"\n" +
-				"		System.out.println();\n" +
-				"		System.out.println(\"Interfaces:\");\n" +
-				"		c = SubKlass.class;\n" +
-				"		while (c != Object.class) {\n" +
-				"			Class[] i = c.getInterfaces();\n" +
-				"			System.out.println(\"-> \" + Arrays.asList(i));\n" +
-				"			c = c.getSuperclass();\n" +
-				"		}\n" +
-				"	}\n" +
-				"}\n",
-            },
-    		"----------\n" +
-    		"1. WARNING in X.java (at line 8)\n" +
-    		"	interface Iface extends Ann {\n" +
-    		"	                        ^^^\n" +
-    		"The annotation type Ann should not be used as a superinterface for Iface\n" +
-    		"----------\n" +
-    		"2. WARNING in X.java (at line 11)\n" +
-    		"	abstract class Klass implements Ann {\n" +
-    		"	                                ^^^\n" +
-    		"The annotation type Ann should not be used as a superinterface for Klass\n" +
-    		"----------\n" +
-    		"3. ERROR in X.java (at line 14)\n" +
-    		"	class SubKlass extends Klass {\n" +
-    		"	      ^^^^^^^^\n" +
-    		"The type SubKlass must implement the inherited abstract method Ann.foo()\n" +
-    		"----------\n" +
-    		"4. WARNING in X.java (at line 20)\n" +
-    		"	class AnnImpl implements Ann {\n" +
-    		"	                         ^^^\n" +
-    		"The annotation type Ann should not be used as a superinterface for AnnImpl\n" +
-    		"----------\n" +
-    		"5. WARNING in X.java (at line 21)\n" +
-    		"	public boolean equals(Object obj) { return false; }\n" +
-    		"	               ^^^^^^^^^^^^^^^^^^\n" +
-    		"The method equals(Object) of type AnnImpl should be tagged with @Override since it actually overrides a superclass method\n" +
-    		"----------\n" +
-    		"6. WARNING in X.java (at line 22)\n" +
-    		"	public int hashCode() { return 0; }\n" +
-    		"	           ^^^^^^^^^^\n" +
-    		"The method hashCode() of type AnnImpl should be tagged with @Override since it actually overrides a superclass method\n" +
-    		"----------\n" +
-    		"7. WARNING in X.java (at line 23)\n" +
-    		"	public String toString() { return null; }\n" +
-    		"	              ^^^^^^^^^^\n" +
-    		"The method toString() of type AnnImpl should be tagged with @Override since it actually overrides a superclass method\n" +
-    		"----------\n" +
-    		"8. WARNING in X.java (at line 30)\n" +
-    		"	Class c = SubKlass.class;\n" +
-    		"	^^^^^\n" +
-    		"Class is a raw type. References to generic type Class<T> should be parameterized\n" +
-    		"----------\n" +
-    		"9. WARNING in X.java (at line 41)\n" +
-    		"	Class[] i = c.getInterfaces();\n" +
-    		"	^^^^^\n" +
-    		"Class is a raw type. References to generic type Class<T> should be parameterized\n" +
-    		"----------\n");
+    	Map customOptions = getCompilerOptions();
+    	customOptions.put(
+    			CompilerOptions.OPTION_ReportMissingOverrideAnnotation,
+    			CompilerOptions.ERROR);
+    	customOptions.put(
+    			CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation,
+    			CompilerOptions.DISABLED);
+
+    	String expectedOutput =
+    		"----------\n" + 
+    		"1. WARNING in X.java (at line 8)\n" + 
+    		"	interface Iface extends Ann {\n" + 
+    		"	                        ^^^\n" + 
+    		"The annotation type Ann should not be used as a superinterface for Iface\n" + 
+    		"----------\n" + 
+    		"2. WARNING in X.java (at line 11)\n" + 
+    		"	abstract class Klass implements Ann {\n" + 
+    		"	                                ^^^\n" + 
+    		"The annotation type Ann should not be used as a superinterface for Klass\n" + 
+    		"----------\n" + 
+    		"3. ERROR in X.java (at line 14)\n" + 
+    		"	class SubKlass extends Klass {\n" + 
+    		"	      ^^^^^^^^\n" + 
+    		"The type SubKlass must implement the inherited abstract method Ann.foo()\n" + 
+    		"----------\n" + 
+    		"4. WARNING in X.java (at line 20)\n" + 
+    		"	class AnnImpl implements Ann {\n" + 
+    		"	                         ^^^\n" + 
+    		"The annotation type Ann should not be used as a superinterface for AnnImpl\n" + 
+    		"----------\n" + 
+    		"5. ERROR in X.java (at line 21)\n" + 
+    		"	public boolean equals(Object obj) { return false; }\n" + 
+    		"	               ^^^^^^^^^^^^^^^^^^\n" + 
+    		"The method equals(Object) of type AnnImpl should be tagged with @Override since it actually overrides a superclass method\n" + 
+    		"----------\n" + 
+    		"6. ERROR in X.java (at line 22)\n" + 
+    		"	public int hashCode() { return 0; }\n" + 
+    		"	           ^^^^^^^^^^\n" + 
+    		"The method hashCode() of type AnnImpl should be tagged with @Override since it actually overrides a superclass method\n" + 
+    		"----------\n" + 
+    		"7. ERROR in X.java (at line 23)\n" + 
+    		"	public String toString() { return null; }\n" + 
+    		"	              ^^^^^^^^^^\n" + 
+    		"The method toString() of type AnnImpl should be tagged with @Override since it actually overrides a superclass method\n" + 
+    		"----------\n" + 
+    		"8. WARNING in X.java (at line 30)\n" + 
+    		"	Class c = SubKlass.class;\n" + 
+    		"	^^^^^\n" + 
+    		"Class is a raw type. References to generic type Class<T> should be parameterized\n" + 
+    		"----------\n" + 
+    		"9. WARNING in X.java (at line 41)\n" + 
+    		"	Class[] i = c.getInterfaces();\n" + 
+    		"	^^^^^\n" + 
+    		"Class is a raw type. References to generic type Class<T> should be parameterized\n" + 
+    		"----------\n";
+
+		this.runNegativeTest(
+				true,
+	    		new String[] {
+						"X.java",
+						"import java.lang.annotation.Annotation;\n" +
+						"import java.util.Arrays;\n" +
+						"\n" +
+						"@interface Ann {\n" +
+						"	int foo();\n" +
+						"}\n" +
+						"\n" +
+						"interface Iface extends Ann {\n" +
+						"}\n" +
+						"\n" +
+						"abstract class Klass implements Ann {\n" +
+						"}\n" +
+						"\n" +
+						"class SubKlass extends Klass {\n" +
+						"	public Class<? extends Annotation> annotationType() {\n" +
+						"		return null;\n" +
+						"	}\n" +
+						"}\n" +
+						"\n" +
+						"class AnnImpl implements Ann {\n" +
+						"    public boolean equals(Object obj) { return false; }\n" +
+						"    public int hashCode() { return 0; }\n" +
+						"    public String toString() { return null; }\n" +
+						"    public Class<? extends Annotation> annotationType() { return null; }\n" +
+						"    public int foo() { return 0; }\n" +
+						"}\n" +
+						"\n" +
+						"public class X {\n" +
+						"	public static void main(String[] args) {\n" +
+						"		Class c = SubKlass.class;\n" +
+						"		System.out.println(\"Classes:\");\n" +
+						"		while (c != Object.class) {\n" +
+						"			System.out.println(\"-> \" + c.getName());\n" +
+						"			c = c.getSuperclass();\n" +
+						"		}\n" +
+						"\n" +
+						"		System.out.println();\n" +
+						"		System.out.println(\"Interfaces:\");\n" +
+						"		c = SubKlass.class;\n" +
+						"		while (c != Object.class) {\n" +
+						"			Class[] i = c.getInterfaces();\n" +
+						"			System.out.println(\"-> \" + Arrays.asList(i));\n" +
+						"			c = c.getSuperclass();\n" +
+						"		}\n" +
+						"	}\n" +
+						"}\n",
+		            },
+		null, customOptions,
+		expectedOutput,
+		JavacTestOptions.SKIP);
     }
 
     // https://bugs.eclipse.org/bugs/show_bug.cgi?id=86291
@@ -3886,7 +3900,7 @@ public class AnnotationTest extends AbstractComparableTest {
                 "    void foo(List list) {\n" +
                 "        List<String> ls1 = list;\n" +
                 "    }\n" +
-                "    @SuppressWarnings(\"unchecked\")\n" +
+                "    @SuppressWarnings({\"unchecked\", \"rawtypes\"})\n" +
                 "    void bar(List list) {\n" +
                 "        List<String> ls2 = list;\n" +
                 "    }\n" +
@@ -4064,6 +4078,7 @@ public class AnnotationTest extends AbstractComparableTest {
     			"\n" +
     			"@SuppressWarnings( { \"deprecation\",//$NON-NLS-1$\n" +
     			"		\"finally\",//$NON-NLS-1$\n" +
+    			"		\"rawtypes\",//$NON-NLS-1$\n" +
     			"		\"serial\",//$NON-NLS-1$\n" +
     			"		\"unchecked\"//$NON-NLS-1$\n" +
     			"})\n" +
@@ -4093,7 +4108,7 @@ public class AnnotationTest extends AbstractComparableTest {
     			"}\n"
             },
     		"----------\n" +
-    		"1. ERROR in X.java (at line 23)\n" +
+    		"1. ERROR in X.java (at line 24)\n" +
     		"	Zork dummy;\n" +
     		"	^^^^\n" +
     		"Zork cannot be resolved to a type\n" +
@@ -4111,6 +4126,7 @@ public class AnnotationTest extends AbstractComparableTest {
     			"public class X {\n" +
     			"	@SuppressWarnings( { \"deprecation\",//$NON-NLS-1$\n" +
     			"			\"finally\",//$NON-NLS-1$\n" +
+    			"			\"rawtypes\",//$NON-NLS-1$\n" +
     			"			\"unchecked\"//$NON-NLS-1$\n" +
     			"	})\n" +
     			"	public static void main(String[] args) {\n" +
@@ -4124,7 +4140,7 @@ public class AnnotationTest extends AbstractComparableTest {
     			"		}\n" +
     			"	}\n" +
     			"\n" +
-    			"	@SuppressWarnings(\"unchecked\"//$NON-NLS-1$\n" +
+    			"	@SuppressWarnings({\"unchecked\", \"rawtypes\"}//$NON-NLS-1$//$NON-NLS-2$\n" +
     			"	)\n" +
     			"	List<X> l = new Vector();\n" +
     			"\n" +
@@ -4144,7 +4160,7 @@ public class AnnotationTest extends AbstractComparableTest {
     			"}\n"
             },
     		"----------\n" +
-    		"1. ERROR in X.java (at line 28)\n" +
+    		"1. ERROR in X.java (at line 29)\n" +
     		"	Zork dummy;\n" +
     		"	^^^^\n" +
     		"Zork cannot be resolved to a type\n" +
@@ -5054,7 +5070,7 @@ public void test143() {
         this.runNegativeTest(
             new String[] {
                 "X.java",
-                "@SuppressWarnings(\"unchecked\")\n" +
+                "@SuppressWarnings({\"unchecked\", \"rawtypes\"})\n" +
 				"public class X<T> {\n" +
 				"    \n" +
 				"    public static void main(String[] args) {\n" +
@@ -7001,6 +7017,14 @@ public void test213() {
 }
 //https://bugs.eclipse.org/bugs/show_bug.cgi?id=141931
 public void test214() {
+	Map customOptions = getCompilerOptions();
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotation,
+			CompilerOptions.ERROR);
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation,
+			CompilerOptions.DISABLED);
+
 	String expectedOutput = new CompilerOptions(getCompilerOptions()).sourceLevel < ClassFileConstants.JDK1_6
 		?	"----------\n" +
 			"1. ERROR in X.java (at line 3)\n" +
@@ -7025,6 +7049,7 @@ public void test214() {
 			"The method foo() of type I must override or implement a supertype method\n" +
 			"----------\n";
     this.runNegativeTest(
+    	true,
         new String[] {
             "X.java",
 			"interface I {\n" +
@@ -7042,7 +7067,10 @@ public void test214() {
 			"	void foo();\n" +
 			"}\n",
         },
-        expectedOutput);
+        null,
+        customOptions,
+        expectedOutput,
+        JavacTestOptions.SKIP);
 }
 // https://bugs.eclipse.org/bugs/show_bug.cgi?id=141931
 // variant
@@ -7110,7 +7138,32 @@ public void test216() {
 }
 // extending java.lang.annotation.Annotation
 public void test217() {
+	Map customOptions = getCompilerOptions();
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotation,
+			CompilerOptions.ERROR);
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation,
+			CompilerOptions.DISABLED);
+	String expectedOutput =
+		"----------\n" +
+		"1. WARNING in X.java (at line 3)\n" +
+		"	void bar(MyConstructor constructor, Class<Ann> ann) {\n" +
+		"	         ^^^^^^^^^^^^^\n" +
+		"MyConstructor is a raw type. References to generic type MyConstructor<V> should be parameterized\n" +
+		"----------\n" +
+		"2. WARNING in X.java (at line 4)\n" +
+		"	constructor.getAnnotation(ann).message();\n" +
+		"	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" +
+		"Type safety: The method getAnnotation(Class) belongs to the raw type MyConstructor. References to generic type MyConstructor<V> should be parameterized\n" +
+		"----------\n" +
+		"3. ERROR in X.java (at line 4)\n" +
+		"	constructor.getAnnotation(ann).message();\n" +
+		"	                               ^^^^^^^\n" +
+		"The method message() is undefined for the type Annotation\n" +
+		"----------\n";
     this.runNegativeTest(
+    	true,
         new String[] {
             "X.java",
 			"import java.lang.annotation.Annotation;\n" +
@@ -7132,22 +7185,10 @@ public void test217() {
 			"  public <T extends Annotation> T getAnnotation(Class<T> c) { return null; }\n" +
 			"}\n",
         },
-		"----------\n" +
-		"1. WARNING in X.java (at line 3)\n" +
-		"	void bar(MyConstructor constructor, Class<Ann> ann) {\n" +
-		"	         ^^^^^^^^^^^^^\n" +
-		"MyConstructor is a raw type. References to generic type MyConstructor<V> should be parameterized\n" +
-		"----------\n" +
-		"2. WARNING in X.java (at line 4)\n" +
-		"	constructor.getAnnotation(ann).message();\n" +
-		"	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n" +
-		"Type safety: The method getAnnotation(Class) belongs to the raw type MyConstructor. References to generic type MyConstructor<V> should be parameterized\n" +
-		"----------\n" +
-		"3. ERROR in X.java (at line 4)\n" +
-		"	constructor.getAnnotation(ann).message();\n" +
-		"	                               ^^^^^^^\n" +
-		"The method message() is undefined for the type Annotation\n" +
-		"----------\n");
+        null,
+        customOptions,
+        expectedOutput,
+        JavacTestOptions.SKIP);
 }
 // extending java.lang.annotation.Annotation
 public void test218() {
@@ -8868,5 +8909,374 @@ public void test270() {
 		"	^^^^\n" +
 		"Cycle detected: the annotation type Test<T>.Anno cannot contain attributes of the annotation type itself\n" +
 		"----------\n");
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=289576
+public void test271() throws Exception {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"@interface A {}\n" + 
+			"public class X {\n" + 
+			"	@SuppressWarnings(\"unused\")\n" + 
+			"	private void foo(@A Object o) {}\n" + 
+			"}"
+		},
+	"");
+
+	String expectedOutput =
+		"  // Method descriptor #15 (Ljava/lang/Object;)V\n" + 
+		"  // Stack: 0, Locals: 2\n" + 
+		"  private void foo(@A java.lang.Object o);\n";
+
+	checkDisassembledClassFile(OUTPUT_DIR + File.separator  +"X.class", "X", expectedOutput, ClassFileBytesDisassembler.DETAILED);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=289516
+public void test272() throws Exception {
+	if (this.complianceLevel != ClassFileConstants.JDK1_5) {
+		return;
+	}
+	Map options = getCompilerOptions();
+	options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);
+	options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_4);
+	options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"@interface A {}\n" + 
+			"public class X {\n" + 
+			"	@SuppressWarnings(\"unused\")\n" + 
+			"	private void foo(@A Object o) {}\n" + 
+			"}"
+		},
+		"",
+		null,
+		true,
+		null,
+		options,
+		null,
+		true);
+
+	String expectedOutput =
+		"  // Method descriptor #15 (Ljava/lang/Object;)V\n" + 
+		"  // Stack: 0, Locals: 2\n" + 
+		"  private void foo(@A java.lang.Object o);\n";
+
+	checkDisassembledClassFile(OUTPUT_DIR + File.separator  +"X.class", "X", expectedOutput, ClassFileBytesDisassembler.DETAILED);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=289576
+public void test273() throws Exception {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"@interface A {}\n" + 
+			"public class X {\n" + 
+			"	@SuppressWarnings(\"unused\")\n" + 
+			"	private X(@A Object o) {}\n" + 
+			"}"
+		},
+		"");
+
+	String expectedOutput =
+		"  // Method descriptor #6 (Ljava/lang/Object;)V\n" + 
+		"  // Stack: 1, Locals: 2\n" + 
+		"  private X(@A java.lang.Object o);\n";
+
+	checkDisassembledClassFile(OUTPUT_DIR + File.separator  +"X.class", "X", expectedOutput, ClassFileBytesDisassembler.DETAILED);
+}
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=163194
+// To check Missing override annotation error when a method implements
+// and also overrides a method in a superclass
+public void test274a() {
+	String testString [] = new String[] {
+			"T.java",
+			"public interface T {\n" +
+			"        void m();\n" +
+			"}\n" + 
+			"abstract class A implements T {\n" +
+			"}\n" +
+			"class B extends A {\n" +
+			"        public void m() {}\n" +
+			"}\n"
+			};
+	Map customOptions = getCompilerOptions();
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotation,
+			CompilerOptions.ERROR);
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation,
+			CompilerOptions.ENABLED);
+	if (new CompilerOptions(customOptions).sourceLevel >= ClassFileConstants.JDK1_6) {
+		String expectedOutput =
+				"----------\n" +
+				"1. ERROR in T.java (at line 7)\n" +
+				"	public void m() {}\n" +
+				"	            ^^^\n" +
+				"The method m() of type B should be tagged with @Override since it actually overrides a superinterface method\n" +
+				"----------\n";
+		this.runNegativeTest(
+				true,
+				testString,
+				null, customOptions,
+				expectedOutput, 
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	} else {
+		this.runConformTest(
+				true, testString,
+				null,
+				customOptions,
+				null,
+				null, null, 
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	}
+}
+
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=163194
+// To check Missing override annotation error when a method implements but
+// doesn't overrides
+public void test274b() {
+	String testString [] = new String[] {
+			"Over.java",
+			"interface I {\n" +
+			"        void m();\n" +
+			"}\n" +
+			"public class Over implements I {\n" +
+			"        public void m() {}\n" +
+			"}\n"
+			};
+	Map customOptions = getCompilerOptions();
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotation,
+			CompilerOptions.ERROR);
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation,
+			CompilerOptions.ENABLED);
+	if (new CompilerOptions(customOptions).sourceLevel >= ClassFileConstants.JDK1_6) {
+		String expectedOutput =
+			"----------\n" +
+			"1. ERROR in Over.java (at line 5)\n" +
+			"	public void m() {}\n" +
+			"	            ^^^\n" +
+			"The method m() of type Over should be tagged with @Override since it actually overrides a superinterface method\n" +
+			"----------\n";
+		this.runNegativeTest(
+				true,
+				testString,
+				null, customOptions,
+				expectedOutput,
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	} else {
+		this.runConformTest(
+				true, testString,
+				null,
+				customOptions,
+				null,
+				null, null,
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	}
+}
+
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=163194
+// To check Missing override annotation error when a method simply overrides
+public void test274c() {
+	String testString [] = new String[] {
+			"B.java",
+			"interface A {\n" +
+			"        void m();\n" +
+			"}\n" +
+			"public interface B extends A {\n" +
+			"        void m();\n" +
+			"}\n"
+			};
+	Map customOptions = getCompilerOptions();
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotation,
+			CompilerOptions.ERROR);
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation,
+			CompilerOptions.ENABLED);
+	if (new CompilerOptions(customOptions).sourceLevel >= ClassFileConstants.JDK1_6) {
+		String expectedOutput =
+				"----------\n" +
+				"1. ERROR in B.java (at line 5)\n" +
+				"	void m();\n" +
+				"	     ^^^\n" +
+				"The method m() of type B should be tagged with @Override since it actually overrides a superinterface method\n" +
+				"----------\n";
+		this.runNegativeTest(
+				true,
+				testString,
+				null, customOptions,
+				expectedOutput,
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	} else {
+		this.runConformTest(
+				true, testString,
+				null,
+				customOptions,
+				null,
+				null, null,
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	}
+}
+
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=163194
+// To check missing override annotation if the method has a signature
+// that is override-equivalent to that of any public method declared in Object.
+public void test274d() {
+	String testString [] = new String[] {
+			"A.java",
+			"public interface A {\n" +
+			"        String toString();\n" +
+			"}\n"
+			};
+	Map customOptions = getCompilerOptions();
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotation,
+			CompilerOptions.ERROR);
+	customOptions.put(
+			CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation,
+			CompilerOptions.ENABLED);
+	if (new CompilerOptions(customOptions).sourceLevel >= ClassFileConstants.JDK1_6) {
+		String expectedOutput =
+			"----------\n" +
+			"1. ERROR in A.java (at line 2)\n" +
+			"	String toString();\n" +
+			"	       ^^^^^^^^^^\n" +
+			"The method toString() of type A should be tagged with @Override since it actually overrides a superinterface method\n" +
+			"----------\n";
+		this.runNegativeTest(
+				true,
+				testString,
+				null, customOptions,
+				expectedOutput,
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	} else {
+		this.runConformTest(
+				true, testString,
+				null,
+				customOptions,
+				null,
+				null, null,
+				JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+	}
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=282770.
+public void test275() {
+	Map customOptions = getCompilerOptions();
+	customOptions.put(CompilerOptions.OPTION_ReportDeadCodeInTrivialIfStatement, CompilerOptions.ENABLED);
+
+	runConformTest(
+		true,
+		new String[] {
+				"X.java",
+				"public class X {\n" + 
+				"	public static final boolean DEBUG = false;\n" + 
+				"//	@SuppressWarnings(\"unused\")\n" + 
+				"	public void foo() {\n" + 
+				"		if (DEBUG)\n" +
+				"			System.out.println(\"true\");\n" +
+				"		else\n" +
+				"			System.out.println(\"false\");\n" +
+				"		\n" +
+				"	}\n" + 
+				"}\n"
+		},
+		null,
+		customOptions,
+		"----------\n" + 
+		"1. WARNING in X.java (at line 6)\n" + 
+		"	System.out.println(\"true\");\n" + 
+		"	^^^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
+		"Dead code\n" + 
+		"----------\n",
+		"",
+		"",
+		JavacTestOptions.SKIP);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=282770.
+public void test276() {
+	Map customOptions = getCompilerOptions();
+	customOptions.put(CompilerOptions.OPTION_ReportDeadCodeInTrivialIfStatement, CompilerOptions.ENABLED);
+
+	runConformTest(
+		true,
+		new String[] {
+				"X.java",
+				"public class X {\n" + 
+				"	public static final boolean DEBUG = false;\n" + 
+				"	@SuppressWarnings(\"unused\")\n" + 
+				"	public void foo() {\n" + 
+				"		if (DEBUG)\n" +
+				"			System.out.println(\"true\");\n" +
+				"		else\n" +
+				"			System.out.println(\"false\");\n" +
+				"		\n" +
+				"	}\n" + 
+				"}\n"
+		},
+		null,
+		customOptions,
+		"",
+		"",
+		"",
+		JavacTestOptions.SKIP);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=282770.
+public void test277() {
+	Map customOptions = getCompilerOptions();
+	customOptions.put(CompilerOptions.OPTION_ReportDeadCodeInTrivialIfStatement, CompilerOptions.DISABLED);
+
+	runConformTest(
+		true,
+		new String[] {
+				"X.java",
+				"public class X {\n" + 
+				"	public static final boolean DEBUG = false;\n" + 
+				"	@SuppressWarnings(\"unused\")\n" + 
+				"	public void foo() {\n" + 
+				"		if (0 < 1)\n" +
+				"			System.out.println(\"true\");\n" +
+				"		else\n" +
+				"			System.out.println(\"false\");\n" +
+				"		\n" +
+				"	}\n" + 
+				"}\n"
+		},
+		null,
+		customOptions,
+		"",
+		"",
+		"",
+		JavacTestOptions.SKIP);
+}
+// https://bugs.eclipse.org/bugs/show_bug.cgi?id=293777
+// To verify that a misleading warning against @Override annotation is not
+// issued in case the method signature has not been resolved properly.
+public void test278() {
+	String testString [] = new String[] {
+			"A.java",
+			"import javax.swing.JComponent;\n" +
+			"public class A extends JComponent {\n" +
+			"   @Override\n" +
+			"	protected void paintComponent(Graphics g) {" +
+			"   }\n" +
+			"}\n"
+			};
+	String expectedOutput =
+		"----------\n" +
+		"1. WARNING in A.java (at line 2)\n" +
+		"	public class A extends JComponent {\n" +
+		"	             ^\n" +
+		"The serializable class A does not declare a static final serialVersionUID field of type long\n" +
+		"----------\n" +
+		"2. ERROR in A.java (at line 4)\n" +
+		"	protected void paintComponent(Graphics g) {   }\n" +
+		"	                              ^^^^^^^^\n" +
+		"Graphics cannot be resolved to a type\n" +
+		"----------\n";
+	this.runNegativeTest(
+			testString,
+			expectedOutput,
+			JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
 }
 }

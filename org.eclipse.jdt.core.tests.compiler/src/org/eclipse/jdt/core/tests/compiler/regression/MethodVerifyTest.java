@@ -43,6 +43,12 @@ public class MethodVerifyTest extends AbstractComparableTest {
 		return MethodVerifyTest.class;
 	}
 
+	protected Map getCompilerOptions() {
+		Map compilerOptions = super.getCompilerOptions();
+		compilerOptions.put(CompilerOptions.OPTION_ReportMissingOverrideAnnotationForInterfaceMethodImplementation, CompilerOptions.DISABLED);
+		return compilerOptions;
+	}
+
 	String mustOverrideMessage(String method, String type) {
 		return "The method " + method + " of type " + type +
 			(new CompilerOptions(getCompilerOptions()).sourceLevel < ClassFileConstants.JDK1_6
@@ -2035,14 +2041,22 @@ public class MethodVerifyTest extends AbstractComparableTest {
 			new String[] {
 				"X.java",
 				"interface I { String foo(); }\n" +
-				"class A { public Object foo() { return null; } }" +
-				"public class X<T extends A&I> {}\n"
+				"class A { public Object foo() { return null; } }\n" +
+				"public class X<T extends A&I> {}\n" +
+				"interface J extends I { Object foo(); }\n" +
+				"class Y<T extends I&J> {}\n" +
+				"class Z<T extends J&I> {}"
 			},
-			"----------\n" +
-			"1. ERROR in X.java (at line 2)\r\n" +
-			"	class A { public Object foo() { return null; } }public class X<T extends A&I> {}\r\n" +
-			"	                                                               ^\n" +
-			"The return types are incompatible for the inherited methods I.foo(), A.foo()\n" +
+			"----------\n" + 
+			"1. ERROR in X.java (at line 3)\n" + 
+			"	public class X<T extends A&I> {}\n" + 
+			"	               ^\n" + 
+			"The return types are incompatible for the inherited methods I.foo(), A.foo()\n" + 
+			"----------\n" + 
+			"2. ERROR in X.java (at line 4)\n" + 
+			"	interface J extends I { Object foo(); }\n" + 
+			"	                        ^^^^^^\n" + 
+			"The return type is incompatible with I.foo()\n" + 
 			"----------\n"
 			// foo() in A cannot implement foo() in I; attempting to use incompatible return type
 		);
@@ -7987,27 +8001,23 @@ public void _test124() {
 // https://bugs.eclipse.org/bugs/show_bug.cgi?id=150655
 // variant
 public void test125() {
-	this.runNegativeTest(
+	this.runConformTest(
 		new String[] {
 			"X.java",
 			"public class X {\n" +
 			"  public static <T> String choose(String one, String two) {\n" +
-			"    return one + X.<String>choose(one, two);\n" +
+			"    return one;\n" +
 			"  }\n" +
 			"  public static <T> T choose(T one, T two) {\n" +
 			"    return two;\n" +
 			"  }\n" +
 			"  public static void main(String args[]) {\n" +
-			"    System.out.println(choose(\"a\", \"b\"));\n" +
+			"    System.out.println(choose(\"a\", \"b\") + X.<String>choose(\"a\", \"b\"));\n" +
 			"  }\n" +
-			"}"},
-		"----------\n" +
-		"1. ERROR in X.java (at line 3)\n" +
-		"	return one + X.<String>choose(one, two);\n" +
-		"	                       ^^^^^^\n" +
-		"The method choose(String, String) is ambiguous for the type X\n" +
-		"----------\n",
-		JavacTestOptions.EclipseHasABug.EclipseBug207935);
+			"}"
+		},
+		"aa"
+	);
 }
 // https://bugs.eclipse.org/bugs/show_bug.cgi?id=150655
 // variant
@@ -10620,5 +10630,58 @@ X.java:4: foo(Collection) is already defined in X
                ^
 1 error
  */
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=286228
+public void test201() {
+	this.runConformTest(
+		new String[] {
+			"A.java",
+			"interface I {}\n" +
+			"interface J<T1> { J<T1> get(); }\n" +
+			"interface K<T2 extends J<? extends I>> { T2 get(); }\n" +
+			"interface A<T3 extends K<T3> & J<? extends I>> extends J<I> {}\n" +
+			"interface B<T4 extends J<? extends I> & K<T4>> extends J<I> {}"
+		},
+		""
+	);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=284280
+public void test202() {
+	this.runConformTest(
+		new String[] {
+			"SubClass.java",
+			"interface MyInterface <T0 extends Object> {\n" +
+			"	String testMe(T0 t);\n" +
+			"}\n" +
+			"abstract class AbstractSuperClass<T1 extends AbstractSuperClass> implements MyInterface<T1> {\n" +
+			"	public String testMe(T1 o) { return null; }\n" +
+			"}\n" +
+			"class SubClass extends AbstractSuperClass<SubClass> {\n" +
+			"   @Override public String testMe(SubClass o) {\n" +
+			"      return super.testMe(o);\n" +
+			"   }\n" +
+			"}"
+		},
+		""
+	);
+}
+//https://bugs.eclipse.org/bugs/show_bug.cgi?id=292240
+public void test203() {
+	this.runConformTest(
+		new String[] {
+			"X.java",
+			"interface I {}\n" +
+			"interface Y<T extends I> extends java.util.Comparator<T> {\n" +
+			"	public int compare(T o1, T o2);\n" +
+			"}\n" +
+			"class X implements Y {\n" +
+			"	public int compare(Object o1, Object o2) {\n" +
+			"		return compare((I) o1, (I) o2);\n" +
+			"	}\n" +
+			"	public int compare(I o1, I o2) { return 0; }\n" +
+			"}"
+		},
+		""
+	);
 }
 }
