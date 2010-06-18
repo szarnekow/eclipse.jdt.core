@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -138,7 +138,9 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 				}
 
 				// catch var is always set
-				LocalVariableBinding catchArg = this.catchArguments[i].binding;
+				Argument catchVariable = this.catchArguments[i];
+				catchVariable.bits |= ASTNode.CatchVariable;
+				LocalVariableBinding catchArg = catchVariable.binding;
 				catchInfo.markAsDefinitelyAssigned(catchArg);
 				catchInfo.markAsDefinitelyNonNull(catchArg);
 				/*

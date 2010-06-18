@@ -19,7 +19,7 @@ import junit.framework.Test;
 public class TypeAnnotationTest extends AbstractRegressionTest {
 
 	static {
-//		TESTS_NUMBERS = new int [] { 32 };
+//		TESTS_NUMBERS = new int [] { 36 };
 	}
 	public static Class testClass() {
 		return TypeAnnotationTest.class;
@@ -2010,6 +2010,143 @@ public class TypeAnnotationTest extends AbstractRegressionTest {
 			"        offset = 20\n" + 
 			"        type argument index = 0\n" + 
 			"        locations = {0}\n" + 
+			"      )\n";
+		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
+	}
+	// superclass
+	public void test033() throws Exception {
+		this.runConformTest(
+			new String[] {
+				"Marker.java",
+				"@interface Marker {}",
+				"X.java",
+				"public class X extends @Marker Object {}",
+			},
+			"");
+	}
+	// superclass
+	public void test034() throws Exception {
+		this.runNegativeTest(
+			new String[] {
+				"Marker.java",
+				"import java.lang.annotation.Target;\n" + 
+				"import static java.lang.annotation.ElementType.*;\n" + 
+				"@Target(TYPE_PARAMETER)\n" + 
+				"@interface Marker {}",
+				"X.java",
+				"public class X extends @Marker Object {}",
+			},
+			"----------\n" + 
+			"1. ERROR in X.java (at line 1)\n" + 
+			"	public class X extends @Marker Object {}\n" + 
+			"	                       ^^^^^^^\n" + 
+			"The annotation @Marker is disallowed for this location\n" + 
+			"----------\n");
+	}
+	// annotation on catch variable
+	public void test035() throws Exception {
+		this.runConformTest(
+			new String[] {
+				"X.java",
+				"import java.lang.annotation.Target;\n" + 
+				"import java.lang.annotation.Retention;\n" + 
+				"import static java.lang.annotation.ElementType.*;\n" + 
+				"import static java.lang.annotation.RetentionPolicy.*;\n" + 
+				"public class X {\n" + 
+				"	public static void main(String[] args) {\n" + 
+				"		@A Exception test = new Exception() {\n" +
+				"			private static final long serialVersionUID = 1L;\n" +
+				"			@Override\n" +
+				"			public String toString() {\n" +
+				"				return \"SUCCESS\";\n" +
+				"			}\n" +
+				"		};\n" + 
+				"		try {\n" + 
+				"			System.out.println(test);\n" + 
+				"		} catch(@A Exception e) {\n" + 
+				"			e.printStackTrace();\n" + 
+				"		}\n" + 
+				"	}\n" + 
+				"}",
+				"A.java",
+				"import java.lang.annotation.Target;\n" + 
+				"import static java.lang.annotation.ElementType.*;\n" + 
+				"import java.lang.annotation.Retention;\n" + 
+				"import static java.lang.annotation.RetentionPolicy.*;\n" + 
+				"@Target(TYPE_USE)\n" + 
+				"@Retention(RUNTIME)\n" + 
+				"@interface A {\n" + 
+				"	String value() default \"default\";\n" + 
+				"}\n",
+		},
+		"SUCCESS");
+		String expectedOutput =
+			"    RuntimeVisibleTypeAnnotations: \n" + 
+			"      #44 @A(\n" + 
+			"        target type = 0x8 LOCAL_VARIABLE\n" + 
+			"        local variable entries:\n" + 
+			"          [pc: 8, pc: 24] index: 1\n" + 
+			"      )\n" + 
+			"      #44 @A(\n" + 
+			"        target type = 0x8 LOCAL_VARIABLE\n" + 
+			"        local variable entries:\n" + 
+			"          [pc: 19, pc: 23] index: 2\n" + 
+			"      )\n";
+		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
+	}
+	// annotation on catch variable
+	public void test036() throws Exception {
+		this.runConformTest(
+			new String[] {
+				"X.java",
+				"import java.lang.annotation.Target;\n" + 
+				"import java.lang.annotation.Retention;\n" + 
+				"import static java.lang.annotation.ElementType.*;\n" + 
+				"import static java.lang.annotation.RetentionPolicy.*;\n" + 
+				"public class X {\n" + 
+				"	public static void main(String[] args) {\n" + 
+				"		@B int j = 9;\n" + 
+				"		try {\n" + 
+				"			System.out.print(\"SUCCESS\" + j);\n" + 
+				"		} catch(@A Exception e) {\n" + 
+				"		}\n" + 
+				"		@B int k = 3;\n" + 
+				"		System.out.println(k);\n" + 
+				"	}\n" + 
+				"}",
+				"A.java",
+				"import java.lang.annotation.Target;\n" + 
+				"import static java.lang.annotation.ElementType.*;\n" + 
+				"import java.lang.annotation.Retention;\n" + 
+				"import static java.lang.annotation.RetentionPolicy.*;\n" + 
+				"@Target(TYPE_USE)\n" + 
+				"@Retention(RUNTIME)\n" + 
+				"@interface A {\n" + 
+				"	String value() default \"default\";\n" + 
+				"}\n",
+				"B.java",
+				"import java.lang.annotation.Target;\n" + 
+				"import static java.lang.annotation.ElementType.*;\n" + 
+				"import java.lang.annotation.Retention;\n" + 
+				"import static java.lang.annotation.RetentionPolicy.*;\n" + 
+				"@Target(TYPE_USE)\n" + 
+				"@Retention(CLASS)\n" + 
+				"@interface B {\n" + 
+				"	String value() default \"default\";\n" + 
+				"}\n",
+		},
+		"SUCCESS93");
+		String expectedOutput =
+			"    RuntimeInvisibleTypeAnnotations: \n" + 
+			"      #56 @B(\n" + 
+			"        target type = 0x8 LOCAL_VARIABLE\n" + 
+			"        local variable entries:\n" + 
+			"          [pc: 3, pc: 39] index: 1\n" + 
+			"      )\n" + 
+			"      #56 @B(\n" + 
+			"        target type = 0x8 LOCAL_VARIABLE\n" + 
+			"        local variable entries:\n" + 
+			"          [pc: 31, pc: 39] index: 2\n" + 
 			"      )\n";
 		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
 	}

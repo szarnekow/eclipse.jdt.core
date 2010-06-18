@@ -248,6 +248,9 @@ public abstract class ASTNode implements TypeConstants, TypeIds {
 	// for all declarations that can contain type references that have type annotations
 	public static final int HasTypeAnnotations = Bit30;
 
+	// tag catch block variable as catch variable to distinguish them from argument
+	public static final int CatchVariable = Bit1;
+
 	public ASTNode() {
 
 		super();

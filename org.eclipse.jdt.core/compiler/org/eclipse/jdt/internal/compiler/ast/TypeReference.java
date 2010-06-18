@@ -194,6 +194,42 @@ static class AnnotationCollector extends ASTVisitor {
 		this.currentWildcard = wildcard;
 		return true;
 	}
+	public boolean visit(Argument argument, BlockScope scope) {
+		if ((argument.bits & ASTNode.CatchVariable) == 0) {
+			return true;
+		}
+		for (int i = 0, max = this.localVariable.initializationCount; i < max; i++) {
+			int startPC = this.localVariable.initializationPCs[i << 1];
+			int endPC = this.localVariable.initializationPCs[(i << 1) + 1];
+			if (startPC != endPC) { // only entries for non zero length
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean visit(Argument argument, ClassScope scope) {
+		if ((argument.bits & ASTNode.CatchVariable) == 0) {
+			return true;
+		}
+		for (int i = 0, max = this.localVariable.initializationCount; i < max; i++) {
+			int startPC = this.localVariable.initializationPCs[i << 1];
+			int endPC = this.localVariable.initializationPCs[(i << 1) + 1];
+			if (startPC != endPC) { // only entries for non zero length
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean visit(LocalDeclaration localDeclaration, BlockScope scope) {
+		for (int i = 0, max = this.localVariable.initializationCount; i < max; i++) {
+			int startPC = this.localVariable.initializationPCs[i << 1];
+			int endPC = this.localVariable.initializationPCs[(i << 1) + 1];
+			if (startPC != endPC) { // only entries for non zero length
+				return true;
+			}
+		}
+		return false;
+	}
 	public void endVisit(Wildcard wildcard, BlockScope scope) {
 		this.currentWildcard = null;
 	}

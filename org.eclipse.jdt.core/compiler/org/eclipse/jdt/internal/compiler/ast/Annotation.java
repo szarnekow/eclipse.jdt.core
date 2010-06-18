@@ -761,14 +761,8 @@ public abstract class Annotation extends Expression {
 
 				long metaTagBits = annotationType.getAnnotationTagBits(); // could be forward reference
 				if ((metaTagBits & TagBits.AnnotationTargetMASK) == 0) {
-					// does not specify any target restriction - type parameter and type use target are never implicit
-					switch (this.recipient.kind()) {
-						case Binding.TYPE_PARAMETER :
-						case Binding.TYPE_USE :
-							break;
-						default:
-							break checkTargetCompatibility;
-					}
+					// does not specify any target restriction - all locations are possible including type annotations
+					break checkTargetCompatibility;
 				}
 
 				switch (this.recipient.kind()) {

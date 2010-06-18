@@ -1937,7 +1937,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 				LocalVariableBinding localVariable = this.codeStream.locals[i];
 				LocalDeclaration declaration = localVariable.declaration;
 				if (declaration == null
-						|| declaration.isArgument()
+						|| (declaration.isArgument() && ((declaration.bits & ASTNode.CatchVariable) == 0))
 						|| (localVariable.initializationCount == 0)
 						|| ((declaration.bits & ASTNode.HasTypeAnnotations) == 0)) {
 					continue;
@@ -4114,6 +4114,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 	}
 
 	private void generateTypeAnnotation(AnnotationContext annotationContext, int currentOffset) {
+		int targetType = annotationContext.targetType;
 		if (annotationContext.wildcard != null) {
 			generateWilcardTypeAnnotation(annotationContext, currentOffset);
 			return;
@@ -4129,7 +4130,6 @@ public class ClassFile implements TypeConstants, TypeIds {
 			annotationContext.primaryAnnotations,
 			annotationContext.annotation,
 			annotationContext.annotationsOnDimensions);
-		int targetType = annotationContext.targetType;
 		if (locations != null) {
 			// convert to GENERIC_OR_ARRAY type
 			switch(targetType) {
