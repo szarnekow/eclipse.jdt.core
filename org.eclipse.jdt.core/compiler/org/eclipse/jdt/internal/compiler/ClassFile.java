@@ -1975,10 +1975,10 @@ public class ClassFile implements TypeConstants, TypeIds {
 					}
 				}
 				Annotation[] annotations = methodDeclaration.annotations;
-				if (annotations != null) {
+				if (annotations != null && binding.returnType.id != T_void) {
 					methodDeclaration.getAllAnnotationContexts(AnnotationTargetTypeConstants.METHOD_RETURN_TYPE, allTypeAnnotationContexts);
 				}
-				if (!methodDeclaration.isConstructor() && !methodDeclaration.isClinit()) {
+				if (!methodDeclaration.isConstructor() && !methodDeclaration.isClinit() && binding.returnType.id != T_void) {
 					MethodDeclaration declaration = (MethodDeclaration) methodDeclaration;
 					TypeReference typeReference = declaration.returnType;
 					if ((typeReference.bits & ASTNode.HasTypeAnnotations) != 0) {

@@ -19,7 +19,7 @@ import junit.framework.Test;
 public class TypeAnnotationTest extends AbstractRegressionTest {
 
 	static {
-//		TESTS_NUMBERS = new int [] { 36 };
+//		TESTS_NUMBERS = new int [] { 40 };
 	}
 	public static Class testClass() {
 		return TypeAnnotationTest.class;
@@ -2148,6 +2148,141 @@ public class TypeAnnotationTest extends AbstractRegressionTest {
 			"        local variable entries:\n" + 
 			"          [pc: 31, pc: 39] index: 2\n" + 
 			"      )\n";
+		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
+	}
+	// make sure annotation without target appears twice when set on a method declaration
+	public void test037() throws Exception {
+		this.runConformTest(
+			new String[] {
+				"X.java",
+				"import java.lang.annotation.Target;\r\n" + 
+				"import static java.lang.annotation.ElementType.*;\r\n" + 
+				"\r\n" + 
+				"@Target(METHOD)\r\n" + 
+				"@interface Annot {\r\n" + 
+				"	int value() default 0;\r\n" + 
+				"}\r\n" + 
+				"public class X {\r\n" + 
+				"	@Annot(4)\r\n" + 
+				"	public void foo() {\r\n" + 
+				"	}\r\n" + 
+				"}",
+		},
+		"");
+		String expectedOutput =
+			"  public void foo();\n" + 
+			"    0  return\n" + 
+			"      Line numbers:\n" + 
+			"        [pc: 0, line: 11]\n" + 
+			"      Local variable table:\n" + 
+			"        [pc: 0, pc: 1] local: this index: 0 type: X\n" + 
+			"    RuntimeInvisibleAnnotations: \n" + 
+			"      #16 @Annot(\n" + 
+			"        #17 value=(int) 4 (constant type)\n" + 
+			"      )\n" + 
+			"}";
+		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
+	}
+	// make sure annotation without target appears twice when set on a method declaration
+	public void test038() throws Exception {
+		this.runConformTest(
+			new String[] {
+				"X.java",
+				"@interface Annot {\r\n" + 
+				"	int value() default 0;\r\n" + 
+				"}\r\n" + 
+				"public class X {\r\n" + 
+				"	@Annot(4)\r\n" + 
+				"	public void foo() {\r\n" + 
+				"	}\r\n" + 
+				"}",
+		},
+		"");
+		String expectedOutput =
+			"  // Method descriptor #6 ()V\n" + 
+			"  // Stack: 0, Locals: 1\n" + 
+			"  public void foo();\n" + 
+			"    0  return\n" + 
+			"      Line numbers:\n" + 
+			"        [pc: 0, line: 7]\n" + 
+			"      Local variable table:\n" + 
+			"        [pc: 0, pc: 1] local: this index: 0 type: X\n" + 
+			"    RuntimeInvisibleAnnotations: \n" + 
+			"      #16 @Annot(\n" + 
+			"        #17 value=(int) 4 (constant type)\n" + 
+			"      )\n" + 
+			"}";
+		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
+	}
+	// make sure annotation without target appears twice when set on a method declaration
+	public void test039() throws Exception {
+		this.runConformTest(
+			new String[] {
+				"X.java",
+				"@interface Annot {\r\n" + 
+				"	int value() default 0;\r\n" + 
+				"}\r\n" + 
+				"public class X {\r\n" + 
+				"	@Annot(4)\r\n" + 
+				"	public int foo() {\r\n" + 
+				"		return 0;\r\n" + 
+				"	}\r\n" + 
+				"}",
+		},
+		"");
+		String expectedOutput =
+			"  public int foo();\n" + 
+			"    0  iconst_0\n" + 
+			"    1  ireturn\n" + 
+			"      Line numbers:\n" + 
+			"        [pc: 0, line: 7]\n" + 
+			"      Local variable table:\n" + 
+			"        [pc: 0, pc: 2] local: this index: 0 type: X\n" + 
+			"    RuntimeInvisibleAnnotations: \n" + 
+			"      #17 @Annot(\n" + 
+			"        #18 value=(int) 4 (constant type)\n" + 
+			"      )\n" + 
+			"    RuntimeInvisibleTypeAnnotations: \n" + 
+			"      #17 @Annot(\n" + 
+			"        #18 value=(int) 4 (constant type)\n" + 
+			"        target type = 0xa METHOD_RETURN_TYPE\n" + 
+			"      )\n" + 
+			"}";
+		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
+	}
+	// make sure annotation without target appears twice when set on a method declaration
+	public void test040() throws Exception {
+		this.runConformTest(
+			new String[] {
+				"X.java",
+				"import java.lang.annotation.Target;\r\n" + 
+				"import static java.lang.annotation.ElementType.*;\r\n" + 
+				"\r\n" + 
+				"@Target(METHOD)\r\n" + 
+				"@interface Annot {\r\n" + 
+				"	int value() default 0;\r\n" + 
+				"}\r\n" + 
+				"public class X {\r\n" + 
+				"	@Annot(4)\r\n" + 
+				"	public int foo() {\r\n" + 
+				"		return 0;\r\n" + 
+				"	}\r\n" + 
+				"}",
+		},
+		"");
+		String expectedOutput =
+			"  public int foo();\n" + 
+			"    0  iconst_0\n" + 
+			"    1  ireturn\n" + 
+			"      Line numbers:\n" + 
+			"        [pc: 0, line: 11]\n" + 
+			"      Local variable table:\n" + 
+			"        [pc: 0, pc: 2] local: this index: 0 type: X\n" + 
+			"    RuntimeInvisibleAnnotations: \n" + 
+			"      #17 @Annot(\n" + 
+			"        #18 value=(int) 4 (constant type)\n" + 
+			"      )\n" + 
+			"}";
 		checkDisassembledClassFile(OUTPUT_DIR + File.separator + "X.class", "X", expectedOutput, ClassFileBytesDisassembler.SYSTEM);
 	}
 }

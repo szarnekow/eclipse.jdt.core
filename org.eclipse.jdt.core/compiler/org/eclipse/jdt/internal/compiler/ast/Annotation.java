@@ -519,7 +519,8 @@ public abstract class Annotation extends Expression {
 		long metaTagBits = annotationBinding.getAnnotationTagBits(); // could be forward reference
 		// jsr 308
 		// we need to filter out type use and type parameter annotations
-		if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0) {
+		if ((metaTagBits & (TagBits.AnnotationTargetMASK)) != 0
+				&& ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0)) {
 			return false;
 		}
 
@@ -535,7 +536,8 @@ public abstract class Annotation extends Expression {
 			return false;
 		}
 		long metaTagBits = annotationBinding.getAnnotationTagBits();
-		if ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0) {
+		if ((metaTagBits & (TagBits.AnnotationTargetMASK)) != 0
+				&& ((metaTagBits & (TagBits.AnnotationForTypeParameter | TagBits.AnnotationForTypeUse)) == 0)) {
 			return false;
 		}
 		if ((metaTagBits & TagBits.AnnotationRetentionMASK) == 0)
