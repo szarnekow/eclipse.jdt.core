@@ -4,10 +4,6 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -773,7 +769,7 @@ public static final int compareTo(char[] array1, char[] array2) {
  * 
  * @return the returned value of the comparison between array1 and array2
  * @throws NullPointerException if one of the arrays is null
- * @since 3.7
+ * @since 3.7.1
  */
 public static final int compareTo(char[] array1, char[] array2, int start, int end) {
 	int length1 = array1.length;

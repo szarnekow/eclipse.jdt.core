@@ -1,7 +1,3 @@
--- This is an implementation of an early-draft specification developed under the Java
--- Community Process (JCP) and is made available for testing and evaluation purposes
--- only. The code is not compatible with any specification of the JCP.
-
 --main options
 %options ACTION, AN=JavaAction.java, GP=java, 
 %options FILE-PREFIX=java, ESCAPE=$, PREFIX=TokenName, OUTPUT-SIZE=125 ,

@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -47,7 +43,7 @@ public class TryStatement extends Statement {
 
 	/**
 	 * The "resources" structural property of this node type (element type: {@link VariableDeclarationExpression}) (added in JLS4 API).
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final ChildListPropertyDescriptor RESOURCES_PROPERTY =
 		new ChildListPropertyDescriptor(TryStatement.class, "resources", VariableDeclarationExpression.class, CYCLE_RISK); //$NON-NLS-1$
@@ -352,7 +348,7 @@ public class TryStatement extends Statement {
 	 *    (element type: {@link VariableDeclarationExpression})
 	 * @exception UnsupportedOperationException if this operation is used
 	 *            in a JLS2 or JLS3 AST
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public List resources() {
 		// more efficient than just calling unsupportedIn2_3() to check

@@ -1667,7 +1667,7 @@ public final class JavaCore extends Plugin {
 	 * <dt>Possible values:</dt><dd><code>{ "error", "warning", "ignore" }</code></dd>
 	 * <dt>Default:</dt><dd><code>"ignore"</code></dd>
 	 * </dl>
-	 * @since 3.7
+	 * @since 3.7.1
 	 * @category CompilerOptionID
 	 */
 	public static final String COMPILER_PB_REDUNDANT_TYPE_ARGUMENTS = PLUGIN_ID + ".compiler.problem.redundantSpecificationOfTypeArguments";  //$NON-NLS-1$

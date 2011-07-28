@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation  - initial API and implementation
  *     Brock Janiczak   - Contribution for bug 150741
@@ -252,7 +248,7 @@ public class DefaultCodeFormatterConstants {
 	 *     - default:           createAlignmentValue(false, WRAP_NEXT_PER_LINE, INDENT_DEFAULT)
 	 * </pre>
 	 * @see #createAlignmentValue(boolean, int, int)
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_ALIGNMENT_FOR_RESOURCES_IN_TRY = JavaCore.PLUGIN_ID + ".formatter.alignment_for_resources_in_try";	 //$NON-NLS-1$
 	/**
@@ -329,7 +325,7 @@ public class DefaultCodeFormatterConstants {
 	 *     - default:           createAlignmentValue(false, WRAP_COMPACT, INDENT_DEFAULT)
 	 * </pre>
 	 * @see #createAlignmentValue(boolean, int, int)
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_ALIGNMENT_FOR_UNION_TYPE_IN_MULTICATCH = JavaCore.PLUGIN_ID + ".formatter.alignment_for_union_type_in_multicatch";	 //$NON-NLS-1$
 	/**
@@ -2229,7 +2225,7 @@ public class DefaultCodeFormatterConstants {
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_TRY = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_opening_paren_in_try"; //$NON-NLS-1$
 	/**
@@ -2314,7 +2310,7 @@ public class DefaultCodeFormatterConstants {
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_INSERT_SPACE_AFTER_SEMICOLON_IN_TRY_RESOURCES = JavaCore.PLUGIN_ID + ".formatter.insert_space_after_semicolon_in_try_resources"; //$NON-NLS-1$
 	/**
@@ -2602,7 +2598,7 @@ public class DefaultCodeFormatterConstants {
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_TRY = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_closing_paren_in_try";	//$NON-NLS-1$
 	/**
@@ -3274,7 +3270,7 @@ public class DefaultCodeFormatterConstants {
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_TRY = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_opening_paren_in_try";	//$NON-NLS-1$
 	/**
@@ -3397,7 +3393,7 @@ public class DefaultCodeFormatterConstants {
 	 * </pre>
 	 * @see JavaCore#INSERT
 	 * @see JavaCore#DO_NOT_INSERT
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_INSERT_SPACE_BEFORE_SEMICOLON_IN_TRY_RESOURCES = JavaCore.PLUGIN_ID + ".formatter.insert_space_before_semicolon_in_try_resources";	//$NON-NLS-1$
 	/**
@@ -3749,7 +3745,7 @@ public class DefaultCodeFormatterConstants {
 	 * This option is used only if the option {@link #FORMATTER_ALIGNMENT_FOR_UNION_TYPE_IN_MULTICATCH} is set.
 	 * @see #TRUE
 	 * @see #FALSE
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final String FORMATTER_WRAP_BEFORE_OR_OPERATOR_MULTICATCH = JavaCore.PLUGIN_ID + ".formatter.wrap_before_or_operator_multicatch"; //$NON-NLS-1$
 	/**

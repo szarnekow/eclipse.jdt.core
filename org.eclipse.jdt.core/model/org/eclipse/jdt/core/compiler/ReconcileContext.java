@@ -120,7 +120,7 @@ public org.eclipse.jdt.core.dom.CompilationUnit getAST3() throws JavaModelExcept
  * <ul>
  * <li> The working copy does not exist (ELEMENT_DOES_NOT_EXIST)</li>
  * </ul>
- * @since 3.7
+ * @since 3.7.1
  */
 public org.eclipse.jdt.core.dom.CompilationUnit getAST4() throws JavaModelException {
 	if (this.operation.astLevel != AST.JLS4 || !this.operation.resolveBindings) {

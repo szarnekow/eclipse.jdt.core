@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -1807,7 +1803,7 @@ public class CompletionProposal {
 	 * </p>
 	 * 
 	 * @param coreContext the completion context associated with the proposal
-	 * @since 3.7
+	 * @since 3.7.1
 	 * @return <code>true</code> if it is safe to use the diamond operator for the constructor invocation, 
 	 * <code>false</code> otherwise. Also returns <code>false</code> for source levels below 1.7
 	 */

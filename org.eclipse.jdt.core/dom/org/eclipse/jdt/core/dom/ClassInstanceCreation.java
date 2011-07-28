@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -569,7 +565,7 @@ public class ClassInstanceCreation extends Expression {
 	 *
 	 * @return <code>true</code> if the resolved class type has been inferred
 	 * 	from the assignment context (JLS3 15.12.2.8), <code>false</code> otherwise
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public boolean isResolvedTypeInferredFromExpectedType() {
 		return this.ast.getBindingResolver().isResolvedTypeInferredFromExpectedType(this);

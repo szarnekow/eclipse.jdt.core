@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     IBM Corporation - added J2SE 1.5 support
@@ -267,7 +263,7 @@ public final class Signature {
 	/**
 	 * Character constant indicating an intersection type in a
 	 * signature. Value is <code>'|'</code>.
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final char C_INTERSECTION = '|';
 
@@ -378,7 +374,7 @@ public final class Signature {
 	/**
 	 * Kind constant for the intersection type signature.
 	 * @see #getTypeSignatureKind(String)
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public static final int INTERSECTION_TYPE_SIGNATURE = 7;
 
@@ -1090,7 +1086,7 @@ public static char[] createCharArrayTypeSignature(char[] typeName, boolean isRes
  *
  * @param typeSignatures the given type signatures
  * @return the encoded type signature
- * @since 3.7
+ * @since 3.7.1
  */
 public static String createIntersectionTypeSignature(char[][] typeSignatures) {
 	StringBuffer buffer = new StringBuffer();
@@ -1111,7 +1107,7 @@ public static String createIntersectionTypeSignature(char[][] typeSignatures) {
  *
  * @param typeSignatures the given type signatures
  * @return the encoded type signature
- * @since 3.7
+ * @since 3.7.1
  */
 public static String createIntersectionTypeSignature(String[] typeSignatures) {
 	int typeSignaturesLenth = typeSignatures.length;
@@ -1556,7 +1552,7 @@ public static String getElementType(String typeSignature) throws IllegalArgument
  * @return the signatures of the type bounds
  * @exception IllegalArgumentException if the signature is syntactically incorrect
  *
- * @since 3.7
+ * @since 3.7.1
  */
 public static char[][] getIntersectionTypeBounds(char[] intersectionTypeSignature) throws IllegalArgumentException {
 	if (getTypeSignatureKind(intersectionTypeSignature) != INTERSECTION_TYPE_SIGNATURE) {
@@ -1590,7 +1586,7 @@ public static char[][] getIntersectionTypeBounds(char[] intersectionTypeSignatur
  * @return the signatures of the type bounds
  * @exception IllegalArgumentException if the signature is syntactically incorrect
  *
- * @since 3.7
+ * @since 3.7.1
  */
 public static String[] getIntersectionTypeBounds(String intersectionTypeSignature) throws IllegalArgumentException {
 	char[][] args = getIntersectionTypeBounds(intersectionTypeSignature.toCharArray());

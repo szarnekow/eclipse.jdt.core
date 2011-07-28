@@ -5,10 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * This is an implementation of an early-draft specification developed under the Java
- * Community Process (JCP) and is made available for testing and evaluation purposes
- * only. The code is not compatible with any specification of the JCP.
- *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -146,17 +142,12 @@ public final class AST {
 	 * Java language as described in the Java Language
 	 * Specification, Third Edition (JLS3) plus all the new language
 	 * features described in the JSR334.
-     * JLS4 is a superset of all earlier versions of the
-     * Java language, and the JLS4 API can be used to manipulate
-     * programs written in all versions of the Java language
-     * up to and including J2SE 7 (aka JDK 1.7).
-     * <p>
-	 * This is an implementation of an early-draft specification developed under the Java
-	 * Community Process (JCP) and is made available for testing and evaluation purposes
-	 * only. The code is not compatible with any specification of the JCP.
-     * </p>
-     *
-	 * @since 3.7
+	 * JLS4 is a superset of all earlier versions of the
+	 * Java language, and the JLS4 API can be used to manipulate
+	 * programs written in all versions of the Java language
+	 * up to and including J2SE 7 (aka JDK 1.7).
+	 *
+	 * @since 3.7.1
 	 */
 	public static final int JLS4 = 4;
 
@@ -1305,7 +1296,7 @@ public final class AST {
 	 * By default, the union type has no types.
 	 *
 	 * @return a new unparented do statement node
-	 * @since 3.7
+	 * @since 3.7.1
 	 */
 	public UnionType newUnionType() {
 		return new UnionType(this);
