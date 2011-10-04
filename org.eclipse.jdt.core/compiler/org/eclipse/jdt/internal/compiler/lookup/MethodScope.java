@@ -164,7 +164,7 @@ private void checkAndSetModifiersForMethod(MethodBinding methodBinding) {
 
 	// set the requested modifiers for a method in an interface/annotation
 	if (declaringClass.isInterface()) {
-		if ((realModifiers & ~(ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract)) != 0) {
+		if ((realModifiers & ~(ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract | ClassFileConstants.AccDefender)) != 0) {
 			if ((declaringClass.modifiers & ClassFileConstants.AccAnnotation) != 0)
 				problemReporter().illegalModifierForAnnotationMember((AbstractMethodDeclaration) this.referenceContext);
 			else
@@ -313,8 +313,13 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 		method.binding = new MethodBinding(modifiers, null, null, declaringClass);
 		checkAndSetModifiersForConstructor(method.binding);
 	} else {
-		if (declaringClass.isInterface()) // interface or annotation type
-			modifiers |= ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract;
+		if (declaringClass.isInterface()) {// interface or annotation type
+			if ((modifiers & ClassFileConstants.AccDefender) != 0) {
+				modifiers |= ClassFileConstants.AccPublic;
+			} else {
+				modifiers |= ClassFileConstants.AccPublic | ClassFileConstants.AccAbstract;
+			}
+		}
 		method.binding =
 			new MethodBinding(modifiers, method.selector, null, null, null, declaringClass);
 		checkAndSetModifiersForMethod(method.binding);

@@ -470,8 +470,11 @@ void checkMethods() {
 			int length = inherited.length;
 			for (int i = 0; i < length; i++) {
 				MethodBinding inheritedMethod = inherited[i];
-				if (inheritedMethod.isPublic() && !inheritedMethod.declaringClass.isPublic())
+				if (inheritedMethod.isPublic()
+						&& !inheritedMethod.isDefender()
+						&& !inheritedMethod.declaringClass.isPublic()) {
 					this.type.addSyntheticBridgeMethod(inheritedMethod.original());
+				}
 			}
 		}
 

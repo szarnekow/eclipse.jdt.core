@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,11 @@ public interface IModifierConstants {
 	int ACC_SUPER        = 0x0020;
 	int ACC_SYNCHRONIZED = 0x0020;
 	int ACC_VOLATILE     = 0x0040;
+	/**
+	 * Indicates a defender method (added in J2SE 1.8).
+	 * @since 3.8
+	 */
+	int ACC_DEFENDER     = 0x0200;
 
 	/**
 	 * Indicates a bridge method (added in J2SE 1.5).

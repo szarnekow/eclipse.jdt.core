@@ -815,6 +815,10 @@ InterfaceMemberDeclaration ::= MethodHeader MethodBody
 /.$putCase consumeInvalidMethodDeclaration(); $break ./
 /:$readableName InterfaceMemberDeclaration:/
 
+InterfaceMemberDeclaration ::= MethodHeader 'default' MethodBody
+/.$putCase consumeDefenderMethodDeclaration(); $break ./
+/:$readableName InterfaceMemberDeclaration:/
+
 -- These rules are added to be able to parse constructors inside interface and then report a relevent error message
 InvalidConstructorDeclaration ::= ConstructorHeader MethodBody
 /.$putCase consumeInvalidConstructorDeclaration(true); $break ./

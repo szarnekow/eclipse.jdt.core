@@ -726,6 +726,12 @@ public final boolean isStatic() {
 	return (this.modifiers & ClassFileConstants.AccStatic) != 0;
 }
 
+/* Answer true if the receiver is a defender method
+*/
+public final boolean isDefender() {
+	return (this.modifiers & ClassFileConstants.AccDefender) != 0;
+}
+
 /* Answer true if all float operations must adher to IEEE 754 float/double rules
 */
 public final boolean isStrictfp() {

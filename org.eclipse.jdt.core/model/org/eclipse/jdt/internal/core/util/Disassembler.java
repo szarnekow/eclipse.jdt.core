@@ -89,6 +89,9 @@ public class Disassembler extends ClassFileBytesDisassembler {
 				case IModifierConstants.ACC_ENUM :
 					firstModifier = appendModifier(buffer, accessFlags, IModifierConstants.ACC_ENUM, "enum", firstModifier); //$NON-NLS-1$
 					break;
+				case IModifierConstants.ACC_DEFENDER :
+					firstModifier = appendModifier(buffer, accessFlags, IModifierConstants.ACC_DEFENDER, "defender", firstModifier); //$NON-NLS-1$
+					break;
 			}
 		}
 		if (!firstModifier) {
@@ -147,6 +150,7 @@ public class Disassembler extends ClassFileBytesDisassembler {
 				IModifierConstants.ACC_NATIVE,
 				IModifierConstants.ACC_STRICT,
 				IModifierConstants.ACC_BRIDGE,
+				IModifierConstants.ACC_DEFENDER,
 		});
 	}
 

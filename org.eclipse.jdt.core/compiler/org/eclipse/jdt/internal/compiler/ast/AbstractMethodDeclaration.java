@@ -339,6 +339,13 @@ public abstract class AbstractMethodDeclaration
 		return (this.modifiers & ClassFileConstants.AccStatic) != 0;
 	}
 
+	public boolean isDefender() {
+
+		if (this.binding != null)
+			return this.binding.isDefender();
+		return (this.modifiers & ClassFileConstants.AccDefender) != 0;
+	}
+
 	/**
 	 * Fill up the method body with statement
 	 * @param parser

@@ -2826,6 +2826,22 @@ public void incorrectArityForParameterizedType(ASTNode location, TypeBinding typ
 public void diamondNotBelow17(ASTNode location) {
 	diamondNotBelow17(location, Integer.MAX_VALUE);
 }
+public void defenderMethodBelow18(AbstractMethodDeclaration methodDeclaration) {
+	this.handle(
+		IProblem.DefenderMethodBelow18,
+		NoArgument,
+		NoArgument,
+		methodDeclaration.sourceStart,
+		methodDeclaration.sourceEnd);
+}
+public void defenderMethodCannotBeAbstract(AbstractMethodDeclaration methodDeclaration) {
+	this.handle(
+		IProblem.DefenderMethodCannotBeAbstract,
+		NoArgument,
+		NoArgument,
+		methodDeclaration.sourceStart,
+		methodDeclaration.sourceEnd);
+}
 public void diamondNotBelow17(ASTNode location, int index) {
 	// https://bugs.eclipse.org/bugs/show_bug.cgi?id=348493
     if (location == null) {

@@ -1976,6 +1976,16 @@ public void configure(String[] argv) {
 					mode = DEFAULT;
 					continue;
 				}
+				if (currentArg.equals("-1.8") || currentArg.equals("-8") || currentArg.equals("-8.0")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					if (didSpecifyCompliance) {
+						throw new IllegalArgumentException(
+							this.bind("configure.duplicateCompliance", currentArg)); //$NON-NLS-1$
+					}
+					didSpecifyCompliance = true;
+					this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_8);
+					mode = DEFAULT;
+					continue;
+				}
 				if (currentArg.equals("-d")) { //$NON-NLS-1$
 					if (this.destinationPath != null) {
 						StringBuffer errorMessage = new StringBuffer();
@@ -4252,6 +4262,24 @@ protected void validateOptions(boolean didSpecifyCompliance) {
 				this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_7);
 				if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_7);
 			}
+		} else if (CompilerOptions.VERSION_1_8.equals(version)) {
+			if (this.didSpecifySource) {
+				Object source = this.options.get(CompilerOptions.OPTION_Source);
+				if (CompilerOptions.VERSION_1_3.equals(source)
+						|| CompilerOptions.VERSION_1_4.equals(source)) {
+					if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_4);
+				} else if (CompilerOptions.VERSION_1_5.equals(source)
+						|| CompilerOptions.VERSION_1_6.equals(source)) {
+					if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_6);
+				} else if (CompilerOptions.VERSION_1_7.equals(source)) {
+					if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_7);
+				} else if (CompilerOptions.VERSION_1_8.equals(source)) {
+					if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_8);
+				}
+			} else {
+				this.options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_8);
+				if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_8);
+			}
 		}
 	} else if (this.didSpecifySource) {
 		Object version = this.options.get(CompilerOptions.OPTION_Source);
@@ -4268,12 +4296,19 @@ protected void validateOptions(boolean didSpecifyCompliance) {
 		} else if (CompilerOptions.VERSION_1_7.equals(version)) {
 			if (!didSpecifyCompliance) this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_7);
 			if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_7);
+		} else if (CompilerOptions.VERSION_1_8.equals(version)) {
+			if (!didSpecifyCompliance) this.options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_8);
+			if (!this.didSpecifyTarget) this.options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_8);
 		}
 	}
 
 	final Object sourceVersion = this.options.get(CompilerOptions.OPTION_Source);
 	final Object compliance = this.options.get(CompilerOptions.OPTION_Compliance);
-	if (sourceVersion.equals(CompilerOptions.VERSION_1_7)
+	if (sourceVersion.equals(CompilerOptions.VERSION_1_8)
+			&& CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK1_8) {
+		// compliance must be 1.8 if source is 1.8
+		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", (String)this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_8)); //$NON-NLS-1$
+	} else if (sourceVersion.equals(CompilerOptions.VERSION_1_7)
 			&& CompilerOptions.versionToJdkLevel(compliance) < ClassFileConstants.JDK1_7) {
 		// compliance must be 1.7 if source is 1.7
 		throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForSource", (String)this.options.get(CompilerOptions.OPTION_Compliance), CompilerOptions.VERSION_1_7)); //$NON-NLS-1$
@@ -4308,6 +4343,11 @@ protected void validateOptions(boolean didSpecifyCompliance) {
 				throw new IllegalArgumentException(this.bind("configure.incompatibleComplianceForCldcTarget", (String) targetVersion, (String) sourceVersion)); //$NON-NLS-1$
 			}
 		} else {
+			// target must be 1.8 if source is 1.8
+			if (CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_8
+					&& CompilerOptions.versionToJdkLevel(targetVersion) < ClassFileConstants.JDK1_8){
+				throw new IllegalArgumentException(this.bind("configure.incompatibleTargetForSource", (String) targetVersion, CompilerOptions.VERSION_1_8)); //$NON-NLS-1$
+			}
 			// target must be 1.7 if source is 1.7
 			if (CompilerOptions.versionToJdkLevel(sourceVersion) >= ClassFileConstants.JDK1_7
 					&& CompilerOptions.versionToJdkLevel(targetVersion) < ClassFileConstants.JDK1_7){

@@ -1413,6 +1413,14 @@ void setSourceStart(int sourceStart);
 	 * External problems -- These are problems defined by other plugins
 	 */
 
+	/**
+	 * Java 8 errors
+	 */
+	/** @since 3.8 */
+	int DefenderMethodBelow18 = MethodRelated + Syntax + 890;
+	/** @since 3.8 */
+	int DefenderMethodCannotBeAbstract = MethodRelated + Syntax + 891;
+	
 	/** @since 3.2 */
 	int ExternalProblemNotFixable = 900;
 
