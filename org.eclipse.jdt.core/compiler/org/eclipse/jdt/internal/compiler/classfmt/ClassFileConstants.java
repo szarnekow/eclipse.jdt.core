@@ -59,6 +59,9 @@ public interface ClassFileConstants {
 	int MethodRefTag = 10;
 	int InterfaceMethodRefTag = 11;
 	int NameAndTypeTag = 12;
+	int MethodHandleTag = 15;
+	int MethodTypeTag = 16;
+	int InvokeDynamicTag = 18;
 
 	int ConstantMethodRefFixedSize = 5;
 	int ConstantClassFixedSize = 3;
@@ -71,6 +74,9 @@ public interface ClassFileConstants {
 	int ConstantStringFixedSize = 3;
 	int ConstantUtf8FixedSize = 3;
 	int ConstantNameAndTypeFixedSize = 5;
+	int ConstantMethodHandleFixedSize = 4;
+	int ConstantMethodTypeFixedSize = 3;
+	int ConstantInvokeDynamicFixedSize = 5;
 
 	int MAJOR_VERSION_1_1 = 45;
 	int MAJOR_VERSION_1_2 = 46;

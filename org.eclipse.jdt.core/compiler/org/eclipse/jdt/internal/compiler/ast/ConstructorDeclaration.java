@@ -34,18 +34,9 @@ public class ConstructorDeclaration extends AbstractMethodDeclaration {
 public ConstructorDeclaration(CompilationResult compilationResult){
 	super(compilationResult);
 }
-
-/**
- * @see org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration#analyseCode(org.eclipse.jdt.internal.compiler.lookup.ClassScope, org.eclipse.jdt.internal.compiler.flow.InitializationFlowContext, org.eclipse.jdt.internal.compiler.flow.FlowInfo)
- * @deprecated use instead {@link #analyseCode(ClassScope, InitializationFlowContext, FlowInfo, int)}
- */
-public void analyseCode(ClassScope classScope, InitializationFlowContext initializerFlowContext, FlowInfo flowInfo) {
-	analyseCode(classScope, initializerFlowContext, flowInfo, FlowInfo.REACHABLE);
-}
-
 /**
  * The flowInfo corresponds to non-static field initialization infos. It may be unreachable (155423), but still the explicit constructor call must be
- * analysed as reachable, since it will be generated in the end.
+ * analyzed as reachable, since it will be generated in the end.
  */
 public void analyseCode(ClassScope classScope, InitializationFlowContext initializerFlowContext, FlowInfo flowInfo, int initialReachMode) {
 	if (this.ignoreFurtherInvestigation)
@@ -418,6 +409,7 @@ public boolean isRecursive(ArrayList visited) {
 
 	ConstructorDeclaration targetConstructor =
 		((ConstructorDeclaration)this.scope.referenceType().declarationOf(this.constructorCall.binding.original()));
+	if (targetConstructor == null) return false; // https://bugs.eclipse.org/bugs/show_bug.cgi?id=358762
 	if (this == targetConstructor) return true; // direct case
 
 	if (visited == null) { // lazy allocation
