@@ -36,6 +36,7 @@ import org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
+import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 import org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 import org.eclipse.jdt.internal.compiler.problem.ShouldNotImplement;
 import org.eclipse.jdt.internal.compiler.util.Messages;
@@ -525,14 +526,14 @@ public final boolean checkCastTypesCompatibility(Scope scope, TypeBinding castTy
  * @param flowInfo the upstream flow info; caveat: may get modified
  */
 public void checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo) {
-	LocalVariableBinding local = localVariableBinding();
+	VariableBinding local = variableBinding();
 	if (local != null &&
 			(local.type.tagBits & TagBits.IsBaseType) == 0) {
 		if ((this.bits & ASTNode.IsNonNull) == 0) {
 			flowContext.recordUsingNullReference(scope, local, this,
 					FlowContext.MAY_NULL, flowInfo);
 		}
-		flowInfo.markAsComparedEqualToNonNull(local);
+		flowInfo.markAsComparedEqualToNonNull(local );
 			// from thereon it is set
 		if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
 			flowInfo.markedAsNullOrNonNullInAssertExpression(local);
@@ -872,7 +873,7 @@ public int nullStatus(FlowInfo flowInfo) {
 		this.constant != null && this.constant != Constant.NotAConstant)
 	return FlowInfo.NON_NULL; // constant expression cannot be null
 
-	LocalVariableBinding local = localVariableBinding();
+	VariableBinding local = variableBinding();
 	if (local != null)
 		return flowInfo.nullStatus(local);
 	return FlowInfo.NON_NULL;
@@ -1111,5 +1112,13 @@ public void traverse(ASTVisitor visitor, BlockScope scope) {
  */
 public void traverse(ASTVisitor visitor, ClassScope scope) {
 	// nothing to do
+}
+
+/**
+ * Returns the field or local variable referenced by this node. Can be a direct reference (SingleNameReference)
+ * or thru a cast expression etc...
+ */
+public VariableBinding variableBinding() {
+	return null;
 }
 }

@@ -651,7 +651,7 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 				// branch, since the previous initializer already got the blame.
 				if (staticFieldInfo == FlowInfo.DEAD_END) {
 					this.staticInitializerScope.problemReporter().initializerMustCompleteNormally(field);
-					staticFieldInfo = FlowInfo.initial(this.maxFieldCount).setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
+					staticFieldInfo = FlowInfo.initial(this.scope.cumulativeFieldCount).setReachMode(FlowInfo.UNREACHABLE);
 				}
 			} else {
 				if ((nonStaticFieldInfo.tagBits & FlowInfo.UNREACHABLE_OR_DEAD) != 0)
@@ -667,7 +667,7 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 				// branch, since the previous initializer already got the blame.
 				if (nonStaticFieldInfo == FlowInfo.DEAD_END) {
 					this.initializerScope.problemReporter().initializerMustCompleteNormally(field);
-					nonStaticFieldInfo = FlowInfo.initial(this.maxFieldCount).setReachMode(FlowInfo.UNREACHABLE_OR_DEAD);
+					nonStaticFieldInfo = FlowInfo.initial(this.scope.cumulativeFieldCount).setReachMode(FlowInfo.UNREACHABLE);
 				}
 			}
 		}
@@ -683,6 +683,8 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 	}
 	if (this.methods != null) {
 		UnconditionalFlowInfo outerInfo = flowInfo.unconditionalFieldLessCopy();
+		//int fieldOffset = isLocal ? this.scope.cumulativeFieldCount : this.maxFieldCount;
+		//int fieldStart = isLocal ? this.scope.localTypeFieldIdStart : 0;
 		FlowInfo constructorInfo = nonStaticFieldInfo.unconditionalInits().discardNonFieldInitializations().addInitializationsFrom(outerInfo);
 		for (int i = 0, count = this.methods.length; i < count; i++) {
 			AbstractMethodDeclaration method = this.methods[i];
@@ -1038,8 +1040,6 @@ public void resolve() {
 				}
 			} while ((current = current.enclosingType()) != null);
 		}
-		// this.maxFieldCount might already be set
-		int localMaxFieldCount = 0;
 		int lastVisibleFieldID = -1;
 		boolean hasEnumConstants = false;
 		FieldDeclaration[] enumConstantsWithoutBody = null;
@@ -1049,11 +1049,22 @@ public void resolve() {
 				this.typeParameters[i].resolve(this.scope);
 			}
 		}
-		if (this.memberTypes != null) {
-			for (int i = 0, count = this.memberTypes.length; i < count; i++) {
-				this.memberTypes[i].resolve(this.scope);
+		// field count from supertypes should be included in maxFieldCount,
+		// so that a field from supertype doesn't end up with same id as a local variable
+		// in a method being analyzed.
+		int superFieldsCount = 0;
+		ReferenceBinding superClassBinding = sourceType.superclass;
+		while (superClassBinding != null) {
+			FieldBinding[] unResolvedFields = superClassBinding.unResolvedFields();
+			if (unResolvedFields != null) {
+				superFieldsCount += unResolvedFields.length;
 			}
+			superFieldsCount += findFieldCountFromSuperInterfaces(superClassBinding.superInterfaces());
+			superClassBinding = superClassBinding.superclass();
 		}
+		ReferenceBinding[] superInterfacesBinding = this.binding.superInterfaces;
+		superFieldsCount += findFieldCountFromSuperInterfaces(superInterfacesBinding);
+		this.scope.cumulativeFieldCount += superFieldsCount;
 		if (this.fields != null) {
 			for (int i = 0, count = this.fields.length; i < count; i++) {
 				FieldDeclaration field = this.fields[i];
@@ -1074,13 +1085,13 @@ public void resolve() {
 							this.ignoreFurtherInvestigation = true;
 							continue;
 						}
+						field.binding.id += superFieldsCount;
 						if (needSerialVersion
 								&& ((fieldBinding.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccFinal)) == (ClassFileConstants.AccStatic | ClassFileConstants.AccFinal))
 								&& CharOperation.equals(TypeConstants.SERIALVERSIONUID, fieldBinding.name)
 								&& TypeBinding.LONG == fieldBinding.type) {
 							needSerialVersion = false;
 						}
-						localMaxFieldCount++;
 						lastVisibleFieldID = field.binding.id;
 						break;
 
@@ -1090,9 +1101,15 @@ public void resolve() {
 				}
 				field.resolve(field.isStatic() ? this.staticInitializerScope : this.initializerScope);
 			}
-		}
-		if (this.maxFieldCount < localMaxFieldCount) {
-			this.maxFieldCount = localMaxFieldCount;
+		}		
+		//		if (this.maxFieldCount < localMaxFieldCount) {
+		//			this.maxFieldCount = localMaxFieldCount;
+		//		}
+		this.maxFieldCount = this.scope.cumulativeFieldCount;
+		if (this.memberTypes != null) {
+			for (int i = 0, count = this.memberTypes.length; i < count; i++) {
+				this.memberTypes[i].resolve(this.scope);
+			}
 		}
 		if (needSerialVersion) {
 			//check that the current type doesn't extend javax.rmi.CORBA.Stub
@@ -1178,6 +1195,17 @@ public void resolve() {
 		this.ignoreFurtherInvestigation = true;
 		return;
 	}
+}
+
+private int findFieldCountFromSuperInterfaces(ReferenceBinding[] superinterfaces) {
+	int numOfFields = 0;
+	if (superinterfaces == null)
+		return numOfFields ;
+	for (int i = 0; i < superinterfaces.length; i++) {
+		numOfFields += superinterfaces[i].fieldCount();
+		numOfFields += findFieldCountFromSuperInterfaces(superinterfaces[i].superInterfaces());		
+	}
+	return numOfFields;
 }
 
 /**

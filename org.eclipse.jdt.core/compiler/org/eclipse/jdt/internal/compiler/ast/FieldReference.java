@@ -35,6 +35,7 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 
 public class FieldReference extends Reference implements InvocationSite {
 
@@ -667,5 +668,18 @@ public void traverse(ASTVisitor visitor, BlockScope scope) {
 		this.receiver.traverse(visitor, scope);
 	}
 	visitor.endVisit(this, scope);
+}
+
+public VariableBinding variableBinding() {
+	if (this.receiver.isThis() || this.binding.isStatic()) {
+		if (this.receiver instanceof MessageSend) {
+			if (((MessageSend) this.receiver).actualReceiverType == this.receiver.resolvedType) {
+				return this.binding;
+			}
+		} else {
+			return this.binding;
+		}
+	}
+	return super.variableBinding();
 }
 }

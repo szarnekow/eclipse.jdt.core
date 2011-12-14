@@ -108,13 +108,12 @@ public void test0002_simple_field() {
 			"    o.toString();\n" +
 			"  }\n" +
 			"}\n"},
-	""
-//      "----------\n" +
-//      "1. ERROR in X.java (at line 5)\n" +
-//      "	o.toString();\n" +
-//      "	^\n" +
-//      "The field o is likely null; it was either set to null or checked for null when last used\n" +
-//      "----------\n"
+		"----------\n" + 
+		"1. ERROR in X.java (at line 5)\n" + 
+		"	o.toString();\n" + 
+		"	^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
 	);
 }
 
@@ -345,13 +344,12 @@ public void test0014_field_with_explicit_this_access() {
 			"    this.o.toString();\n" +
 			"  }\n" +
 			"}\n"},
-		""
-//      "----------\n" +
-//      "1. ERROR in X.java (at line 5)\n" +
-//      "	this.o.toString();\n" +
-//      "	^^^^^^\n" +
-//      "The field o is likely null; it was either set to null or checked for null when last used\n" +
-//      "----------\n"
+		"----------\n" + 
+		"1. ERROR in X.java (at line 5)\n" + 
+		"	this.o.toString();\n" + 
+		"	     ^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
 	);
 }
 
@@ -367,13 +365,12 @@ public void test0015_field_with_explicit_this_access() {
 			"    o.toString();\n" +
 			"  }\n" +
 			"}\n"},
-		""
-//      "----------\n" +
-//      "1. ERROR in X.java (at line 5)\n" +
-//      "	o.toString();\n" +
-//      "	^\n" +
-//      "The field o is likely null; it was either set to null or checked for null when last used\n" +
-//      "----------\n"
+		"----------\n" + 
+		"1. ERROR in X.java (at line 5)\n" + 
+		"	o.toString();\n" + 
+		"	^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
 	);
 }
 
@@ -423,13 +420,12 @@ public void test0018_field_of_enclosing_object() {
 			"    }\n" +
 			"  }\n" +
 			"}\n"},
-		""
-//      "----------\n" +
-//      "1. ERROR in X.java (at line 6)\n" +
-//      "	X.this.o.toString();\n" +
-//      "	^^^^^^^^\n" +
-//      "The field o is likely null; it was either set to null or checked for null when last used\n" +
-//      "----------\n"
+		"----------\n" + 
+		"1. ERROR in X.java (at line 6)\n" + 
+		"	X.this.o.toString();\n" + 
+		"	       ^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
 	);
 }
 
@@ -448,13 +444,12 @@ public void test0019_field_synchronized() {
 			"  }\n" +
 			"  void bar() {/* */}\n" +
 			"}\n"},
-		""
-//      "----------\n" +
-//      "1. ERROR in X.java (at line 5)\n" +
-//      "	o.toString();\n" +
-//      "	^\n" +
-//      "The field o is likely null; it was either set to null or checked for null when last used\n" +
-//      "----------\n"
+		"----------\n" + 
+		"1. ERROR in X.java (at line 5)\n" + 
+		"	o.toString();\n" + 
+		"	^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
 	);
 }
 
@@ -15424,5 +15419,548 @@ public void testBug360328d() {
 		"",/* expected output */
 		"",/* expected error */
 	    JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+}
+
+// null analysis -- simple case for field
+public void testBug247564a() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object o;\n" +
+			"  void foo() {\n" +
+			"    if (o == null && o.toString() == \"\"){}\n" +
+			"    else {}\n" +
+			"    o.toString();\n" + // toString() call above defuses null info, so no warning here
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 4)\n" + 
+		"	if (o == null && o.toString() == \"\"){}\n" + 
+		"	                 ^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- simple case for field
+// no redundant null check warnings should be obtained since value of field
+// may be changed in another thread.
+public void testBug247564a_1() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object o;\n" +
+			"  void foo() {\n" +
+			"	 o = null;" +
+			"    if (o == null){}\n" +
+			"    if (o != null){}\n" +	
+			"    o.toString();\n" +	// warn here
+			"  }\n" +
+			"}\n"},
+		"----------\n" +  
+		"1. ERROR in X.java (at line 6)\n" + 
+		"	o.toString();\n" + 
+		"	^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- simple case for field
+public void testBug247564a_2() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object o;\n" +
+			"  void foo() {\n" +
+			"    if (o == null){\n" +	// o is null inside the if block
+			"		o.toString();\n" +
+			"    }\n" +
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 5)\n" + 
+		"	o.toString();\n" + 
+		"	^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- simple case for field
+// null info from one method should not be present in the other (for instance fields)
+public void testBug247564a_3() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object o;\n" +
+			"  void foo() {\n" +
+			"  }\n" +
+			"  void foo1() {\n" + 
+			"	 o.toString();\n" +
+			"  }\n" +
+			"}\n"},
+		""
+	);
+}
+
+// null analysis -- simple case for static final field
+public void testBug247564b() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  static final Object o = null;\n" +
+			"  static final Object o1 = new Object();\n" +
+			"  void foo() {\n" +
+			"    if (o.toString() == \"\") {}\n" +
+			"    if (o == null) {}\n" +
+			"	 if (o != null) {}\n" +
+			"	 if (o1 == null) {}\n" +
+			"	 if (o1 != null) {}\n" +
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 5)\n" + 
+		"	if (o.toString() == \"\") {}\n" + 
+		"	    ^\n" + 
+		"Null pointer access: The field o can only be null at this location\n" + 
+		"----------\n" + 
+		"2. ERROR in X.java (at line 6)\n" + 
+		"	if (o == null) {}\n" + 
+		"	    ^\n" + 
+		"Redundant null check: The field o can only be null at this location\n" + 
+		"----------\n" + 
+		"3. ERROR in X.java (at line 7)\n" + 
+		"	if (o != null) {}\n" + 
+		"	    ^\n" + 
+		"Null comparison always yields false: The field o can only be null at this location\n" + 
+		"----------\n" + 
+		"4. WARNING in X.java (at line 7)\n" + 
+		"	if (o != null) {}\n" + 
+		"	               ^^\n" + 
+		"Dead code\n" + 
+		"----------\n" + 
+		"5. ERROR in X.java (at line 8)\n" + 
+		"	if (o1 == null) {}\n" + 
+		"	    ^^\n" + 
+		"Null comparison always yields false: The field o1 cannot be null at this location\n" + 
+		"----------\n" + 
+		"6. WARNING in X.java (at line 8)\n" + 
+		"	if (o1 == null) {}\n" + 
+		"	                ^^\n" + 
+		"Dead code\n" + 
+		"----------\n" + 
+		"7. ERROR in X.java (at line 9)\n" + 
+		"	if (o1 != null) {}\n" + 
+		"	    ^^\n" + 
+		"Redundant null check: The field o1 cannot be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- simple case for static final field
+public void testBug247564b_1() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  static final Object o;\n" +
+			"  static final Object o1;\n" +
+			"  static {\n" +
+			"		o = null;\n" +
+			"		o1 = new Object();\n" +
+			"  }\n" +
+			"  void foo() {\n" +
+			"    if (o.toString() == \"\") {}\n" +
+			"    if (o == null) {}\n" +
+			"	 if (o != null) {}\n" +
+			"	 if (o1 == null) {}\n" +
+			"	 if (o1 != null) {}\n" +
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 9)\n" + 
+		"	if (o.toString() == \"\") {}\n" + 
+		"	    ^\n" + 
+		"Null pointer access: The field o can only be null at this location\n" + 
+		"----------\n" + 
+		"2. ERROR in X.java (at line 10)\n" + 
+		"	if (o == null) {}\n" + 
+		"	    ^\n" + 
+		"Redundant null check: The field o can only be null at this location\n" + 
+		"----------\n" + 
+		"3. ERROR in X.java (at line 11)\n" + 
+		"	if (o != null) {}\n" + 
+		"	    ^\n" + 
+		"Null comparison always yields false: The field o can only be null at this location\n" + 
+		"----------\n" + 
+		"4. WARNING in X.java (at line 11)\n" + 
+		"	if (o != null) {}\n" + 
+		"	               ^^\n" + 
+		"Dead code\n" + 
+		"----------\n" + 
+		"5. ERROR in X.java (at line 12)\n" + 
+		"	if (o1 == null) {}\n" + 
+		"	    ^^\n" + 
+		"Null comparison always yields false: The field o1 cannot be null at this location\n" + 
+		"----------\n" + 
+		"6. WARNING in X.java (at line 12)\n" + 
+		"	if (o1 == null) {}\n" + 
+		"	                ^^\n" + 
+		"Dead code\n" + 
+		"----------\n" + 
+		"7. ERROR in X.java (at line 13)\n" + 
+		"	if (o1 != null) {}\n" + 
+		"	    ^^\n" + 
+		"Redundant null check: The field o1 cannot be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- fields in synchronized methods
+// check that null analysis for fields in synchronized methods
+// behave as it does in ordinary methods.
+public void testBug247564c() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object o;\n" +
+			"  Object o1;\n" +
+			"  static final Object o2 = null;\n" +
+			"  static final Object o3 = new Object();\n" +
+			"  synchronized void foo() {\n" +
+			"		o = null;\n" +
+			"		if (o == null) {\n" +
+			"			o.toString();\n" +
+			"		}\n" +
+			"		o1 = new Object();\n" +
+			"		if (o1 == null) {\n" +
+			"			o1.toString();\n" +
+			"		}\n" +
+			"		if (o2 != null) {\n" +
+			"		}\n" +
+			"		else {\n" +
+			"			o2.toString();\n" +
+			"		}\n" +
+			"		if (o3 == null) {\n" +
+			"		}\n" +
+			"		else {\n" +
+			"			o3.toString();\n" +
+			"		}\n" +
+			"  }\n" +
+			"  void foo1() {\n" + 
+			"	 o.toString();\n" +
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 9)\n" + 
+		"	o.toString();\n" + 
+		"	^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n" + 
+		"2. ERROR in X.java (at line 13)\n" + 
+		"	o1.toString();\n" + 
+		"	^^\n" + 
+		"Potential null pointer access: The field o1 may be null at this location\n" + 
+		"----------\n" + 
+		"3. ERROR in X.java (at line 15)\n" + 
+		"	if (o2 != null) {\n" + 
+		"	    ^^\n" + 
+		"Null comparison always yields false: The field o2 can only be null at this location\n" + 
+		"----------\n" + 
+		"4. WARNING in X.java (at line 15)\n" + 
+		"	if (o2 != null) {\n" + 
+		"		}\n" + 
+		"	                ^^^^^\n" + 
+		"Dead code\n" + 
+		"----------\n" + 
+		"5. ERROR in X.java (at line 18)\n" + 
+		"	o2.toString();\n" + 
+		"	^^\n" + 
+		"Null pointer access: The field o2 can only be null at this location\n" + 
+		"----------\n" + 
+		"6. ERROR in X.java (at line 20)\n" + 
+		"	if (o3 == null) {\n" + 
+		"	    ^^\n" + 
+		"Null comparison always yields false: The field o3 cannot be null at this location\n" + 
+		"----------\n" + 
+		"7. WARNING in X.java (at line 20)\n" + 
+		"	if (o3 == null) {\n" + 
+		"		}\n" + 
+		"	                ^^^^^\n" + 
+		"Dead code\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- test redundant instanceof warning for static final field
+public void testBug247564d() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  static final Object o = null;\n" +
+			"  static final Object o1 = new Object();\n" +
+			"  void foo() {\n" +
+			"    if (o instanceof String) {}\n" +
+			"    if (o1 instanceof String) {}\n" +
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 5)\n" + 
+		"	if (o instanceof String) {}\n" + 
+		"	    ^\n" + 
+		"instanceof always yields false: The field o can only be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- test redundant instanceof warning for static final fields
+public void testBug247564e_1() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  static final Object o = null;\n" +
+			"  void foo() {\n" +
+			"      if (o instanceof X) return;\n" +
+			"  }\n" +
+			"}"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 4)\n" + 
+		"	if (o instanceof X) return;\n" + 
+		"	    ^\n" + 
+		"instanceof always yields false: The field o can only be null at this location\n" + 
+		"----------\n",
+		JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+}
+
+// null analysis -- test potential null ptr access warning because of static field access through object returned by method call
+public void testBug247564f() {
+	Map compilerOptions = getCompilerOptions();
+	compilerOptions.put(CompilerOptions.OPTION_ReportNonStaticAccessToStatic, CompilerOptions.IGNORE);
+	this.runNegativeTest(
+		false,
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  static Object o;\n" +
+			"  static Object o1;\n" +
+			"  Object o2;\n" +
+			"  X getX() { return new X();\n}\n" +
+			"  void foo() {\n" +
+			"      if (getX().o == null && this.o.hashCode() == 0) return;\n" +
+			"      if (getX().o2 == null && this.o2.hashCode() == 0) return;\n" +
+			"  }\n" +
+			"}"},
+		null,
+		compilerOptions,
+		"----------\n" +
+		"1. ERROR in X.java (at line 8)\n" + 
+		"	if (getX().o == null && this.o.hashCode() == 0) return;\n" + 
+		"	                             ^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n",
+		JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+}
+
+// null analysis -- test potential null ptr access warning because of static field access through object returned by method call
+public void testBug247564f_1() {
+	Map compilerOptions = getCompilerOptions();
+	compilerOptions.put(CompilerOptions.OPTION_ReportNonStaticAccessToStatic, CompilerOptions.IGNORE);
+	this.runNegativeTest(
+		false,
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  static Object o;\n" +
+			"  X getX() { return new X();\n}\n" +
+			"  Y getY() { return new Y();\n}\n" +
+			"  void foo() {\n" +
+			"      if (getY().o == null && this.o.hashCode() == 0) return;\n" +
+			"      if (getX().o == null && this.o.hashCode() == 0) return;\n" +
+			"  }\n" +
+			"}\n" +
+			"class Y{\n" +
+			"	static Object o;\n" +
+			"}\n"},
+		null,
+		compilerOptions,
+		"----------\n" +
+		"1. ERROR in X.java (at line 9)\n" + 
+		"	if (getX().o == null && this.o.hashCode() == 0) return;\n" + 
+		"	                             ^\n" + 
+		"Potential null pointer access: The field o may be null at this location\n" + 
+		"----------\n",
+		JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+}
+
+// null analysis -- test field analysis in case of more than 64 fields
+public void testBug247564g() {
+	Map compilerOptions = getCompilerOptions();
+	compilerOptions.put(CompilerOptions.OPTION_ReportNonStaticAccessToStatic, CompilerOptions.IGNORE);
+	this.runNegativeTest(
+		false,
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"Object field0, \n" +
+			"field1, field2, field3, field4, \n" +
+			"field5, field6, field7, field8, \n" +
+			"field9, field10, field11, field12, \n" +
+			"field13, field14, field15, field16, \n" +
+			"field17, field18, field19, field20, \n" +
+			"field21, field22, field23, field24, \n" +
+			"field25, field26, field27, field28, \n" +
+			"field29, field30, field31, field32, \n" +
+			"field33, field34, field35, field36, \n" +
+			"field37, field38, field39, field40, \n" +
+			"field41, field42, field43, field44, \n" +
+			"field45, field46, field47, field48, \n" +
+			"field49, field50, field51, field52, \n" +
+			"field53, field54, field55, field56, \n" +
+			"field57, field58, field59, field60, \n" +
+			"field61, field62, field63, field64, \n" +
+			"field65, field66, field67, field68, \n" +
+			"field69, field70, field71, field72, \n" +
+			"field73, field74, field75, field76, \n" +
+			"field77, field78, field79, field80, \n" +
+			"field81, field82, field83, field84, \n" +
+			"field85, field86, field87, field88, \n" +
+			"field89, field90, field91, field92, \n" +
+			"field93, field94, field95, field96, \n" +
+			"field97, field98, field99;\n" +
+			"static final Object field100 = null;\n" +
+			"  void foo() {\n" +
+			"	int i = 0;" +
+			"   while (i<10){\n" +
+			"      i++;\n" +
+			"      if (this.field99 == null && this.field99.hashCode() == 0){}\n" +
+			"	   this.field98 = null;\n" +
+			"	}\n" +
+			"	if (this.field98.hashCode() == 0) {}\n" +	// should not complain
+			"	this.field97 = null;\n" +
+			"	if (this.field97.hashCode() == 0) {}\n" +
+			"	if (this.field100.hashCode() == 0) {}\n" +
+			"  }\n" +
+			"}"},
+		null,
+		compilerOptions,
+		"----------\n" +
+		"1. ERROR in X.java (at line 32)\n" + 
+		"	if (this.field99 == null && this.field99.hashCode() == 0){}\n" + 
+		"	                                 ^^^^^^^\n" + 
+		"Potential null pointer access: The field field99 may be null at this location\n" + 
+		"----------\n" + 
+		"2. ERROR in X.java (at line 37)\n" + 
+		"	if (this.field97.hashCode() == 0) {}\n" + 
+		"	         ^^^^^^^\n" + 
+		"Potential null pointer access: The field field97 may be null at this location\n" + 
+		"----------\n" + 
+		"3. ERROR in X.java (at line 38)\n" + 
+		"	if (this.field100.hashCode() == 0) {}\n" + 
+		"	         ^^^^^^^^\n" + 
+		"Null pointer access: The field field100 can only be null at this location\n" + 
+		"----------\n",
+		JavacTestOptions.Excuse.EclipseWarningConfiguredAsError);
+}
+
+// null analysis -- simple case for field for inner class
+// to make sure field id's of inner and outer classes are not same for flow analysis
+public void testBug247564h() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object o;\n" +
+			"  class X1 {\n" +
+			"	 Object x;" +
+			"	 Object x1;" +
+			"	 Object x2;" +
+			"	 void goo() {\n" +
+			"    	if (o == null && x.toString() == \"\"){}\n" +
+			"	 	if (o2 == null && o2.toString() == \"\"){}\n" +
+			"	 	if (o2 == null && x2.toString() == \"\"){}\n" +
+			"    }\n" +
+			
+			"  }\n" +
+			"  Object o1;\n" +
+			"  static Object o2;\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 6)\n" + 
+		"	if (o2 == null && o2.toString() == \"\"){}\n" + 
+		"	                  ^^\n" + 
+		"Potential null pointer access: The field o2 may be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- simple case for field for inner class
+// to make sure that id's of local variables in inner classes dotn conflict with those of fields.
+public void testBug247564h_1() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object field0;\n" +
+			"  Object field1;\n" +
+			"  class X1 {\n" +
+			"	 Object field2;" +
+			"	 Object field3;" +
+			"	 void goo(Object var) {\n" +
+			"    	if (var == null && field2.toString() == \"\"){}\n" +
+			"    	if (var == null && field3.toString() == \"\"){}\n" +
+			"    	if (field2 == null && field2.toString() == \"\"){}\n" +
+			"    }\n" +
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 8)\n" + 
+		"	if (field2 == null && field2.toString() == \"\"){}\n" + 
+		"	                      ^^^^^^\n" + 
+		"Potential null pointer access: The field field2 may be null at this location\n" + 
+		"----------\n"
+	);
+}
+
+// null analysis -- simple case for field for inner class
+// to make sure that id's of local variables in inner classes dotn conflict with those of fields.
+public void testBug247564h_2() {
+	this.runNegativeTest(
+		new String[] {
+			"X.java",
+			"public class X {\n" +
+			"  Object field0;\n" +
+			"  Object field1;\n" +
+			"  class X1 {\n" +
+			"	 Object field2;\n" +
+			"	 Object field3;\n" +
+			"	 class X2 {\n" +
+			"	 	Object field4;\n" +
+			"	 	Object field5;\n" +
+			"	 void goo(Object var) {\n" +
+			"    	if (var == null && field4.toString() == \"\"){}\n" +
+			"    	if (var == null && field5.toString() == \"\"){}\n" +
+			"    	if (field3 == null && field3.toString() == \"\"){}\n" +
+			"    	if (field3 == null && field1.toString() == \"\"){}\n" +
+			"    }\n" +
+			"    }\n" +
+			"  Object field22;\n" +
+			"  }\n" +
+			"}\n"},
+		"----------\n" + 
+		"1. ERROR in X.java (at line 13)\n" + 
+		"	if (field3 == null && field3.toString() == \"\"){}\n" + 
+		"	                      ^^^^^^\n" + 
+		"Potential null pointer access: The field field3 may be null at this location\n" + 
+		"----------\n"
+	);
 }
 }

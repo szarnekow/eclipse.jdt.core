@@ -34,9 +34,11 @@ import org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry;
 import org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo;
 import org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo.AssertionFailedException;
 import org.eclipse.jdt.internal.compiler.impl.Constant;
+import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 
 /**
  * A tests series especially meant to validate the internals of our null
@@ -1083,18 +1085,36 @@ public FlowInfo copy() {
 	return copy;
 }
 
-public void markAsDefinitelyNonNull(LocalVariableBinding local) {
-	grow(local.id + this.maxFieldCount);
+public void markAsDefinitelyNonNull(VariableBinding local) {
+	int position;
+	if (local instanceof FieldBinding) {
+		position = local.id;
+	} else {
+		position = local.id + this.maxFieldCount;
+	}
+	grow(position);
 	super.markAsDefinitelyNonNull(local);
 }
 
-public void markAsDefinitelyNull(LocalVariableBinding local) {
-	grow(local.id + this.maxFieldCount);
+public void markAsDefinitelyNull(VariableBinding local) {
+	int position;
+	if (local instanceof FieldBinding) {
+		position = local.id;
+	} else {
+		position = local.id + this.maxFieldCount;
+	}
+	grow(position);
 	super.markAsDefinitelyNull(local);
 }
 
-public void markAsDefinitelyUnknown(LocalVariableBinding local) {
-	grow(local.id + this.maxFieldCount);
+public void markAsDefinitelyUnknown(VariableBinding local) {
+	int position;
+	if (local instanceof FieldBinding) {
+		position = local.id;
+	} else {
+		position = local.id + this.maxFieldCount;
+	}
+	grow(position);
 	super.markAsDefinitelyUnknown(local);
 }
 

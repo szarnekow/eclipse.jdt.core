@@ -74,6 +74,13 @@ public FlowInfo analyseCode(MethodScope initializationScope, FlowContext flowCon
 				.analyseCode(initializationScope, flowContext, flowInfo)
 				.unconditionalInits();
 		flowInfo.markAsDefinitelyAssigned(this.binding);
+		if (this.binding.isFinal() && this.binding.isStatic()) {
+			int nullStatus = this.initialization.nullStatus(flowInfo);
+			// static final field being initialized. Record its null status for future reference
+			// since the flowInfo from an initialization wont be available in a method
+			
+			this.binding.setNullStatusForStaticFinalField(nullStatus);
+		}
 	}
 	return flowInfo;
 }

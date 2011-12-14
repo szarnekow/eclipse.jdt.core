@@ -16,11 +16,13 @@ import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.eclipse.jdt.internal.compiler.impl.Constant;
 
 public class FieldBinding extends VariableBinding {
 	public ReferenceBinding declaringClass;
 	public int compoundUseFlag = 0; // number or accesses via postIncrement or compoundAssignment
+	private int nullStatus;
 	
 protected FieldBinding() {
 	super(null, null, 0, null);
@@ -29,12 +31,14 @@ protected FieldBinding() {
 public FieldBinding(char[] name, TypeBinding type, int modifiers, ReferenceBinding declaringClass, Constant constant) {
 	super(name, type, modifiers, constant);
 	this.declaringClass = declaringClass;
+	this.nullStatus = FlowInfo.UNKNOWN;
 }
 // special API used to change field declaring class for runtime visibility check
 public FieldBinding(FieldBinding initialFieldBinding, ReferenceBinding declaringClass) {
 	super(initialFieldBinding.name, initialFieldBinding.type, initialFieldBinding.modifiers, initialFieldBinding.constant());
 	this.declaringClass = declaringClass;
 	this.id = initialFieldBinding.id;
+	this.nullStatus = FlowInfo.UNKNOWN;
 	setAnnotations(initialFieldBinding.getAnnotations());
 }
 /* API
@@ -385,5 +389,13 @@ public FieldDeclaration sourceField() {
 				return fields[i];
 	}
 	return null;
+}
+
+public int getNullStatusForStaticFinalField() {
+	return this.nullStatus;
+}
+
+public void setNullStatusForStaticFinalField(int nullStatusToMark) {
+	this.nullStatus = nullStatusToMark;
 }
 }

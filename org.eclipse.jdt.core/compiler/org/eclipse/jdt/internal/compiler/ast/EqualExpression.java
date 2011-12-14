@@ -39,16 +39,16 @@ public class EqualExpression extends BinaryExpression {
 			// TODO: handle all kinds of expressions (cf. also https://bugs.eclipse.org/364326)
 		}
 
-		LocalVariableBinding local = this.left.localVariableBinding();
+		VariableBinding local = this.left.variableBinding();
 		if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
 			checkVariableComparison(scope, flowContext, flowInfo, initsWhenTrue, initsWhenFalse, local, rightStatus, this.left);
 		}
-		local = this.right.localVariableBinding();
+		local = this.right.variableBinding();
 		if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
 			checkVariableComparison(scope, flowContext, flowInfo, initsWhenTrue, initsWhenFalse, local, leftStatus, this.right);
 		}
 	}
-	private void checkVariableComparison(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, FlowInfo initsWhenTrue, FlowInfo initsWhenFalse, LocalVariableBinding local, int nullStatus, Expression reference) {
+	private void checkVariableComparison(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, FlowInfo initsWhenTrue, FlowInfo initsWhenFalse, VariableBinding local, int nullStatus, Expression reference) {
 		switch (nullStatus) {
 			case FlowInfo.NULL :
 				if (((this.bits & OperatorMASK) >> OperatorSHIFT) == EQUAL_EQUAL) {

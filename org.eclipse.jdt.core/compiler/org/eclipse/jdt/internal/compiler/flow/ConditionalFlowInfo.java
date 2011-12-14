@@ -13,6 +13,7 @@ package org.eclipse.jdt.internal.compiler.flow;
 
 import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
+import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 
 /**
  * Record conditional initialization status during definite assignment analysis
@@ -85,17 +86,17 @@ public boolean isDefinitelyAssigned(LocalVariableBinding local) {
 			&& this.initsWhenFalse.isDefinitelyAssigned(local);
 }
 
-public boolean isDefinitelyNonNull(LocalVariableBinding local) {
+public boolean isDefinitelyNonNull(VariableBinding local) {
 	return this.initsWhenTrue.isDefinitelyNonNull(local)
 			&& this.initsWhenFalse.isDefinitelyNonNull(local);
 }
 
-public boolean isDefinitelyNull(LocalVariableBinding local) {
+public boolean isDefinitelyNull(VariableBinding local) {
 	return this.initsWhenTrue.isDefinitelyNull(local)
 			&& this.initsWhenFalse.isDefinitelyNull(local);
 }
 
-public boolean isDefinitelyUnknown(LocalVariableBinding local) {
+public boolean isDefinitelyUnknown(VariableBinding local) {
 	return this.initsWhenTrue.isDefinitelyUnknown(local)
 			&& this.initsWhenFalse.isDefinitelyUnknown(local);
 }
@@ -110,37 +111,37 @@ public boolean isPotentiallyAssigned(LocalVariableBinding local) {
 			|| this.initsWhenFalse.isPotentiallyAssigned(local);
 }
 
-public boolean isPotentiallyNonNull(LocalVariableBinding local) {
+public boolean isPotentiallyNonNull(VariableBinding local) {
 	return this.initsWhenTrue.isPotentiallyNonNull(local)
 		|| this.initsWhenFalse.isPotentiallyNonNull(local);
 }
 
-public boolean isPotentiallyNull(LocalVariableBinding local) {
+public boolean isPotentiallyNull(VariableBinding local) {
 	return this.initsWhenTrue.isPotentiallyNull(local)
 		|| this.initsWhenFalse.isPotentiallyNull(local);
 }
 
-public boolean isPotentiallyUnknown(LocalVariableBinding local) {
+public boolean isPotentiallyUnknown(VariableBinding local) {
 	return this.initsWhenTrue.isPotentiallyUnknown(local)
 		|| this.initsWhenFalse.isPotentiallyUnknown(local);
 }
 
-public boolean isProtectedNonNull(LocalVariableBinding local) {
+public boolean isProtectedNonNull(VariableBinding local) {
 	return this.initsWhenTrue.isProtectedNonNull(local)
 		&& this.initsWhenFalse.isProtectedNonNull(local);
 }
 
-public boolean isProtectedNull(LocalVariableBinding local) {
+public boolean isProtectedNull(VariableBinding local) {
 	return this.initsWhenTrue.isProtectedNull(local)
 		&& this.initsWhenFalse.isProtectedNull(local);
 }
 
-public void markAsComparedEqualToNonNull(LocalVariableBinding local) {
+public void markAsComparedEqualToNonNull(VariableBinding local) {
 	this.initsWhenTrue.markAsComparedEqualToNonNull(local);
 	this.initsWhenFalse.markAsComparedEqualToNonNull(local);
 }
 
-public void markAsComparedEqualToNull(LocalVariableBinding local) {
+public void markAsComparedEqualToNull(VariableBinding local) {
 	this.initsWhenTrue.markAsComparedEqualToNull(local);
     this.initsWhenFalse.markAsComparedEqualToNull(local);
 }
@@ -155,37 +156,42 @@ public void markAsDefinitelyAssigned(LocalVariableBinding local) {
 	this.initsWhenFalse.markAsDefinitelyAssigned(local);
 }
 
-public void markAsDefinitelyNonNull(LocalVariableBinding local) {
+public void markAsDefinitelyNonNull(VariableBinding local) {
 	this.initsWhenTrue.markAsDefinitelyNonNull(local);
 	this.initsWhenFalse.markAsDefinitelyNonNull(local);
 }
 
-public void markAsDefinitelyNull(LocalVariableBinding local) {
+public void markAsDefinitelyNull(VariableBinding local) {
 	this.initsWhenTrue.markAsDefinitelyNull(local);
 	this.initsWhenFalse.markAsDefinitelyNull(local);
 }
 
-public void resetNullInfo(LocalVariableBinding local) {
+public void resetNullInfo(VariableBinding local) {
 	this.initsWhenTrue.resetNullInfo(local);
 	this.initsWhenFalse.resetNullInfo(local);
 }
 
-public void markPotentiallyNullBit(LocalVariableBinding local) {
+public void resetNullInfoForFields() {
+	this.initsWhenTrue.resetNullInfoForFields();
+	this.initsWhenFalse.resetNullInfoForFields();
+}
+
+public void markPotentiallyNullBit(VariableBinding local) {
 	this.initsWhenTrue.markPotentiallyNullBit(local);
 	this.initsWhenFalse.markPotentiallyNullBit(local);
 }
 
-public void markPotentiallyNonNullBit(LocalVariableBinding local) {
+public void markPotentiallyNonNullBit(VariableBinding local) {
 	this.initsWhenTrue.markPotentiallyNonNullBit(local);
 	this.initsWhenFalse.markPotentiallyNonNullBit(local);
 }
 
-public void markAsDefinitelyUnknown(LocalVariableBinding local) {
+public void markAsDefinitelyUnknown(VariableBinding local) {
 	this.initsWhenTrue.markAsDefinitelyUnknown(local);
 	this.initsWhenFalse.markAsDefinitelyUnknown(local);
 }
 
-public void markPotentiallyUnknownBit(LocalVariableBinding local) {
+public void markPotentiallyUnknownBit(VariableBinding local) {
 	this.initsWhenTrue.markPotentiallyUnknownBit(local);
 	this.initsWhenFalse.markPotentiallyUnknownBit(local);
 }
@@ -243,12 +249,12 @@ public UnconditionalFlowInfo unconditionalInitsWithoutSideEffect() {
 			mergedWith(this.initsWhenFalse.unconditionalInits());
 }
 
-public void markedAsNullOrNonNullInAssertExpression(LocalVariableBinding local) {
+public void markedAsNullOrNonNullInAssertExpression(VariableBinding local) {
 	this.initsWhenTrue.markedAsNullOrNonNullInAssertExpression(local);
 	this.initsWhenFalse.markedAsNullOrNonNullInAssertExpression(local);
 }
 
-public boolean isMarkedAsNullOrNonNullInAssertExpression(LocalVariableBinding local) {
+public boolean isMarkedAsNullOrNonNullInAssertExpression(VariableBinding local) {
 	return (this.initsWhenTrue.isMarkedAsNullOrNonNullInAssertExpression(local)
 		|| this.initsWhenFalse.isMarkedAsNullOrNonNullInAssertExpression(local));
 }

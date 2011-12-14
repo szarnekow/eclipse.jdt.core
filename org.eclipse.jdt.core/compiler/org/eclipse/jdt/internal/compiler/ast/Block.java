@@ -37,6 +37,8 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 			flowInfo = stat.analyseCode(this.scope, flowContext, flowInfo);
 		}
 	}
+	// don't let the flow info collected for fields from this block persist.
+	flowInfo.resetNullInfoForFields();
 	if (this.explicitDeclarations > 0) // if block has its own scope analyze tracking vars now:
 		this.scope.checkUnclosedCloseables(flowInfo, null, null);
 	return flowInfo;

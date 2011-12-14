@@ -39,11 +39,13 @@ public class ClassScope extends Scope {
 	public TypeDeclaration referenceContext;
 	public TypeReference superTypeReference;
 	java.util.ArrayList deferredBoundChecks;
-
+	public int cumulativeFieldCount;   // cumulative field count from all enclosing types, used to build unique field id's for member types.
+	public int localTypeFieldIdStart;
 	public ClassScope(Scope parent, TypeDeclaration context) {
 		super(Scope.CLASS_SCOPE, parent);
 		this.referenceContext = context;
 		this.deferredBoundChecks = null; // initialized if required
+		this.localTypeFieldIdStart = this.cumulativeFieldCount = 0;
 	}
 
 	void buildAnonymousTypeBinding(SourceTypeBinding enclosingType, ReferenceBinding supertype) {
@@ -80,6 +82,8 @@ public class ClassScope extends Scope {
 				}
 			}
 		}
+		this.cumulativeFieldCount += outerMostMethodScope().analysisIndex;
+		this.localTypeFieldIdStart = outerMostMethodScope().analysisIndex;
 		connectMemberTypes();
 		buildFieldsAndMethods();
 		anonymousType.faultInTypesForFieldsAndMethods();
@@ -109,6 +113,23 @@ public class ClassScope extends Scope {
 		FieldBinding[] fieldBindings = new FieldBinding[count];
 		HashtableOfObject knownFieldNames = new HashtableOfObject(count);
 		count = 0;
+		ClassScope enclosingClass = this.enclosingClassScope();
+		if (enclosingClass != null) {
+			this.cumulativeFieldCount += enclosingClass.cumulativeFieldCount;
+		}
+//		SourceTypeBinding enclosingSourceType = this.enclosingSourceType();
+//		if (enclosingSourceType != null) {
+//			ReferenceBinding superClassBinding = sourceType.superclass;
+//			while (superClassBinding != null) {
+//				FieldBinding[] unResolvedFields = superClassBinding.unResolvedFields();
+//				if (unResolvedFields != null) {
+//					this.cumulativeFieldCount += unResolvedFields.length;
+//				}
+//				superClassBinding = superClassBinding.superclass();
+//			}
+//			ReferenceBinding[] superInterfacesBinding = enclosingSourceType.superInterfaces;
+//			this.cumulativeFieldCount += findFieldCountFromSuperInterfaces(superInterfacesBinding);
+//		}
 		for (int i = 0; i < size; i++) {
 			FieldDeclaration field = fields[i];
 			if (field.getKind() == AbstractVariableDeclaration.INITIALIZER) {
@@ -116,7 +137,7 @@ public class ClassScope extends Scope {
 				// now this error reporting is moved into the parser itself. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=212713
 			} else {
 				FieldBinding fieldBinding = new FieldBinding(field, null, field.modifiers | ExtraCompilerModifiers.AccUnresolved, sourceType);
-				fieldBinding.id = count;
+				fieldBinding.id = count + this.cumulativeFieldCount;
 				// field's type will be resolved when needed for top level types
 				checkAndSetModifiersForField(fieldBinding, field);
 
@@ -144,6 +165,7 @@ public class ClassScope extends Scope {
 		// remove duplicate fields
 		if (count != fieldBindings.length)
 			System.arraycopy(fieldBindings, 0, fieldBindings = new FieldBinding[count], 0, count);
+		this.cumulativeFieldCount += count;
 		sourceType.tagBits &= ~(TagBits.AreFieldsSorted|TagBits.AreFieldsComplete); // in case some static imports reached already into this type
 		sourceType.setFields(fieldBindings);
 	}
@@ -226,6 +248,8 @@ public class ClassScope extends Scope {
 			checkParameterizedTypeBounds();
 			checkParameterizedSuperTypeCollisions();
 		}
+		this.cumulativeFieldCount += outerMostMethodScope().analysisIndex;
+		this.localTypeFieldIdStart = outerMostMethodScope().analysisIndex;
 		buildFieldsAndMethods();
 		localType.faultInTypesForFieldsAndMethods();
 

@@ -42,14 +42,15 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 	// record setting a variable: various scenarii are possible, setting an array reference,
 // a field reference, a blank final field reference, a field of an enclosing instance or
 // just a local variable.
-	LocalVariableBinding local = this.lhs.localVariableBinding();
+	VariableBinding var = this.lhs.variableBinding();
 	if ((this.expression.implicitConversion & TypeIds.UNBOXING) != 0) {
 		this.expression.checkNPE(currentScope, flowContext, flowInfo);
 	}
 	flowInfo = ((Reference) this.lhs)
 		.analyseAssignment(currentScope, flowContext, flowInfo, this, false)
 		.unconditionalInits();
-	if (local != null) {
+	if (var instanceof LocalVariableBinding) {
+		LocalVariableBinding local = (LocalVariableBinding) var;
 		LocalVariableBinding previousTrackerBinding = null;
 		if (local.closeTracker != null) {
 			// Assigning to a variable already holding an AutoCloseable, has it been closed before?
@@ -60,17 +61,23 @@ public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, Fl
 		FakedTrackingVariable.handleResourceAssignment(flowInfo, this, this.expression, local, previousTrackerBinding);
 	}
 	int nullStatus = this.expression.nullStatus(flowInfo);
-	if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
+	if (var != null && (var.type.tagBits & TagBits.IsBaseType) == 0) {
 		if (nullStatus == FlowInfo.NULL) {
-			flowContext.recordUsingNullReference(currentScope, local, this.lhs,
+			flowContext.recordUsingNullReference(currentScope, var, this.lhs,
 				FlowContext.CAN_ONLY_NULL | FlowContext.IN_ASSIGNMENT, flowInfo);
 		}
 	}
-	nullStatus = checkAssignmentAgainstNullAnnotation(currentScope, flowContext, local, nullStatus, this.expression);
-	if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
-		flowInfo.markNullStatus(local, nullStatus);
+	nullStatus = checkAssignmentAgainstNullAnnotation(currentScope, flowContext, var, nullStatus, this.expression);
+	if (var != null && (var.type.tagBits & TagBits.IsBaseType) == 0) {
+		flowInfo.markNullStatus(var, nullStatus);
 		if (flowContext.initsOnFinally != null)
-			flowContext.initsOnFinally.markNullStatus(local, nullStatus);
+			flowContext.initsOnFinally.markNullStatus(var, nullStatus);
+		if (var instanceof FieldBinding && var.isFinal() && ((FieldBinding) var).isStatic()) {
+			// static final field being assigned. Record its null status for future reference
+			// since the flowInfo from a constructor or static block wont be available in a method
+			FieldBinding fieldBinding = (FieldBinding) var;
+			fieldBinding.setNullStatusForStaticFinalField(nullStatus);
+		}
 	}
 	return flowInfo;
 }
@@ -223,5 +230,8 @@ public void traverse(ASTVisitor visitor, BlockScope scope) {
 }
 public LocalVariableBinding localVariableBinding() {
 	return this.lhs.localVariableBinding();
+}
+public VariableBinding variableBinding() {
+	return this.lhs.variableBinding();
 }
 }

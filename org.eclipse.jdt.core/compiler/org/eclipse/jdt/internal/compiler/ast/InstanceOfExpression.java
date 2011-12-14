@@ -31,16 +31,16 @@ public InstanceOfExpression(Expression expression, TypeReference type) {
 }
 
 public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
-	LocalVariableBinding local = this.expression.localVariableBinding();
-	if (local != null && (local.type.tagBits & TagBits.IsBaseType) == 0) {
+	VariableBinding variable = this.expression.variableBinding();
+	if (variable != null && (variable.type.tagBits & TagBits.IsBaseType) == 0) {
 		flowInfo = this.expression.analyseCode(currentScope, flowContext, flowInfo).
 			unconditionalInits();
 		FlowInfo initsWhenTrue = flowInfo.copy();
-		initsWhenTrue.markAsComparedEqualToNonNull(local);
+		initsWhenTrue.markAsComparedEqualToNonNull(variable );
 		if ((flowContext.tagBits & FlowContext.HIDE_NULL_COMPARISON_WARNING) != 0) {
-			initsWhenTrue.markedAsNullOrNonNullInAssertExpression(local);
+			initsWhenTrue.markedAsNullOrNonNullInAssertExpression(variable);
 		}
-		flowContext.recordUsingNullReference(currentScope, local,
+		flowContext.recordUsingNullReference(currentScope, variable,
 				this.expression, FlowContext.CAN_ONLY_NULL | FlowContext.IN_INSTANCEOF, flowInfo);
 		// no impact upon enclosing try context
 		return FlowInfo.conditional(initsWhenTrue, flowInfo.copy());
