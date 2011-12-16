@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005, 2010 IBM Corporation and others.
+ * Copyright (c) 2005, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,7 +34,6 @@ import org.eclipse.jdt.internal.compiler.flow.NullInfoRegistry;
 import org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo;
 import org.eclipse.jdt.internal.compiler.flow.UnconditionalFlowInfo.AssertionFailedException;
 import org.eclipse.jdt.internal.compiler.impl.Constant;
-import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
 import org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
@@ -1086,34 +1085,19 @@ public FlowInfo copy() {
 }
 
 public void markAsDefinitelyNonNull(VariableBinding local) {
-	int position;
-	if (local instanceof FieldBinding) {
-		position = local.id;
-	} else {
-		position = local.id + this.maxFieldCount;
-	}
+	int position = local.getAnalysisId(this.maxFieldCount);
 	grow(position);
 	super.markAsDefinitelyNonNull(local);
 }
 
 public void markAsDefinitelyNull(VariableBinding local) {
-	int position;
-	if (local instanceof FieldBinding) {
-		position = local.id;
-	} else {
-		position = local.id + this.maxFieldCount;
-	}
+	int position = local.getAnalysisId(this.maxFieldCount);
 	grow(position);
 	super.markAsDefinitelyNull(local);
 }
 
 public void markAsDefinitelyUnknown(VariableBinding local) {
-	int position;
-	if (local instanceof FieldBinding) {
-		position = local.id;
-	} else {
-		position = local.id + this.maxFieldCount;
-	}
+	int position = local.getAnalysisId(this.maxFieldCount);
 	grow(position);
 	super.markAsDefinitelyUnknown(local);
 }

@@ -279,6 +279,12 @@ public long getAnnotationTagBits() {
 	return originalField.tagBits;
 }
 
+public int getAnalysisId(int maxFieldCount) {
+	if (this.declaringClass instanceof NestedTypeBinding)
+		return ((NestedTypeBinding) this.declaringClass).enclosingType.cumulativeFieldCount + this.id;
+	return this.id;
+}
+
 public final boolean isDefault() {
 	return !isPublic() && !isProtected() && !isPrivate();
 }

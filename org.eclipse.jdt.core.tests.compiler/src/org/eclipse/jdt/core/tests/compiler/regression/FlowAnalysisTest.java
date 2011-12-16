@@ -31,7 +31,7 @@ import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 
 public class FlowAnalysisTest extends AbstractRegressionTest {
 static {
-//	TESTS_NAMES = new String[] { "testLocalClassInInitializer1" };
+//	TESTS_NAMES = new String[] { "testFinalFieldInNested1" };
 //	TESTS_NUMBERS = new int[] { 69 };
 }
 public FlowAnalysisTest(String name) {
@@ -2494,6 +2494,31 @@ public void testLocalClassInInitializer2() {
 			"	else continue;\n" + 
 			"	     ^^^^^^^^^\n" + 
 			"continue cannot be used outside of a loop\n" + 
+			"----------\n");
+}
+// final field in anonymous nested class
+// witness a regression during working on Bug 247564 - [compiler][null] Detecting null field reference
+public void testFinalFieldInNested1() {
+	this.runNegativeTest(
+			new String[] {
+				"X.java",
+				"public class X {\n" +
+				"    void print4() {\n" +
+				"        for (int i=0; i<4; i++)\n" +
+				"            new Runnable() {\n" +
+				"                final String s1local;\n" +
+				"                public void run() {\n" +
+				"                     s1local.toString();\n" +
+				"                }\n" +
+				"            }.run();\n" +
+				"    }\n" +
+				"}\n"
+			}, 
+			"----------\n" + 
+			"1. ERROR in X.java (at line 4)\n" + 
+			"	new Runnable() {\n" + 
+			"	    ^^^^^^^^^^\n" + 
+			"The blank final field s1local may not have been initialized\n" + 
 			"----------\n");
 }
 public static Class testClass() {

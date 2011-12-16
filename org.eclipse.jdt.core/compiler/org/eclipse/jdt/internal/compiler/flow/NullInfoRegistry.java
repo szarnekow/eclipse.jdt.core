@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.jdt.internal.compiler.flow;
 
-import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 
 /**
@@ -121,12 +120,7 @@ public void markAsComparedEqualToNonNull(VariableBinding local) {
 	// protected from non-object locals in calling methods
 	if (this != DEAD_END) {
     	this.tagBits |= NULL_FLAG_MASK;
-    	int position;
-    	if (local instanceof FieldBinding) {
-			position = local.id;
-		} else {
-			position = local.id + this.maxFieldCount;
-		}
+    	int position = local.getAnalysisId(this.maxFieldCount);
     	// position is zero-based
     	if (position < BitCacheSize) { // use bits
     		// set protected non null
@@ -171,13 +165,7 @@ public void markAsDefinitelyNonNull(VariableBinding local) {
 	// protected from non-object locals in calling methods
 	if (this != DEAD_END) {
     	this.tagBits |= NULL_FLAG_MASK;
-    	int position;
-    	// position is zero-based
-    	if (local instanceof FieldBinding) {
-    		position = local.id;
-    	} else {
-    		position = local.id + this.maxFieldCount;
-    	}
+    	int position = local.getAnalysisId(this.maxFieldCount);
     	if (position < BitCacheSize) { // use bits
     		// set assigned non null
     		this.nullBit3 |= (1L << position);
@@ -222,12 +210,7 @@ public void markAsDefinitelyNull(VariableBinding local) {
 	// protected from non-object locals in calling methods
 	if (this != DEAD_END) {
     	this.tagBits |= NULL_FLAG_MASK;
-    	int position;
-    	if (local instanceof FieldBinding) {
-    		position = local.id;
-    	} else {
-    		position = local.id + this.maxFieldCount;
-    	}
+    	int position = local.getAnalysisId(this.maxFieldCount);
     	// position is zero-based
     	if (position < BitCacheSize) { // use bits
     		// set assigned null
@@ -272,12 +255,7 @@ public void markAsDefinitelyUnknown(VariableBinding local) {
 	// protected from non-object locals in calling methods
 	if (this != DEAD_END) {
     	this.tagBits |= NULL_FLAG_MASK;
-    	int position;
-    	if (local instanceof FieldBinding) {
-    		position = local.id;
-    	} else {
-    		position = local.id + this.maxFieldCount;
-    	}
+    	int position = local.getAnalysisId(this.maxFieldCount);
     	// position is zero-based
     	if (position < BitCacheSize) { // use bits
     		// set assigned unknown
@@ -432,13 +410,8 @@ public void markPotentiallyUnknownBit(VariableBinding local) {
 	// protected from non-object locals in calling methods
 	if (this != DEAD_END) {
 		this.tagBits |= NULL_FLAG_MASK;
-        int position;
         long mask;
-        if (local instanceof FieldBinding) {
-        	position = local.id;
-        } else {
-        	position = local.id + this.maxFieldCount;
-        }
+    	int position = local.getAnalysisId(this.maxFieldCount);
         if (position < BitCacheSize) {
             // use bits
         	mask = 1L << position;
@@ -483,13 +456,8 @@ public void markPotentiallyUnknownBit(VariableBinding local) {
 public void markPotentiallyNullBit(VariableBinding local) {
 	if (this != DEAD_END) {
 		this.tagBits |= NULL_FLAG_MASK;
-        int position;
-        long mask;
-        if (local instanceof FieldBinding) {
-        	position = local.id;
-        } else {
-        	position = local.id + this.maxFieldCount;
-        }
+		long mask;
+    	int position = local.getAnalysisId(this.maxFieldCount);
         if (position < BitCacheSize) {
             // use bits
         	mask = 1L << position;
@@ -534,13 +502,8 @@ public void markPotentiallyNullBit(VariableBinding local) {
 public void markPotentiallyNonNullBit(VariableBinding local) {
 	if (this != DEAD_END) {
 		this.tagBits |= NULL_FLAG_MASK;
-        int position;
         long mask;
-        if (local instanceof FieldBinding) {
-        	position = local.id;
-        } else {
-        	position = local.id + this.maxFieldCount;
-        }
+    	int position = local.getAnalysisId(this.maxFieldCount);
         if (position < BitCacheSize) {
             // use bits
         	mask = 1L << position;
