@@ -16,13 +16,11 @@ public class s4jie2TestSuite {
 	}
 	
 	public static void main(String[] args) {
-		test("FormalLine_success", true);
-		test("FormalLine_syntax_error", false);
-		//test("GameCharacter_pre", true);
-		//test("GameCharacter_pre_fail", false);
+		test("GameCharacter_pre", true);
+		test("GameCharacter_pre_fail", false);
 		
-		//test("GameCharacter_pre_post", true);
-		//test("GameCharacter_pre_post_syntax_error", false);
+		test("GameCharacter_pre_post", true);
+		test("GameCharacter_pre_post_syntax_error", false);
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
