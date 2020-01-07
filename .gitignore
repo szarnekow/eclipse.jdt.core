@@ -11,6 +11,7 @@ Snap.*
 /*/binext/
 /*/binprocessors/
 /*/antbin/
+*.class
 
 # maven
 /*/target/
