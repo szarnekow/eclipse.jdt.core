@@ -12,6 +12,7 @@ Snap.*
 /*/binprocessors/
 /*/antbin/
 *.class
+.DS_Store
 
 # maven
 /*/target/

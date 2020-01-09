@@ -22,6 +22,8 @@ public class s4jie2TestSuite {
 		test("GameCharacter_pre_post", true);
 		test("GameCharacter_pre_post_syntax_error", false);
 		
+		test("Minimal", false);
+		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
 
