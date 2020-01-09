@@ -13846,12 +13846,10 @@ public void recoveryTokenCheck() {
 						problemReporter().scannerError(this, e.getMessage());
 						this.hasReportedError = true;
 					}
-					//this.lastCheckPoint = this.scanner.currentPosition;
-					//this.currentToken = 0;
-					//this.restartRecovery = true;
 				}
 				if (oldToken == TokenNameJAVADOC_FORMAL_PART_END) {
 					this.lastCheckPoint = oldPosition;
+					this.restartRecovery = true;
 					break;
 				}
 			}
