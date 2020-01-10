@@ -25,4 +25,7 @@ class GameCharacter_pre_post_syntax_error {
 	public void takeDamage2(int amount) {
 		this.health -= amount;
 	}
+
+	/** @post | result == (getHealth() ** 3 > 0) */
+	public boolean isHealthy() { return health > 0; }
 }

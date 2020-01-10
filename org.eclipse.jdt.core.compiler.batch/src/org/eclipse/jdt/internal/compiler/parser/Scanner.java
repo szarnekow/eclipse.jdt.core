@@ -1635,6 +1635,17 @@ protected int getNextToken0() throws InvalidInputException {
 				case '*' :
 					if (getNextChar('='))
 						return TokenNameMULTIPLY_EQUAL;
+					if (this.currentPosition < this.endOfLastJavadocComment) {
+						for (int i = this.javadocCommentPtr; 0 <= i; i--) {
+							if (this.currentPosition == this.javadocCommentStops[i] - 1) {
+								this.currentPosition++;
+								return TokenNameJAVADOC_FORMAL_PART_END;
+							}
+							if (this.javadocCommentStops[i] <= this.currentPosition)
+								break;
+						}
+					}
+
 					return TokenNameMULTIPLY;
 				case '%' :
 					if (getNextChar('='))
