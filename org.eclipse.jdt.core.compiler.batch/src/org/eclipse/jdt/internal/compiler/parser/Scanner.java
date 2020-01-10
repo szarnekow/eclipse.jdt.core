@@ -2301,43 +2301,60 @@ protected int scanForTextBlock() throws InvalidInputException {
 }
 private int skipToNextJavadocFormalLine(boolean insideFormalPart) {
 	char[] src = this.source;
+	String lastTagSeen = null;
 
 	// Loop over the lines of the Javadoc comment. When this method is called, we are at the start of a line.
 lineLoop:
 	for (;;) {
-		char c;
 		// First, consume any leading whitespace and stars.
 	indentationLoop:
 		for (;;) {
-			c = src[this.currentPosition++];
-			switch (c) {
+			switch (src[this.currentPosition]) {
 				case ' ':
 				case '\t':
 				case '\n':
 				case '\r':
+					this.currentPosition++;
 					break;
 				case '*':
+					this.currentPosition++;
 					if (src[this.currentPosition] == '/') {
 						this.currentPosition++;
 						break lineLoop;
 					}
 					break;
+				case '@':
+				{
+					this.currentPosition++;
+					// Check if this the start of a new block tag
+					int tagNameStart = this.currentPosition;
+					while ('a' <= src[this.currentPosition] && src[this.currentPosition] <= 'z')
+						this.currentPosition++;
+					lastTagSeen = String.copyValueOf(src, tagNameStart, this.currentPosition - tagNameStart);
+					break;
+				}
 				default:
 					break indentationLoop;
 			}
 		}
 		// Then, check if this is a formal line.
-		if (c == '|') {
+		if (src[this.currentPosition] == '|') {
+			this.currentPosition++;
 			if (insideFormalPart)
-				return TokenNameJAVADOC_FORMAL_PART_SEPARATOR;
+				if (lastTagSeen == null)
+					return TokenNameNotAToken;
+				else
+					return TokenNameJAVADOC_FORMAL_PART_SEPARATOR;
 			else
-				return TokenNameJAVADOC_FORMAL_PART_START;
+				if (lastTagSeen != null)
+					return TokenNameJAVADOC_FORMAL_PART_START;
+				// otherwise fall through; this is not a formal part
 		}
 		// If not, consume the remainder of the line.
 		for (;;) {
-			c = src[this.currentPosition++];
-			switch (c) {
+			switch (src[this.currentPosition]) {
 				case '*':
+					this.currentPosition++;
 					if (src[this.currentPosition] == '/') {
 						this.currentPosition++;
 						break lineLoop;
@@ -2345,7 +2362,11 @@ lineLoop:
 					break;
 				case '\r':
 				case '\n':
+					this.currentPosition++;
 					continue lineLoop;
+				default:
+					this.currentPosition++;
+					break;
 			}
 		}
 	}
