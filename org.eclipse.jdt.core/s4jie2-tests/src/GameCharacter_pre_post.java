@@ -6,8 +6,10 @@ class GameCharacter_pre_post {
 	
 	/**
 	 * Reduces this game character's health by the given amount.
+	 * | this is ignored
 	 * @pre The given amount is nonnegative.
 	 *    | 0 <= amount
+	 * @other | this is ignored
 	 * @post This game character's health equals its old health minus the given amount of damage.
 	 *    | getHealth() ==
 	 *    |    old(getHealth()) - amount
