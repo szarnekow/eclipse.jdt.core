@@ -2,6 +2,9 @@ package org.eclipse.jdt.core;
 
 import org.eclipse.jdt.internal.compiler.batch.Main;
 
+/**
+ * @since 3.21
+ */
 public class s4jie2TestSuite {
 	
 	public static void assertTrue(boolean b) { if (!b) throw new AssertionError(); }
@@ -18,6 +21,7 @@ public class s4jie2TestSuite {
 	public static void main(String[] args) {
 		test("GameCharacter_pre", true);
 		test("GameCharacter_pre_fail", false);
+		test("GameCharacter_pre_type_error", false);
 		
 		test("GameCharacter_pre_post", true);
 		test("GameCharacter_pre_post_syntax_error", false);
