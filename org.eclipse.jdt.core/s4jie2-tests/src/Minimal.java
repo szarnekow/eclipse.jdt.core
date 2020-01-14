@@ -1,7 +1,5 @@
 class Minimal {
-	/**
-	 * @pre
-	 * | foo() +
-	 */
-	int x;
+	static Runnable foo(int x) {
+		return () -> System.out.println(x);
+	}
 }

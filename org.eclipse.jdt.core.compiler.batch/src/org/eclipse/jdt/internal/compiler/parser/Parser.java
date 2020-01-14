@@ -4925,12 +4925,15 @@ protected void consumeMethodHeaderName(boolean isAnnotationMethod) {
 			} else
 				md.annotations = null;
 			if (!preconditions.isEmpty()) {
-				md.preconditions = new Expression[preconditions.size()];
-				preconditions.toArray(md.preconditions);
+				md.formalSpecification = new FormalSpecification(md);
+				md.formalSpecification.preconditions = new Expression[preconditions.size()];
+				preconditions.toArray(md.formalSpecification.preconditions);
 			}
 			if (!postconditions.isEmpty()) {
-				md.postconditions = new Expression[postconditions.size()];
-				postconditions.toArray(md.postconditions);
+				if (md.formalSpecification == null)
+					md.formalSpecification = new FormalSpecification(md);
+				md.formalSpecification.postconditions = new Expression[postconditions.size()];
+				postconditions.toArray(md.formalSpecification.postconditions);
 			}
 		}
 	}

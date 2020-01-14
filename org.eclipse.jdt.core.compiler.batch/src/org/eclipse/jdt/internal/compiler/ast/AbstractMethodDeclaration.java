@@ -68,8 +68,7 @@ public abstract class AbstractMethodDeclaration
 	public boolean ignoreFurtherInvestigation = false;
 
 	public Javadoc javadoc;
-	public Expression[] preconditions;
-	public Expression[] postconditions;
+	public FormalSpecification formalSpecification;
 
 	public int bodyStart;
 	public int bodyEnd = -1;
@@ -497,7 +496,8 @@ public abstract class AbstractMethodDeclaration
 			this.javadoc.print(tab, output);
 		}
 		printIndent(tab, output);
-		this.printFormalSpecificationClauses(tab, output);
+		if (this.formalSpecification != null)
+			this.formalSpecification.print(tab, output);
 		printModifiers(this.modifiers, output);
 		if (this.annotations != null) {
 			printAnnotations(this.annotations, output);
@@ -538,23 +538,6 @@ public abstract class AbstractMethodDeclaration
 		return output;
 	}
 
-	private void printFormalSpecificationClauses(int tab, StringBuffer output) {
-		if (this.preconditions != null) {
-			for (int i = 0; i < this.preconditions.length; i++) {
-				output.append("/** @pre | "); //$NON-NLS-1$
-				this.preconditions[i].printExpression(tab, output);
-				output.append(" */"); //$NON-NLS-1$
-			}
-		}
-		if (this.postconditions != null) {
-			for (int i = 0; i < this.postconditions.length; i++) {
-				output.append("/** @post | "); //$NON-NLS-1$
-				this.postconditions[i].printExpression(tab, output);
-				output.append(" */"); //$NON-NLS-1$
-			}
-		}
-	}
-
 	public StringBuffer printBody(int indent, StringBuffer output) {
 
 		if (isAbstract() || (this.modifiers & ExtraCompilerModifiers.AccSemicolonBody) != 0)
@@ -587,7 +570,8 @@ public abstract class AbstractMethodDeclaration
 			bindArguments();
 			resolveReceiver();
 			bindThrownExceptions();
-			resolveFormalSpecificationClauses();
+			if (this.formalSpecification != null)
+				this.formalSpecification.resolve();
 			resolveAnnotations(this.scope, this.annotations, this.binding, this.isConstructor());
 
 			long sourceLevel = this.scope.compilerOptions().sourceLevel;
@@ -606,15 +590,6 @@ public abstract class AbstractMethodDeclaration
 			// ========= abort on fatal error =============
 			this.ignoreFurtherInvestigation = true;
 		}
-	}
-
-	private void resolveFormalSpecificationClauses() {
-		if (this.preconditions != null)
-			for (Expression e : this.preconditions)
-				e.resolveTypeExpecting(this.scope, TypeBinding.BOOLEAN);
-//		if (this.postconditions != null)
-//			for (Expression e : this.postconditions)
-//				e.resolveTypeExpecting(this.scope, TypeBinding.BOOLEAN);
 	}
 
 	public void resolveReceiver() {
