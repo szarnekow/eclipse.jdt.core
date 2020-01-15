@@ -1,4 +1,4 @@
-class GameCharacter_pre_fail {
+class GameCharacter {
 	
 	private int health;
 	

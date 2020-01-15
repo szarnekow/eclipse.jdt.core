@@ -1,4 +1,4 @@
-class GameCharacter_pre_post {
+class GameCharacter {
 	
 	private int health;
 	

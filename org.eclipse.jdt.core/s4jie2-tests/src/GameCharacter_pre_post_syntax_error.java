@@ -1,4 +1,4 @@
-class GameCharacter_pre_post_syntax_error {
+class GameCharacter {
 	
 	private int health;
 	
