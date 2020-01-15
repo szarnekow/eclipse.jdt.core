@@ -2,6 +2,8 @@ package org.eclipse.jdt.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.FileSystems;
@@ -73,7 +75,7 @@ public class s4jie2TestSuite {
 	private static final String binPath = "s4jie2-tests/bin";
 
 	@SuppressWarnings("deprecation")
-	public static void test(String filename, boolean expectedSuccess, String outExpected, String errExpected) {
+	public static void testCompile(String filename, boolean expectedSuccess, String outExpected, String errExpected) {
 		System.out.println("     Test " + filename + " start");
 		StringWriter outWriter = new StringWriter();
 		StringWriter errWriter = new StringWriter();
@@ -92,16 +94,71 @@ public class s4jie2TestSuite {
 		}
 		assertEquals(outWriter.toString(), outExpected.replace("SOURCE_FILE_FULL_PATH", fullPath), "standard output");
 		assertEquals(errWriter.toString(), errExpected.replace("SOURCE_FILE_FULL_PATH", fullPath), "standard error");
-		System.out.println("PASS Test " + filename + " success");
+		System.out.println("PASS Test " + filename + " compile success");
+	}
+
+	public static void readFullyInto(InputStream stream, StringBuilder builder) {
+		InputStreamReader reader = new InputStreamReader(stream);
+		char[] buffer = new char[65536];
+		try {
+			for (;;) {
+				int result = reader.read(buffer);
+				if (result < 0) break;
+				builder.append(buffer, 0, result);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			builder.append("<exception while reading from subprocess>");
+		}
+	}
+
+	public static void testCompileAndRun(String filename, boolean expectedSuccess, String outExpected, String errExpected) throws IOException {
+		testCompile(filename, true, "", "");
+
+		String classpath = binPath+"/"+filename;
+		Process process = new ProcessBuilder(System.getProperty("java.home") + "/bin/java", "-classpath", classpath, "Main").start();
+		StringBuilder stdoutBuffer = new StringBuilder();
+		Thread stdoutThread = new Thread(() -> readFullyInto(process.getInputStream(), stdoutBuffer));
+		stdoutThread.start();
+		StringBuilder stderrBuffer = new StringBuilder();
+		Thread stderrThread = new Thread(() -> readFullyInto(process.getErrorStream(), stderrBuffer));
+		stderrThread.start();
+		int exitCode;
+		try {
+			exitCode = process.waitFor();
+			stdoutThread.join();
+			stderrThread.join();
+		} catch (InterruptedException e) {
+			throw new AssertionError(e);
+		}
+		String stdout = stdoutBuffer.toString();
+		String stderr = stderrBuffer.toString();
+
+		if ((exitCode == 0) != expectedSuccess) {
+			System.err.println("FAIL execution success: expected: " + expectedSuccess + "; actual: exit code " + exitCode);
+			System.err.println("=== standard output start ===");
+			System.err.println(stdout);
+			System.err.println("=== standard output end ===");
+			System.err.println("=== standard error start ===");
+			System.err.println(stderr);
+			System.err.println("=== standard error end ===");
+			System.exit(1);
+		}
+		assertEquals(stdout, outExpected, "standard output");
+		assertEquals(stderr, errExpected, "standard error");
+		System.out.println("PASS Test "+ filename + " execution success");
 	}
 
 	public static void main(String[] args) throws IOException {
 		deleteFileTree(binPath);
 		
-		test("Minimal", true, "", "");
-		
-		test("GameCharacter_pre", true, "", "");
-		test("GameCharacter_pre_fail", false, "",
+		testCompile("Minimal", true, "", "");
+
+		testCompileAndRun("GameCharacter_pre", false, "",
+				"Exception in thread \"main\" java.lang.AssertionError: Precondition does not hold\n" + 
+				"	at GameCharacter.takeDamage(GameCharacter_pre.java:22)\n" + 
+				"	at Main.main(GameCharacter_pre.java:35)\n");
+		testCompile("GameCharacter_pre_fail", false, "",
 				"----------\n" + 
 				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
 				"	*    | 0 <=\n" + 
@@ -109,7 +166,7 @@ public class s4jie2TestSuite {
 				"Syntax error on token \"<=\", Expression expected after this token\n" + 
 				"----------\n" + 
 				"1 problem (1 error)\n");
-		test("GameCharacter_pre_type_error", false, "",
+		testCompile("GameCharacter_pre_type_error", false, "",
 				"----------\n" + 
 				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
 				"	*    | amount\n" + 
@@ -117,8 +174,8 @@ public class s4jie2TestSuite {
 				"Type mismatch: cannot convert from int to boolean\n" + 
 				"----------\n" + 
 				"1 problem (1 error)\n");
-		test("GameCharacter_pre_post", true, "", "");
-		test("GameCharacter_pre_post_syntax_error", false, "",
+		testCompile("GameCharacter_pre_post", true, "", "");
+		testCompile("GameCharacter_pre_post_syntax_error", false, "",
 				"----------\n" + 
 				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
 				"	*    | 0 <= amount +\n" + 
