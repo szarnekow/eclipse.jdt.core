@@ -49,3 +49,28 @@ class Main {
 	}
 
 }
+
+
+// Check that @pre or @post formal parts in the wrong place do not crash the compiler
+
+/** @pre | false */
+class MisplacedPrePost {
+	/** @pre | false */
+	int x;
+}
+
+/** @pre | false */
+interface MisplacedPrePostInterface {
+	
+}
+
+/** @pre | false */
+@interface MisplacedPrePostAnnotation {
+	
+}
+
+/** @pre | false */
+enum MisplacedPrePostEnum {
+	/** @pre | false */
+	MISPLACED_PRE_POST_ENUM_CONSTANT;
+}

@@ -1169,15 +1169,7 @@ protected void consumeAnnotationTypeDeclarationHeaderName() {
 	}
 
 	// consume annotations
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			annotationTypeDeclaration.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	annotationTypeDeclaration.annotations = consumeAnnotations(null);
 	annotationTypeDeclaration.bodyStart = annotationTypeDeclaration.sourceEnd + 1;
 
 	// javadoc
@@ -1258,14 +1250,7 @@ protected void consumeAnnotationTypeDeclarationHeaderNameWithTypeParameters() {
 	}
 
 	// consume annotations
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			annotationTypeDeclaration.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	annotationTypeDeclaration.annotations = consumeAnnotations(null);
 	// javadoc
 	annotationTypeDeclaration.javadoc = this.javadoc;
 	this.javadoc = null;
@@ -2014,15 +1999,7 @@ protected void consumeCatchFormalParameter() {
 	arg.bits &= ~ASTNode.IsArgument;
 	arg.declarationSourceStart = modifierPositions;
 	// consume annotations
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			arg.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	arg.annotations = consumeAnnotations(null);
 	pushOnAstStack(arg);
 	/* if incomplete method header, this.listLength counter will not have been reset,
 		indicating that some arguments are available on the stack */
@@ -2257,15 +2234,7 @@ private void consumeClassOrRecordHeaderName1(boolean isRecord) {
 	}
 
 	// consume annotations
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			typeDecl.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	typeDecl.annotations = consumeAnnotations(null);
 	typeDecl.bodyStart = typeDecl.sourceEnd + 1;
 	if (isRecord) {
 		typeDecl.modifiers |= ExtraCompilerModifiers.AccRecord;
@@ -2726,14 +2695,7 @@ private void helperConstructorHeaderNameWithTypeParameters(ConstructorDeclaratio
 	cd.declarationSourceStart = this.intStack[this.intPtr--];
 	cd.modifiers = this.intStack[this.intPtr--];
 	// consume annotations
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			cd.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	cd.annotations = consumeAnnotations(cd);
 	// javadoc
 	cd.javadoc = this.javadoc;
 	this.javadoc = null;
@@ -3015,16 +2977,8 @@ protected void consumeEnhancedForStatementHeaderInit(boolean hasModifiers) {
 	type = getTypeReference(this.intStack[this.intPtr--]); // type dimension
 
 	// consume annotations
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--])!= 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			localDeclaration.annotations = new Annotation[length],
-			0,
-			length);
+	if ((localDeclaration.annotations = consumeAnnotations(null)) != null)
 		localDeclaration.bits |= ASTNode.HasTypeAnnotations;
-	}
 	if (extraDims != 0) {
 		type = augmentTypeWithAdditionalDimensions(type, extraDims, annotationsOnExtendedDimensions, false);
 	}
@@ -3192,15 +3146,7 @@ protected void consumeEnterVariable() {
 			declaration.declarationSourceStart = this.intStack[this.intPtr--];
 			declaration.modifiers = this.intStack[this.intPtr--];
 			// consume annotations
-			int length;
-			if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-				System.arraycopy(
-					this.expressionStack,
-					(this.expressionPtr -= length) + 1,
-					declaration.annotations = new Annotation[length],
-					0,
-					length);
-			}
+			declaration.annotations = consumeAnnotations(null);
 			type = getTypeReference(this.intStack[this.intPtr--]); // type dimension
 			if (declaration.declarationSourceStart == -1) {
 				// this is true if there is no modifiers for the local variable declaration
@@ -3213,15 +3159,7 @@ protected void consumeEnterVariable() {
 			declaration.declarationSourceStart = this.intStack[this.intPtr--];
 			declaration.modifiers = this.intStack[this.intPtr--];
 			// consume annotations
-			int length;
-			if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-				System.arraycopy(
-					this.expressionStack,
-					(this.expressionPtr -= length) + 1,
-					declaration.annotations = new Annotation[length],
-					0,
-					length);
-			}
+			declaration.annotations = consumeAnnotations(null);
 			// Store javadoc only on first declaration as it is the same for all ones
 			FieldDeclaration fieldDeclaration = (FieldDeclaration) declaration;
 			fieldDeclaration.javadoc = this.javadoc;
@@ -3374,14 +3312,7 @@ protected void consumeEnumConstantHeaderName() {
    enumConstant.declarationSourceStart = enumConstant.modifiersSourceStart;
 
 	// consume annotations
-   int length;
-   if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-      System.arraycopy(
-         this.expressionStack,
-         (this.expressionPtr -= length) + 1,
-         enumConstant.annotations = new Annotation[length],
-         0,
-         length);
+   if ((enumConstant.annotations = consumeAnnotations(null)) != null) {
 		enumConstant.bits |= ASTNode.HasTypeAnnotations;
    }
    pushOnAstStack(enumConstant);
@@ -3523,15 +3454,7 @@ protected void consumeEnumHeaderName() {
 	}
 
 	// consume annotations
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			enumDeclaration.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	enumDeclaration.annotations = consumeAnnotations(null);
 //	if (this.currentToken == TokenNameLBRACE) {
 //		enumDeclaration.bodyStart = this.scanner.currentPosition;
 //	}
@@ -3610,14 +3533,7 @@ protected void consumeEnumHeaderNameWithTypeParameters() {
 	}
 
 	// consume annotations
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			enumDeclaration.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	enumDeclaration.annotations = consumeAnnotations(null);
 //	if (this.currentToken == TokenNameLBRACE) {
 //		enumDeclaration.bodyStart = this.scanner.currentPosition;
 //	}
@@ -3954,13 +3870,7 @@ protected void consumeFormalParameter(boolean isVarArgs) {
 	arg.declarationSourceStart = modifierPositions;
 	arg.bits |= (type.bits & ASTNode.HasTypeAnnotations);
 	// consume annotations
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			arg.annotations = new Annotation[length],
-			0,
-			length);
+	if ((arg.annotations = consumeAnnotations(null)) != null) {
 		arg.bits |= ASTNode.HasTypeAnnotations;
 		RecoveredType currentRecoveryType = this.currentRecoveryType();
 		if (currentRecoveryType != null)
@@ -4308,15 +4218,7 @@ protected void consumeInterfaceHeaderName1() {
 	}
 
 	// consume annotations
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			typeDecl.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	typeDecl.annotations = consumeAnnotations(null);
 	typeDecl.bodyStart = typeDecl.sourceEnd + 1;
 	pushOnAstStack(typeDecl);
 	this.listLength = 0; // will be updated when reading super-interfaces
@@ -4945,16 +4847,19 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 				annotations.toArray(result);
 			} else
 				result = null;
-			if (!preconditions.isEmpty()) {
-				md.formalSpecification = new FormalSpecification(md);
-				md.formalSpecification.preconditions = new Expression[preconditions.size()];
-				preconditions.toArray(md.formalSpecification.preconditions);
-			}
-			if (!postconditions.isEmpty()) {
-				if (md.formalSpecification == null)
+			// TODO(fsc4j): Report a problem if md == null?
+			if (md != null) {
+				if (!preconditions.isEmpty()) {
 					md.formalSpecification = new FormalSpecification(md);
-				md.formalSpecification.postconditions = new Expression[postconditions.size()];
-				postconditions.toArray(md.formalSpecification.postconditions);
+					md.formalSpecification.preconditions = new Expression[preconditions.size()];
+					preconditions.toArray(md.formalSpecification.preconditions);
+				}
+				if (!postconditions.isEmpty()) {
+					if (md.formalSpecification == null)
+						md.formalSpecification = new FormalSpecification(md);
+					md.formalSpecification.postconditions = new Expression[postconditions.size()];
+					postconditions.toArray(md.formalSpecification.postconditions);
+				}
 			}
 		}
 	}
@@ -4992,14 +4897,7 @@ protected void consumeMethodHeaderNameWithTypeParameters(boolean isAnnotationMet
 	md.declarationSourceStart = this.intStack[this.intPtr--];
 	md.modifiers = this.intStack[this.intPtr--];
 	// consume annotations
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			md.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	md.annotations = consumeAnnotations(md);
 	// javadoc
 	md.javadoc = this.javadoc;
 	this.javadoc = null;
@@ -5941,13 +5839,7 @@ protected void consumePackageDeclarationNameWithModifiers() {
 	impt = new ImportReference(tokens, positions, false, packageModifiers);
 	this.compilationUnit.currentPackage = impt;
 	// consume annotations
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			impt.annotations = new Annotation[length],
-			0,
-			length);
+	if ((impt.annotations = consumeAnnotations(null)) != null) {
 		impt.declarationSourceStart = packageModifiersSourceStart;
 		packageModifiersSourceEnd = this.intStack[this.intPtr--] - 2; // we don't need the position of the 'package keyword
 	} else {
