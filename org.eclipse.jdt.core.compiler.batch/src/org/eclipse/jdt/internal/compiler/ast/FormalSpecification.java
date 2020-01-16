@@ -42,6 +42,7 @@ public class FormalSpecification {
 		} else {
 			if (this.preconditions != null) {
 				// Insert assert statements into method body.
+				// FIXME(fsc4j): If this is a constructor without an explicit super()/this(), a super()/this() will incorrectly be inserted *before* the asserts.
 				Statement[] statements = this.method.statements;
 				if (statements == null) {
 					statements = new Statement[this.preconditions.length];

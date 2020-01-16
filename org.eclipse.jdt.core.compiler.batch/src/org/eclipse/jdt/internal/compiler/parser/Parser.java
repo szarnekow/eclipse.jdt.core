@@ -2631,15 +2631,7 @@ protected void consumeConstructorHeaderName() {
 	cd.declarationSourceStart = this.intStack[this.intPtr--];
 	cd.modifiers = this.intStack[this.intPtr--];
 	// consume annotations
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		System.arraycopy(
-			this.expressionStack,
-			(this.expressionPtr -= length) + 1,
-			cd.annotations = new Annotation[length],
-			0,
-			length);
-	}
+	cd.annotations = consumeAnnotations(cd);
 	// javadoc
 	cd.javadoc = this.javadoc;
 	this.javadoc = null;
@@ -4890,53 +4882,7 @@ protected void consumeMethodHeaderName(boolean isAnnotationMethod) {
 	md.declarationSourceStart = this.intStack[this.intPtr--];
 	md.modifiers = this.intStack[this.intPtr--];
 	// consume annotations and javadoc formal parts
-	int length;
-	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
-		try {
-			System.arraycopy(
-				this.expressionStack,
-				(this.expressionPtr -= length) + 1,
-				md.annotations = new Annotation[length],
-				0,
-				length);
-		} catch (ArrayStoreException ex) {
-			// We have some javadoc formal parts
-			ArrayList<Annotation> annotations = new ArrayList<>();
-			ArrayList<Expression> preconditions = new ArrayList<>();
-			ArrayList<Expression> postconditions = new ArrayList<>();
-			for (int i = 0; i < length; i++) {
-				Expression e = this.expressionStack[this.expressionPtr + 1 + i];
-				if (e instanceof Annotation)
-					annotations.add((Annotation)e);
-				else {
-					FormalSpecificationClause clause = (FormalSpecificationClause)e;
-					switch (clause.tag) {
-						case PRE: preconditions.add(clause.expression); break;
-						case POST: postconditions.add(clause.expression); break;
-						default:
-							// TODO: Report a problem
-							throw new AssertionError();
-					}
-				}
-			}
-			if (!annotations.isEmpty()) {
-				md.annotations = new Annotation[annotations.size()];
-				annotations.toArray(md.annotations);
-			} else
-				md.annotations = null;
-			if (!preconditions.isEmpty()) {
-				md.formalSpecification = new FormalSpecification(md);
-				md.formalSpecification.preconditions = new Expression[preconditions.size()];
-				preconditions.toArray(md.formalSpecification.preconditions);
-			}
-			if (!postconditions.isEmpty()) {
-				if (md.formalSpecification == null)
-					md.formalSpecification = new FormalSpecification(md);
-				md.formalSpecification.postconditions = new Expression[postconditions.size()];
-				postconditions.toArray(md.formalSpecification.postconditions);
-			}
-		}
-	}
+	md.annotations = consumeAnnotations(md);
 	// javadoc
 	md.javadoc = this.javadoc;
 	this.javadoc = null;
@@ -4962,6 +4908,57 @@ protected void consumeMethodHeaderName(boolean isAnnotationMethod) {
 			this.restartRecovery = true;
 		}
 	}
+}
+private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
+	Annotation[] result = null;
+	int length;
+	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
+		try {
+			System.arraycopy(
+				this.expressionStack,
+				(this.expressionPtr -= length) + 1,
+				result = new Annotation[length],
+				0,
+				length);
+		} catch (ArrayStoreException ex) {
+			// We have some javadoc formal parts
+			ArrayList<Annotation> annotations = new ArrayList<>();
+			ArrayList<Expression> preconditions = new ArrayList<>();
+			ArrayList<Expression> postconditions = new ArrayList<>();
+			for (int i = 0; i < length; i++) {
+				Expression e = this.expressionStack[this.expressionPtr + 1 + i];
+				if (e instanceof Annotation)
+					annotations.add((Annotation)e);
+				else {
+					FormalSpecificationClause clause = (FormalSpecificationClause)e;
+					switch (clause.tag) {
+						case PRE: preconditions.add(clause.expression); break;
+						case POST: postconditions.add(clause.expression); break;
+						default:
+							// TODO: Report a problem
+							throw new AssertionError();
+					}
+				}
+			}
+			if (!annotations.isEmpty()) {
+				result = new Annotation[annotations.size()];
+				annotations.toArray(result);
+			} else
+				result = null;
+			if (!preconditions.isEmpty()) {
+				md.formalSpecification = new FormalSpecification(md);
+				md.formalSpecification.preconditions = new Expression[preconditions.size()];
+				preconditions.toArray(md.formalSpecification.preconditions);
+			}
+			if (!postconditions.isEmpty()) {
+				if (md.formalSpecification == null)
+					md.formalSpecification = new FormalSpecification(md);
+				md.formalSpecification.postconditions = new Expression[postconditions.size()];
+				postconditions.toArray(md.formalSpecification.postconditions);
+			}
+		}
+	}
+	return result;
 }
 protected void consumeMethodHeaderNameWithTypeParameters(boolean isAnnotationMethod) {
 	// MethodHeaderName ::= Modifiersopt TypeParameters Type 'Identifier' '('
