@@ -50,9 +50,12 @@ public class FormalSpecification {
 					System.arraycopy(statements, 0, statements = new Statement[this.preconditions.length + length], this.preconditions.length, length);
 				}
 				for (int i = 0; i < this.preconditions.length; i++) {
-					statements[i] = new AssertStatement(new StringLiteral(preconditionAssertionMessage, 0, 0, 0), this.preconditions[i], 0);
+					Expression e = this.preconditions[i];
+					statements[i] = new AssertStatement(new StringLiteral(preconditionAssertionMessage, e.sourceStart, e.sourceEnd, 0), e, e.sourceStart);
 				}
 				this.method.statements = statements;
+				if (this.preconditions[0].sourceStart < this.method.bodyStart)
+					this.method.bodyStart = this.preconditions[0].sourceStart;
 				// The expressions will be resolved by the caller as part of method body resolution.
 			}
 		}

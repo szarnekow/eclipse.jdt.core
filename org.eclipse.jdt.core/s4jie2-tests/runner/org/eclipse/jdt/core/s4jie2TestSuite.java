@@ -156,7 +156,7 @@ public class s4jie2TestSuite {
 
 		testCompileAndRun("GameCharacter_pre", false, "",
 				"Exception in thread \"main\" java.lang.AssertionError: Precondition does not hold\n" + 
-				"	at GameCharacter.takeDamage(GameCharacter_pre.java:22)\n" + 
+				"	at GameCharacter.takeDamage(GameCharacter_pre.java:20)\n" +
 				"	at Main.main(GameCharacter_pre.java:35)\n");
 		testCompile("GameCharacter_pre_fail", false, "",
 				"----------\n" + 
