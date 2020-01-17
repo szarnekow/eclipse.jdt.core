@@ -177,7 +177,6 @@ public class s4jie2TestSuite {
 				"Type mismatch: cannot convert from int to boolean\n" + 
 				"----------\n" + 
 				"1 problem (1 error)\n");
-		testCompile("GameCharacter_pre_post", true, "", "");
 		testCompile("GameCharacter_pre_post_syntax_error", false, "",
 				"----------\n" + 
 				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
@@ -196,6 +195,19 @@ public class s4jie2TestSuite {
 				"Syntax error on token \"*\", delete this token\n" + 
 				"----------\n" + 
 				"3 problems (3 errors)\n");
+	    testCompile("GameCharacter_pre_post_type_error", false, "",
+	    		"----------\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
+	    		"	*     | getHealth()\n" + 
+	    		"	        ^^^^^^^^^^^\n" + 
+	    		"Type mismatch: cannot convert from int to boolean\n" + 
+	    		"----------\n" + 
+	    		"1 problem (1 error)\n");
+		testCompileAndRun("GameCharacter_pre_post", true, "",
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at GameCharacter.setHealth$post(GameCharacter_pre_post.java:11)\n" + 
+				"	at GameCharacter.setHealth(GameCharacter_pre_post.java:15)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:57)\n");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

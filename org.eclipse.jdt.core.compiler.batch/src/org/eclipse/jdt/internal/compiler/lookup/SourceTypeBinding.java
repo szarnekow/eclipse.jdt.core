@@ -642,7 +642,7 @@ public SyntheticMethodBinding addSyntheticMethod(LambdaExpression lambda) {
 	SyntheticMethodBinding lambdaMethod = null;
 	SyntheticMethodBinding[] lambdaMethods = (SyntheticMethodBinding[]) this.synthetics[SourceTypeBinding.METHOD_EMUL].get(lambda);
 	if (lambdaMethods == null) {
-		lambdaMethod = new SyntheticMethodBinding(lambda, CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(lambda.ordinal).toCharArray()), this);
+		lambdaMethod = new SyntheticMethodBinding(lambda, lambda.lambdaMethodSelector != null ? lambda.lambdaMethodSelector : CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(lambda.ordinal).toCharArray()), this);
 		this.synthetics[SourceTypeBinding.METHOD_EMUL].put(lambda, lambdaMethods = new SyntheticMethodBinding[1]);
 		lambdaMethods[0] = lambdaMethod;
 	} else {

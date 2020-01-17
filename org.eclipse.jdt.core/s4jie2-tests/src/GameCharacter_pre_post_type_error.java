@@ -6,7 +6,7 @@ class GameCharacter {
 	
 	/**
 	 * @post This game character's health equals the given health.
-	 *     | getHealth() == health
+	 *     | getHealth()
 	 * @post A bogus postcondition for testing purposes.
 	 *     | false 
 	 */

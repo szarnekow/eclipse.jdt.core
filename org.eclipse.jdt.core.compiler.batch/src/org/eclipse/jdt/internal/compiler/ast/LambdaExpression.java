@@ -140,6 +140,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	public boolean argumentsTypeVar = false;
 	int firstLocalLocal; // analysis index of first local variable (if any) post parameter(s) in the lambda; ("local local" as opposed to "outer local")
 
+	public char[] lambdaMethodSelector;
+
 
 	public LambdaExpression(CompilationResult compilationResult, boolean assistNode, boolean requiresGenericSignature) {
 		super(compilationResult);
@@ -291,7 +293,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			return this.resolvedType = null;
 
 		this.binding = new MethodBinding(ClassFileConstants.AccPrivate | ClassFileConstants.AccSynthetic | ExtraCompilerModifiers.AccUnresolved,
-							CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.ordinal).toCharArray()), // will be fixed up later.
+							this.lambdaMethodSelector != null ? this.lambdaMethodSelector : CharOperation.concat(TypeConstants.ANONYMOUS_METHOD, Integer.toString(this.ordinal).toCharArray()), // will be fixed up later.
 							haveDescriptor ? this.descriptor.returnType : TypeBinding.VOID,
 							Binding.NO_PARAMETERS, // for now.
 							haveDescriptor ? this.descriptor.thrownExceptions : Binding.NO_EXCEPTIONS,
