@@ -81,7 +81,7 @@ public class s4jie2TestSuite {
 		StringWriter errWriter = new StringWriter();
 		String path = "s4jie2-tests/src/" + filename + ".java";
 		String fullPath = new File(path).getAbsolutePath();
-		String args = "-source 1.8 -proc:none " + path + " -d " + binPath + "/" + filename;
+		String args = "-source 10 -proc:none " + path + " -d " + binPath + "/" + filename;
 		if (Main.compile(args, new PrintWriter(outWriter), new PrintWriter(errWriter)) != expectedSuccess) {
 			System.err.println("FAIL compiler success: expected: " + expectedSuccess + "; actual: " + !expectedSuccess);
 			System.err.println("=== standard output start ===");
@@ -116,7 +116,10 @@ public class s4jie2TestSuite {
 		testCompile(filename, true, "", "");
 
 		String classpath = binPath+"/"+filename;
-		Process process = new ProcessBuilder(System.getProperty("java.home") + "/bin/java", "-classpath", classpath, "Main").start();
+		String java10Home = System.getenv("JAVA_10_HOME");
+		if (java10Home == null)
+			throw new AssertionError("Please make JAVA_10_HOME point to a Java 10 or later JRE or JDK");
+		Process process = new ProcessBuilder(java10Home + "/bin/java", "-classpath", classpath, "Main").start();
 		StringBuilder stdoutBuffer = new StringBuilder();
 		Thread stdoutThread = new Thread(() -> readFullyInto(process.getInputStream(), stdoutBuffer));
 		stdoutThread.start();
@@ -150,7 +153,8 @@ public class s4jie2TestSuite {
 	}
 
 	public static void main(String[] args) throws IOException {
-		deleteFileTree(binPath);
+		if (new File(binPath).exists())
+			deleteFileTree(binPath);
 		
 		testCompile("Minimal", true, "", "");
 
@@ -205,21 +209,25 @@ public class s4jie2TestSuite {
 	    		"1 problem (1 error)\n");
 		testCompileAndRun("GameCharacter_pre_post", true, "",
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at GameCharacter.takeDamage$post(GameCharacter_pre_post.java:26)\n" + 
+				"	at GameCharacter.takeDamage(GameCharacter_pre_post.java:34)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:96)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
 				"	at GameCharacter.setHealth$post(GameCharacter_pre_post.java:11)\n" + 
 				"	at GameCharacter.setHealth(GameCharacter_pre_post.java:15)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:92)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:103)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.simpleReturnTest$post(GameCharacter_pre_post.java:49)\n" + 
-				"	at GameCharacter.simpleReturnTest(GameCharacter_pre_post.java:53)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:99)\n" + 
+				"	at GameCharacter.simpleReturnTest$post(GameCharacter_pre_post.java:52)\n" + 
+				"	at GameCharacter.simpleReturnTest(GameCharacter_pre_post.java:56)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:110)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:57)\n" + 
-				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:62)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:106)\n" + 
-				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:57)\n" + 
+				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:60)\n" + 
 				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:65)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:113)\n");
+				"	at Main.main(GameCharacter_pre_post.java:117)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:60)\n" + 
+				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:68)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:124)\n");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

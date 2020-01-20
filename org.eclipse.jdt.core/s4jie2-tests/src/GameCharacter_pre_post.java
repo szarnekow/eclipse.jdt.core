@@ -26,8 +26,11 @@ class GameCharacter {
 	 *    | getHealth() ==
 	 *    |    old(getHealth()) - amount
 	 */
-	public void takeDamage(int amount) {
-		this.health -= amount;
+	public void takeDamage(int amount, boolean isBroken) {
+		if (isBroken)
+			this.health += amount;
+		else
+			this.health -= amount;
 	}
 	
 	/**
@@ -82,11 +85,19 @@ class Main {
 	public static void main(String[] args) {
 		GameCharacter c = new GameCharacter();
 		// Success case
-		c.heal(0);
+		c.heal(5);
+		c.takeDamage(7, false);
 		c.simpleReturnTest(10);
 		c.returnInsideIfTest(10);
 		c.returnInsideIfTest(-10);
 		c.returnInsideTryFinallyTest();
+		
+		try {
+			c.takeDamage(7, true);
+			System.err.println("No exception thrown! :-(");
+		} catch (AssertionError e) {
+			e.printStackTrace();
+		}
 		
 		try {
 			c.setHealth(5);
