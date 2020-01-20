@@ -45,16 +45,72 @@ class GameCharacter {
 	/** @post  result == (getHealth() * 3 > 0) */
 	public boolean isHealthy() { return health > 0; }
 	
+	/**
+	 * @post | getHealth() == 10
+	 */
+	public void simpleReturnTest(int x) {
+		this.health = x;
+		return;
+	}
+	
+	/**
+	 * @post | getHealth() == 10
+	 */
+	public void returnInsideIfTest(int x) {
+		if (x >= 0) {
+			this.health = x;
+			return;
+		}
+		this.health = x + 20;
+	}
+	
+	/**
+	 * @post | getHealth() == 7
+	 */
+	public void returnInsideTryFinallyTest() {
+		try {
+			this.health = 5;
+			return;
+		} finally {
+			this.health = 7;
+		}
+	}
 }
 
 class Main {
+	
 	public static void main(String[] args) {
 		GameCharacter c = new GameCharacter();
 		// Success case
 		c.heal(10);
+		c.simpleReturnTest(10);
+		c.returnInsideIfTest(10);
+		c.returnInsideIfTest(-10);
+		c.returnInsideTryFinallyTest();
 		
 		try {
 			c.setHealth(5);
+			System.err.println("No exception thrown! :-(");
+		} catch (AssertionError e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			c.simpleReturnTest(5);
+			System.err.println("No exception thrown! :-(");
+		} catch (AssertionError e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			c.returnInsideIfTest(7);
+			System.err.println("No exception thrown! :-(");
+		} catch (AssertionError e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			c.returnInsideIfTest(-5);
 			System.err.println("No exception thrown! :-(");
 		} catch (AssertionError e) {
 			e.printStackTrace();

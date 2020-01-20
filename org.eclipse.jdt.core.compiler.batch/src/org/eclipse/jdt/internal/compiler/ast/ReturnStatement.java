@@ -237,6 +237,15 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 		generateStoreSaveValueIfNecessary(currentScope, codeStream);
 	}
 	// output the suitable return bytecode or wrap the value inside a descriptor for doits
+	{
+		MethodScope methodScope = currentScope.methodScope();
+		if (methodScope != null && methodScope.referenceContext instanceof AbstractMethodDeclaration) {
+			AbstractMethodDeclaration md = (AbstractMethodDeclaration)methodScope.referenceContext;
+			if (md.formalSpecification != null && md.formalSpecification.postconditions != null) {
+				md.formalSpecification.generatePostconditionCheck(codeStream);
+			}
+		}
+	}
 	generateReturnBytecode(codeStream);
 	if (this.saveValueVariable != null) {
 		codeStream.removeVariable(this.saveValueVariable);
