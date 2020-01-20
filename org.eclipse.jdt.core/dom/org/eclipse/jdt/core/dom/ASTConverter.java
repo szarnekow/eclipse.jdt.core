@@ -2060,6 +2060,9 @@ class ASTConverter {
 		if (expression instanceof org.eclipse.jdt.internal.compiler.ast.SwitchExpression) {
 			return convert((org.eclipse.jdt.internal.compiler.ast.SwitchExpression) expression);
 		}
+		if (expression instanceof org.eclipse.jdt.internal.compiler.ast.OldExpression) {
+			return convert(((org.eclipse.jdt.internal.compiler.ast.OldExpression)expression).expression);
+		}
 		return null;
 	}
 
