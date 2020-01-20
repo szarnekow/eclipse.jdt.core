@@ -14,8 +14,6 @@ class GameCharacter {
 		this.health = health;
 	}
 	
-	public static int old(int x) { return x - 10; }
-	
 	/**
 	 * Reduces this game character's health by the given amount.
 	 * | this is ignored

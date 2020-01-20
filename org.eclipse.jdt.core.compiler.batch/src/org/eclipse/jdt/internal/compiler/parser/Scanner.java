@@ -3769,6 +3769,19 @@ private int internalScanIdentifierOrKeyword(int index, int length, char[] data) 
 
 		case 'o':
 			switch (length) {
+				case 3 :
+					if (data[++index] == 'l' && data[++index] == 'd') {
+						// Keyword if inside javadoc comment
+						if (this.currentPosition < this.endOfLastJavadocComment) {
+							for (int i = this.javadocCommentPtr; 0 <= i; i--) {
+								if (this.javadocCommentStops[i] <= this.currentPosition)
+									break;
+								if (this.javadocCommentStarts[i] <= this.currentPosition)
+									return TokenNameold;
+							}
+						}
+					}
+					return TokenNameIdentifier;
 				case 4 :
 					if (areRestrictedModuleKeywordsActive() && (data[++index] == 'p') && (data[++index] == 'e') && (data[++index] == 'n'))
 						return TokenNameopen;

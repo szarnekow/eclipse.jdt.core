@@ -82,7 +82,7 @@ class Main {
 	public static void main(String[] args) {
 		GameCharacter c = new GameCharacter();
 		// Success case
-		c.heal(10);
+		c.heal(0);
 		c.simpleReturnTest(10);
 		c.returnInsideIfTest(10);
 		c.returnInsideIfTest(-10);
@@ -115,5 +115,11 @@ class Main {
 		} catch (AssertionError e) {
 			e.printStackTrace();
 		}
+
+		if (old(5) != -5)
+			System.err.println("'old' outside javadoc incorrectly treated as keyword!");
 	}
+	
+	public static int old(int x) { return x - 10; }
+
 }
