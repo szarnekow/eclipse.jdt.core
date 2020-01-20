@@ -129,8 +129,28 @@ class Main {
 
 		if (old(5) != -5)
 			System.err.println("'old' outside javadoc incorrectly treated as keyword!");
+		
+		foo(5, 7, false);
+		
+		try {
+			foo(5, 7, true);
+			System.err.println("No exception thrown! :-(");
+		} catch (AssertionError e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static int old(int x) { return x - 10; }
+	
+	/**
+	 * 
+	 * @param x
+	 * @param y
+	 * @return
+	 * @post | result == x + y
+	 */
+	public static int foo(int x, int y, boolean broken) {
+		return broken ? x - y : x + y;
+	}
 
 }

@@ -8,16 +8,36 @@ import org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.eclipse.jdt.internal.compiler.codegen.Opcodes;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
 public class FormalSpecification {
 
 	private static final char[] preconditionAssertionMessage = "Precondition does not hold".toCharArray(); //$NON-NLS-1$
 	private static final char[] postconditionAssertionMessage = "Postcondition does not hold".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_VARIABLE_NAME = " $post".toCharArray(); //$NON-NLS-1$
-	private static final char[][] javaLangRunnable = {"java".toCharArray(), "lang".toCharArray(), "Runnable".toCharArray()}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	private static final long[] javaLangRunnablePositions = {0, 0, 0};
 	private static final char[] POSTCONDITION_METHOD_NAME_SUFFIX = "$post".toCharArray(); //$NON-NLS-1$
 	static final char[] OLD_VARIABLE_PREFIX = " old$".toCharArray(); //$NON-NLS-1$
+	private static final char[] RESULT_NAME = "result".toCharArray(); //$NON-NLS-1$
+	
+	private static QualifiedTypeReference getTypeReference(String name) {
+		String[] components = name.split("\\."); //$NON-NLS-1$
+		char[][] sources = new char[components.length][];
+		long[] poss = new long[components.length];
+		for (int i = 0; i < components.length; i++)
+			sources[i] = components[i].toCharArray();
+		return new QualifiedTypeReference(sources, poss);
+	}
+	
+	private static final QualifiedTypeReference javaLangRunnable = getTypeReference("java.lang.Runnable"); //$NON-NLS-1$
+	private static final QualifiedTypeReference javaUtilFunctionIntConsumer = getTypeReference("java.util.function.IntConsumer"); //$NON-NLS-1$
+	
+	private static QualifiedTypeReference getPostconditionLambdaType(TypeBinding returnType) {
+		switch (returnType.id) {
+			case TypeIds.T_void: return javaLangRunnable;
+			case TypeIds.T_int: return javaUtilFunctionIntConsumer;
+			default: throw new AssertionError("Return type not yet supported: " + returnType); //$NON-NLS-1$
+		}
+	}
 
 	public final AbstractMethodDeclaration method;
 	public Expression[] preconditions;
@@ -104,18 +124,29 @@ public class FormalSpecification {
 				postconditionBlock.sourceEnd = this.postconditions[this.postconditions.length - 1].sourceEnd;
 				LambdaExpression postconditionLambda = new LambdaExpression(this.method.compilationResult, false);
 				postconditionLambda.lambdaMethodSelector = CharOperation.concat(this.method.selector, POSTCONDITION_METHOD_NAME_SUFFIX);
+				if (this.method.binding.returnType.id != TypeIds.T_void)
+					postconditionLambda.setArguments(new Argument[] {new Argument(RESULT_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)});
 				postconditionLambda.setBody(postconditionBlock);
 				postconditionLambda.sourceStart = postconditionBlock.sourceStart;
 				postconditionLambda.sourceEnd = postconditionBlock.sourceEnd;
 				this.postconditionVariableDeclaration = new LocalDeclaration(POSTCONDITION_VARIABLE_NAME, this.method.bodyStart, this.method.bodyStart);
-				this.postconditionVariableDeclaration.type = new QualifiedTypeReference(javaLangRunnable, javaLangRunnablePositions);
+				this.postconditionVariableDeclaration.type = getPostconditionLambdaType(this.method.binding.returnType);
 				statementsForMethodBody.add(this.postconditionVariableDeclaration);
 				this.method.explicitDeclarations++;
 				statementsForBlock.add(new Assignment(new SingleNameReference(this.postconditionVariableDeclaration.name, (this.method.bodyStart << 32) + this.method.bodyStart), postconditionLambda, this.method.bodyStart));
 				
 				this.postconditionMethodCall = new MessageSend();
 				this.postconditionMethodCall.receiver = new SingleNameReference(POSTCONDITION_VARIABLE_NAME, (this.method.bodyStart<< 32) + this.method.bodyStart);
-				this.postconditionMethodCall.selector = "run".toCharArray(); //$NON-NLS-1$
+				if (this.method.binding.returnType.id == TypeIds.T_void)
+					this.postconditionMethodCall.selector = "run".toCharArray(); //$NON-NLS-1$
+				else {
+					this.postconditionMethodCall.selector = "accept".toCharArray(); //$NON-NLS-1$
+					switch (this.method.binding.returnType.id) {
+						case TypeIds.T_int: this.postconditionMethodCall.arguments = new Expression[] {new IntLiteral("0".toCharArray(), "0".toCharArray(), 0, 0)}; break; //$NON-NLS-1$ //$NON-NLS-2$
+						default:
+							throw new AssertionError();
+					}
+				}
 			}
 			this.block = new Block(blockDeclarationsCount);
 			this.block.statements = new Statement[statementsForBlock.size()];
@@ -142,7 +173,21 @@ public class FormalSpecification {
 
 	public void generatePostconditionCheck(CodeStream codeStream) {
 		if (this.postconditions != null) {
-			codeStream.load(this.postconditionVariableDeclaration.binding);
+			int returnType = this.method.binding.returnType.id;
+			if (returnType == TypeIds.T_void)
+				codeStream.load(this.postconditionVariableDeclaration.binding);
+			else {
+				if (returnType == TypeIds.T_long || returnType == TypeIds.T_double) {
+					codeStream.dup2();
+					codeStream.load(this.postconditionVariableDeclaration.binding);
+					codeStream.dup_x2();
+					codeStream.pop();
+				} else {
+					codeStream.dup();
+					codeStream.load(this.postconditionVariableDeclaration.binding);
+					codeStream.swap();
+				}
+			}
 			TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(this.method.scope, this.postconditionMethodCall.binding, this.postconditionMethodCall.binding.declaringClass, false);
 			codeStream.invoke(Opcodes.OPC_invokeinterface, this.postconditionMethodCall.binding, constantPoolDeclaringClass);
 		}
