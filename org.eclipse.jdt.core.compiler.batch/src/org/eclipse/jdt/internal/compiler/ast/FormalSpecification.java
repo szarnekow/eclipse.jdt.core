@@ -2,6 +2,7 @@ package org.eclipse.jdt.internal.compiler.ast;
 
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+import org.eclipse.jdt.internal.compiler.codegen.Opcodes;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public class FormalSpecification {
@@ -109,7 +110,9 @@ public class FormalSpecification {
 
 	public void generatePostconditionCheck(CodeStream codeStream) {
 		if (this.postconditions != null) {
-			this.postconditionMethodCall.generateCode(this.method.scope, codeStream);
+			codeStream.load(this.postconditionVariableDeclaration.binding);
+			TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(this.method.scope, this.postconditionMethodCall.binding, this.postconditionMethodCall.binding.declaringClass, false);
+			codeStream.invoke(Opcodes.OPC_invokeinterface, this.postconditionMethodCall.binding, constantPoolDeclaringClass);
 		}
 		
 	}
