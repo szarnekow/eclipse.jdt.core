@@ -209,29 +209,61 @@ public class s4jie2TestSuite {
 	    		"1 problem (1 error)\n");
 		testCompileAndRun("GameCharacter_pre_post", true, "",
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.takeDamage$post(GameCharacter_pre_post.java:26)\n" + 
-				"	at GameCharacter.takeDamage(GameCharacter_pre_post.java:34)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:96)\n" + 
+				"	at GameCharacter.takeDamage$post(GameCharacter_pre_post.java:28)\n" + 
+				"	at GameCharacter.takeDamage(GameCharacter_pre_post.java:36)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:98)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.setHealth$post(GameCharacter_pre_post.java:11)\n" + 
-				"	at GameCharacter.setHealth(GameCharacter_pre_post.java:15)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:103)\n" + 
+				"	at GameCharacter.setHealth$post(GameCharacter_pre_post.java:13)\n" + 
+				"	at GameCharacter.setHealth(GameCharacter_pre_post.java:17)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:105)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.simpleReturnTest$post(GameCharacter_pre_post.java:52)\n" + 
-				"	at GameCharacter.simpleReturnTest(GameCharacter_pre_post.java:56)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:110)\n" + 
+				"	at GameCharacter.simpleReturnTest$post(GameCharacter_pre_post.java:54)\n" + 
+				"	at GameCharacter.simpleReturnTest(GameCharacter_pre_post.java:58)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:112)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:60)\n" + 
-				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:65)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:117)\n" + 
+				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:62)\n" + 
+				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:67)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:119)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:60)\n" + 
-				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:68)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:124)\n" +
+				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:62)\n" + 
+				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:70)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:126)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at Main.foo$post(GameCharacter_pre_post.java:150)\n" + 
-				"	at Main.foo(GameCharacter_pre_post.java:153)\n" + 
-				"	at Main.main(GameCharacter_pre_post.java:136)\n");
+				"	at Main.booleanResult$post(GameCharacter_pre_post.java:211)\n" + 
+				"	at Main.booleanResult(GameCharacter_pre_post.java:213)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:146)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.byteResult$post(GameCharacter_pre_post.java:216)\n" + 
+				"	at Main.byteResult(GameCharacter_pre_post.java:218)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:153)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.charResult$post(GameCharacter_pre_post.java:221)\n" + 
+				"	at Main.charResult(GameCharacter_pre_post.java:223)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:160)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.doubleResult$post(GameCharacter_pre_post.java:226)\n" + 
+				"	at Main.doubleResult(GameCharacter_pre_post.java:228)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:167)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.floatResult$post(GameCharacter_pre_post.java:231)\n" + 
+				"	at Main.floatResult(GameCharacter_pre_post.java:233)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:174)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.intResult$post(GameCharacter_pre_post.java:236)\n" + 
+				"	at Main.intResult(GameCharacter_pre_post.java:238)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:181)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.longResult$post(GameCharacter_pre_post.java:241)\n" + 
+				"	at Main.longResult(GameCharacter_pre_post.java:243)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:188)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.shortResult$post(GameCharacter_pre_post.java:246)\n" + 
+				"	at Main.shortResult(GameCharacter_pre_post.java:248)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:195)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.genericResult$post(GameCharacter_pre_post.java:251)\n" + 
+				"	at Main.genericResult(GameCharacter_pre_post.java:259)\n" + 
+				"	at Main.main(GameCharacter_pre_post.java:202)\n");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

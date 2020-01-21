@@ -1,5 +1,7 @@
+import java.util.ArrayList;
+
 class Minimal {
-	static void foo(int x) {
-		assert 0 <= x : "Precondition does not hold";
+	static java.util.function.Consumer<ArrayList<Integer>> foo(int x) {
+		return null;
 	}
 }
