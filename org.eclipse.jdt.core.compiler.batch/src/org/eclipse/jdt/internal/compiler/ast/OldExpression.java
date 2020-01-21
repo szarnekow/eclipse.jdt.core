@@ -4,6 +4,7 @@ import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+import org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
@@ -18,6 +19,7 @@ public class OldExpression extends Expression {
 		this.sourceStart = sourceStart;
 		this.expression = expression;
 		this.sourceEnd = sourceEnd;
+		this.constant = Constant.NotAConstant;
 	}
 
 	@Override
