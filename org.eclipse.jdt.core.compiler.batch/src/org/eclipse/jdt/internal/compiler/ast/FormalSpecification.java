@@ -17,6 +17,7 @@ public class FormalSpecification {
 	private static final char[] POSTCONDITION_VARIABLE_NAME = " $post".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_METHOD_NAME_SUFFIX = "$post".toCharArray(); //$NON-NLS-1$
 	static final char[] OLD_VARIABLE_PREFIX = " old$".toCharArray(); //$NON-NLS-1$
+	private static final char[] LAMBDA_PARAMETER_NAME = " $result".toCharArray(); //$NON-NLS-1$
 	private static final char[] RESULT_NAME = "result".toCharArray(); //$NON-NLS-1$
 	
 	private static QualifiedTypeReference getTypeReference(String name) {
@@ -113,19 +114,32 @@ public class FormalSpecification {
 				}
 				blockDeclarationsCount += this.oldExpressions.size();
 				
-				Statement[] postconditionStatements = new Statement[this.postconditions.length];
+				ArrayList<Statement> postconditionBlockStatements = new ArrayList<>();
+				int postconditionBlockDeclarationsCount = 0;
+				LocalDeclaration resultDeclaration = null;
+				if (this.method instanceof MethodDeclaration) {
+					MethodDeclaration md = (MethodDeclaration)this.method;
+					if (md.binding.returnType.id != TypeIds.T_void) {
+						resultDeclaration = new LocalDeclaration(RESULT_NAME, this.method.bodyStart, this.method.bodyStart);
+						resultDeclaration.type = md.returnType;
+						resultDeclaration.initialization = new SingleNameReference(LAMBDA_PARAMETER_NAME, (this.method.bodyStart << 32) + this.method.bodyStart);
+						postconditionBlockStatements.add(resultDeclaration);
+						postconditionBlockDeclarationsCount++;
+					}
+				}
 				for (int i = 0; i < this.postconditions.length; i++) {
 					Expression e = this.postconditions[i];
-					postconditionStatements[i] = new AssertStatement(new StringLiteral(postconditionAssertionMessage, e.sourceStart, e.sourceEnd, 0), e, e.sourceStart);
+					postconditionBlockStatements.add(new AssertStatement(new StringLiteral(postconditionAssertionMessage, e.sourceStart, e.sourceEnd, 0), e, e.sourceStart));
 				}
-				Block postconditionBlock = new Block(0);
-				postconditionBlock.statements = postconditionStatements;
+				Block postconditionBlock = new Block(postconditionBlockDeclarationsCount);
+				postconditionBlock.statements = new Statement[postconditionBlockStatements.size()];
+				postconditionBlockStatements.toArray(postconditionBlock.statements);
 				postconditionBlock.sourceStart = this.postconditions[0].sourceStart;
 				postconditionBlock.sourceEnd = this.postconditions[this.postconditions.length - 1].sourceEnd;
 				LambdaExpression postconditionLambda = new LambdaExpression(this.method.compilationResult, false);
 				postconditionLambda.lambdaMethodSelector = CharOperation.concat(this.method.selector, POSTCONDITION_METHOD_NAME_SUFFIX);
 				if (this.method.binding.returnType.id != TypeIds.T_void)
-					postconditionLambda.setArguments(new Argument[] {new Argument(RESULT_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)});
+					postconditionLambda.setArguments(new Argument[] {new Argument(LAMBDA_PARAMETER_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)});
 				postconditionLambda.setBody(postconditionBlock);
 				postconditionLambda.sourceStart = postconditionBlock.sourceStart;
 				postconditionLambda.sourceEnd = postconditionBlock.sourceEnd;
