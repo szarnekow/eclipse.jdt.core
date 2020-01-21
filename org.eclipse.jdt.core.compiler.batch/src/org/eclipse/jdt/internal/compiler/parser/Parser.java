@@ -5148,6 +5148,8 @@ protected void consumeMethodInvocationSuperWithTypeArguments() {
 	consumeInvocationExpression();
 }
 protected void consumeModifiers() {
+	if (this.modifiersSourceStart < 0)
+		this.modifiersSourceStart = this.scanner.startPosition;
 	int savedModifiersSourceStart = this.modifiersSourceStart;
 	checkComment(); // might update modifiers with AccDeprecated
 	pushOnIntStack(this.modifiers); // modifiers
