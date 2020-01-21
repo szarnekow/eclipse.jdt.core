@@ -264,6 +264,15 @@ public class s4jie2TestSuite {
 				"	at Main.genericResult$post(GameCharacter_pre_post.java:251)\n" + 
 				"	at Main.genericResult(GameCharacter_pre_post.java:259)\n" + 
 				"	at Main.main(GameCharacter_pre_post.java:202)\n");
+		testCompileAndRun("GameCharacter_ctor_post", true, "",
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:6)\n" + 
+				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:13)\n" + 
+				"	at Main.main(GameCharacter_ctor_post.java:27)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:6)\n" + 
+				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:12)\n" + 
+				"	at Main.main(GameCharacter_ctor_post.java:35)\n");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
