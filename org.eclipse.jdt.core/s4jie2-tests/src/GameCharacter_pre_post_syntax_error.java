@@ -28,4 +28,7 @@ class GameCharacter {
 
 	/** @post | result == (getHealth() ** 3 > 0) */
 	public boolean isHealthy() { return health > 0; }
+	
+	/** @post | nested.comment == /* */
+	public void checkNestedComment() {}
 }

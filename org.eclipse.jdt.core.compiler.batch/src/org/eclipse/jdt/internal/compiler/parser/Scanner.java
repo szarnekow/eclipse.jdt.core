@@ -1520,8 +1520,8 @@ protected int getNextToken0() throws InvalidInputException {
 							for (int i = this.javadocCommentPtr; 0 <= i; i--) {
 								if (this.javadocCommentStops[i] <= this.currentPosition)
 									break;
-								if (this.javadocCommentStarts[i] <= this.currentPosition) {
-									// We're inside a javadoc comment
+								if (this.javadocCommentStarts[i] < this.currentPosition) {
+									// The line separator is inside a javadoc comment
 									int token = this.skipToNextJavadocFormalLine(true);
 									if (token == TokenNameNotAToken)
 										break;
@@ -1725,6 +1725,41 @@ protected int getNextToken0() throws InvalidInputException {
 					if (!this.skipComments) {
 						int test = getNextChar('/', '*');
 						if (test == 0) { //line comment
+							if (this.currentPosition < this.endOfLastJavadocComment) {
+								boolean insideJavadocFormalPart = false;
+								for (int i = this.javadocCommentPtr; 0 <= i; i--) {
+									if (this.javadocCommentStops[i] <= this.currentPosition)
+										break;
+									if (this.javadocCommentStarts[i] < this.currentPosition) {
+										// The line comment is inside a javadoc comment
+										insideJavadocFormalPart = true;
+										break;
+									}
+								}
+								if (insideJavadocFormalPart) {
+								lineCommentLoop:
+									for (;;) {
+										this.currentCharacter = this.source[this.currentPosition++];
+										switch (this.currentCharacter) {
+											case '\r':
+											case '\n':
+												int token = this.skipToNextJavadocFormalLine(true);
+												if (token == TokenNameNotAToken)
+													break lineCommentLoop;
+												else
+													return token;
+											case '*':
+												if (this.source[this.currentPosition] == '/') {
+													this.currentPosition++;
+													return TokenNameJAVADOC_FORMAL_PART_END;
+												}
+												break;
+										}
+									}
+									break;
+								}
+							}
+
 							this.lastCommentLinePosition = this.currentPosition;
 							try { //get the next char
 								if (((this.currentCharacter = this.source[this.currentPosition++]) == '\\')
@@ -1808,6 +1843,20 @@ protected int getNextToken0() throws InvalidInputException {
 							break;
 						}
 						if (test > 0) { //traditional and javadoc comment
+							if (this.currentPosition < this.endOfLastJavadocComment) {
+								int slashPosition = this.currentPosition - 2;
+								for (int i = this.javadocCommentPtr; 0 <= i; i--) {
+									if (this.javadocCommentStops[i] <= slashPosition)
+										break;
+									if (this.javadocCommentStarts[i] < slashPosition) {
+										// The /* is inside a javadoc comment
+										// Treat it like a slash token followed by a star token
+										this.currentPosition--;
+										return TokenNameDIVIDE;
+									}
+								}
+							}
+
 							try { //get the next char
 								boolean isJavadoc = false, star = false;
 								boolean isUnicode = false;
@@ -3777,7 +3826,7 @@ private int internalScanIdentifierOrKeyword(int index, int length, char[] data) 
 							for (int i = this.javadocCommentPtr; 0 <= i; i--) {
 								if (this.javadocCommentStops[i] <= this.currentPosition)
 									break;
-								if (this.javadocCommentStarts[i] <= this.currentPosition)
+								if (this.javadocCommentStarts[i] < this.currentPosition)
 									return TokenNameold;
 							}
 						}

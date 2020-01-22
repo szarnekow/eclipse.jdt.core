@@ -19,11 +19,11 @@ class GameCharacter extends GameObject {
 	/**
 	 * @post 
 	 *     | getHealth() == initialHealth
-	 * @post Tests that old expressions are evaluated before superclass constructor call
-	 *     | GameObject.count == old(GameObject.count) + 1
-	 * @post Tests that old expressions are evaluated before instance initializer blocks
-	 *     | GameCharacter.count == old(GameCharacter.count) + 1
-	 */
+	 * @post 
+	 *     | GameObject.count == old(GameObject.count) + 1 // Tests that old expressions are evaluated before superclass constructor call
+	 * @post 
+	 *     | GameCharacter.count == old(GameCharacter.count) + 1 // Tests that old expressions are evaluated before instance initializer blocks */
+	
 	public GameCharacter(int initialHealth, boolean setHealth, boolean explicitReturn, boolean destroyGOcount, boolean destroyGCcount) {
 		if (setHealth)
 			this.health = initialHealth;

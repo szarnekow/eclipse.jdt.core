@@ -201,7 +201,12 @@ public class s4jie2TestSuite {
 				"	                                    ^\n" + 
 				"Syntax error on token \"*\", delete this token\n" + 
 				"----------\n" + 
-				"3 problems (3 errors)\n");
+				"4. ERROR in SOURCE_FILE_FULL_PATH (at line 32)\n" + 
+				"	/** @post | nested.comment == /* */\n" + 
+				"	                              ^^\n" + 
+				"Syntax error on tokens, Expression expected instead\n" + 
+				"----------\n" + 
+				"4 problems (4 errors)\n");
 	    testCompile("GameCharacter_pre_post_type_error", false, "",
 	    		"----------\n" + 
 	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
