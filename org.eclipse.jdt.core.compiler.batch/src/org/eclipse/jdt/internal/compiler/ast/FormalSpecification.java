@@ -34,6 +34,7 @@ public class FormalSpecification {
 		return new QualifiedTypeReference(sources, poss);
 	}
 	
+	private static final QualifiedTypeReference javaLangObject = getTypeReference("java.lang.Object"); //$NON-NLS-1$
 	private static final QualifiedTypeReference javaLangRunnable = getTypeReference("java.lang.Runnable"); //$NON-NLS-1$
 	private static final QualifiedTypeReference javaUtilFunctionConsumer = getTypeReference("java.util.function.Consumer"); //$NON-NLS-1$
 	private static final HashMap<Integer, QualifiedTypeReference> boxedTypeReferences = new HashMap<>();
@@ -60,12 +61,17 @@ public class FormalSpecification {
 		return r;
 	}
 	
+	private static QualifiedTypeReference getJavaUtilConsumerOf(TypeReference typeArgument) {
+		TypeReference[][] typeArguments = new TypeReference[][] { null, null, null, {typeArgument}};
+		return new ParameterizedQualifiedTypeReference(javaUtilFunctionConsumer.tokens, typeArguments, 0, javaUtilFunctionConsumer.sourcePositions);
+	}
+	
 	private static QualifiedTypeReference getPostconditionLambdaType(TypeBinding returnTypeBinding, TypeReference returnType) {
+		if (returnType == null) // constructor
+			return getJavaUtilConsumerOf(javaLangObject);
 		switch (returnTypeBinding.id) {
 			case TypeIds.T_void: return javaLangRunnable;
-			default:
-				TypeReference[][] typeArguments = new TypeReference[][] { null, null, null, {getBoxedType(returnTypeBinding, returnType)}};
-				return new ParameterizedQualifiedTypeReference(javaUtilFunctionConsumer.tokens, typeArguments, 0, javaUtilFunctionConsumer.sourcePositions);
+			default: return getJavaUtilConsumerOf(getBoxedType(returnTypeBinding, returnType));
 		}
 	}
 
@@ -167,8 +173,10 @@ public class FormalSpecification {
 				postconditionBlock.sourceStart = this.postconditions[0].sourceStart;
 				postconditionBlock.sourceEnd = this.postconditions[this.postconditions.length - 1].sourceEnd;
 				LambdaExpression postconditionLambda = new LambdaExpression(this.method.compilationResult, false);
+				if (this.method instanceof ConstructorDeclaration)
+					postconditionLambda.lateBindReceiver = true;
 				postconditionLambda.lambdaMethodSelector = CharOperation.concat(this.method.selector, POSTCONDITION_METHOD_NAME_SUFFIX);
-				if (this.method.binding.returnType.id != TypeIds.T_void)
+				if (this.method.binding.returnType.id != TypeIds.T_void || this.method instanceof ConstructorDeclaration)
 					postconditionLambda.setArguments(new Argument[] {new Argument(LAMBDA_PARAMETER_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)});
 				postconditionLambda.setBody(postconditionBlock);
 				postconditionLambda.sourceStart = postconditionBlock.sourceStart;
@@ -181,7 +189,7 @@ public class FormalSpecification {
 				
 				this.postconditionMethodCall = new MessageSend();
 				this.postconditionMethodCall.receiver = new SingleNameReference(POSTCONDITION_VARIABLE_NAME, (this.method.bodyStart<< 32) + this.method.bodyStart);
-				if (this.method.binding.returnType.id == TypeIds.T_void)
+				if (this.method.binding.returnType.id == TypeIds.T_void && !(this.method instanceof ConstructorDeclaration))
 					this.postconditionMethodCall.selector = "run".toCharArray(); //$NON-NLS-1$
 				else {
 					this.postconditionMethodCall.selector = "accept".toCharArray(); //$NON-NLS-1$
@@ -206,9 +214,11 @@ public class FormalSpecification {
 	public void generatePostconditionCheck(CodeStream codeStream) {
 		if (this.postconditions != null) {
 			int returnType = this.method.binding.returnType.id;
-			if (returnType == TypeIds.T_void)
+			if (returnType == TypeIds.T_void) {
 				codeStream.load(this.postconditionVariableDeclaration.binding);
-			else {
+				if (this.method instanceof ConstructorDeclaration)
+					codeStream.aload_0();
+			} else {
 				if (returnType == TypeIds.T_long || returnType == TypeIds.T_double) {
 					codeStream.dup2();
 					codeStream.load(this.postconditionVariableDeclaration.binding);

@@ -2366,6 +2366,7 @@ lineLoop:
 						break newFormalPart;
 						// fall through; this is not a formal part
 				}
+				this.containsAssertKeyword = true; // assert statements will be generated to check the formal parts at run time
 				if (insideFormalPart)
 					return TokenNameJAVADOC_FORMAL_PART_SEPARATOR;
 				else

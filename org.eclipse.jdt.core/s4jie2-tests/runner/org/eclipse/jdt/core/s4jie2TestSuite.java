@@ -112,14 +112,14 @@ public class s4jie2TestSuite {
 		}
 	}
 
-	public static void testCompileAndRun(String filename, boolean expectedSuccess, String outExpected, String errExpected) throws IOException {
+	public static void testCompileAndRun(boolean enableAssertions, String filename, boolean expectedSuccess, String outExpected, String errExpected) throws IOException {
 		testCompile(filename, true, "", "");
 
 		String classpath = binPath+"/"+filename;
 		String java10Home = System.getenv("JAVA_10_HOME");
 		if (java10Home == null)
 			throw new AssertionError("Please make JAVA_10_HOME point to a Java 10 or later JRE or JDK");
-		Process process = new ProcessBuilder(java10Home + "/bin/java", "-classpath", classpath, "Main").start();
+		Process process = new ProcessBuilder(java10Home + "/bin/java", "-classpath", classpath, enableAssertions ? "-ea" : "-da", "Main").start();
 		StringBuilder stdoutBuffer = new StringBuilder();
 		Thread stdoutThread = new Thread(() -> readFullyInto(process.getInputStream(), stdoutBuffer));
 		stdoutThread.start();
@@ -158,7 +158,10 @@ public class s4jie2TestSuite {
 		
 		testCompile("Minimal", true, "", "");
 
-		testCompileAndRun("GameCharacter_pre", true, "",
+		testCompileAndRun(false, "GameCharacter_pre", true, "",
+				"No exception was thrown! :-(\n" + 
+				"No exception was thrown! :-(\n");
+		testCompileAndRun(true, "GameCharacter_pre", true, "",
 				"java.lang.AssertionError: Precondition does not hold\n" +
 				"	at GameCharacter.takeDamage(GameCharacter_pre.java:20)\n" +
 				"	at Main.main(GameCharacter_pre.java:36)\n" +
@@ -207,7 +210,7 @@ public class s4jie2TestSuite {
 	    		"Type mismatch: cannot convert from int to boolean\n" + 
 	    		"----------\n" + 
 	    		"1 problem (1 error)\n");
-		testCompileAndRun("GameCharacter_pre_post", true, "",
+		testCompileAndRun(true, "GameCharacter_pre_post", true, "",
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
 				"	at GameCharacter.takeDamage$post(GameCharacter_pre_post.java:28)\n" + 
 				"	at GameCharacter.takeDamage(GameCharacter_pre_post.java:36)\n" + 
@@ -264,15 +267,23 @@ public class s4jie2TestSuite {
 				"	at Main.genericResult$post(GameCharacter_pre_post.java:251)\n" + 
 				"	at Main.genericResult(GameCharacter_pre_post.java:259)\n" + 
 				"	at Main.main(GameCharacter_pre_post.java:202)\n");
-		testCompileAndRun("GameCharacter_ctor_post", true, "",
+		testCompileAndRun(true, "GameCharacter_ctor_post", true, "",
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:6)\n" + 
-				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:13)\n" + 
-				"	at Main.main(GameCharacter_ctor_post.java:27)\n" + 
+				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:21)\n" + 
+				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:36)\n" + 
+				"	at Main.main(GameCharacter_ctor_post.java:51)\n" + 
 				"java.lang.AssertionError: Postcondition does not hold\n" + 
-				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:6)\n" + 
-				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:12)\n" + 
-				"	at Main.main(GameCharacter_ctor_post.java:35)\n");
+				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:21)\n" + 
+				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:31)\n" + 
+				"	at Main.main(GameCharacter_ctor_post.java:59)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:23)\n" + 
+				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:36)\n" + 
+				"	at Main.main(GameCharacter_ctor_post.java:67)\n" + 
+				"java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:25)\n" + 
+				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:36)\n" + 
+				"	at Main.main(GameCharacter_ctor_post.java:75)\n");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
