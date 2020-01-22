@@ -7,8 +7,11 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.eclipse.jdt.internal.compiler.codegen.Opcodes;
+import org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext;
+import org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 
@@ -74,6 +77,7 @@ public class FormalSpecification {
 	public Block block;
 	public LocalDeclaration postconditionVariableDeclaration;
 	public MessageSend postconditionMethodCall;
+	public ArrayList<Statement> statementsForMethodBody;
 
 	public FormalSpecification(AbstractMethodDeclaration method) {
 		this.method = method;
@@ -107,7 +111,7 @@ public class FormalSpecification {
 		} else {
 			ArrayList<Statement> statementsForBlock = new ArrayList<>();
 			int blockDeclarationsCount = 0;
-			ArrayList<Statement> statementsForMethodBody = new ArrayList<>();
+			this.statementsForMethodBody = new ArrayList<>();
 			if (this.preconditions != null) {
 				// Insert assert statements into method body.
 				// FIXME(fsc4j): If this is a constructor without an explicit super()/this(), a super()/this() will incorrectly be inserted *before* the asserts.
@@ -171,7 +175,7 @@ public class FormalSpecification {
 				postconditionLambda.sourceEnd = postconditionBlock.sourceEnd;
 				this.postconditionVariableDeclaration = new LocalDeclaration(POSTCONDITION_VARIABLE_NAME, this.method.bodyStart, this.method.bodyStart);
 				this.postconditionVariableDeclaration.type = getPostconditionLambdaType(this.method.binding.returnType, this.method instanceof MethodDeclaration ? ((MethodDeclaration)this.method).returnType : null);
-				statementsForMethodBody.add(this.postconditionVariableDeclaration);
+				this.statementsForMethodBody.add(this.postconditionVariableDeclaration);
 				this.method.explicitDeclarations++;
 				statementsForBlock.add(new Assignment(new SingleNameReference(this.postconditionVariableDeclaration.name, (this.method.bodyStart << 32) + this.method.bodyStart), postconditionLambda, this.method.bodyStart));
 				
@@ -187,18 +191,10 @@ public class FormalSpecification {
 			this.block = new Block(blockDeclarationsCount);
 			this.block.statements = new Statement[statementsForBlock.size()];
 			statementsForBlock.toArray(this.block.statements);
-			statementsForMethodBody.add(this.block);
+			this.statementsForMethodBody.add(this.block);
 			
-			Statement[] statements = this.method.statements;
-			if (statements == null)
-				statements = new Statement[statementsForMethodBody.size()];
-			else {
-				int length = statements.length;
-				System.arraycopy(statements, 0, statements = new Statement[statementsForMethodBody.size() + length], statementsForMethodBody.size(), length);
-			}
-			for (int i = 0; i < statementsForMethodBody.size(); i++)
-				statements[i] = statementsForMethodBody.get(i);
-			this.method.statements = statements;
+			for (Statement s : this.statementsForMethodBody)
+				s.resolve(this.method.scope);
 			
 			if (this.preconditions != null)
 				this.method.bodyStart = this.preconditions[0].sourceStart;
@@ -231,6 +227,17 @@ public class FormalSpecification {
 			codeStream.invoke(Opcodes.OPC_invokeinterface, method, constantPoolDeclaringClass);
 		}
 		
+	}
+
+	public FlowInfo analyseCode(MethodScope scope, ExceptionHandlingFlowContext methodContext, FlowInfo flowInfo) {
+		for (Statement s : this.statementsForMethodBody)
+			flowInfo = s.analyseCode(scope, methodContext, flowInfo);
+		return flowInfo;
+	}
+
+	public void generateCode(MethodScope scope, CodeStream codeStream) {
+		for (Statement s : this.statementsForMethodBody)
+			s.generateCode(scope, codeStream);
 	}
 
 }
