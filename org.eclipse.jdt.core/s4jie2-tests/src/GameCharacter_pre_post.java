@@ -13,7 +13,7 @@ class GameCharacter {
 	 *     | false 
 	 */
 	public void setHealth(int health) {
-		this.health = health;
+		health++; health--; this.health = health;
 	}
 	
 	public static int old(int x) { return x - 10; }

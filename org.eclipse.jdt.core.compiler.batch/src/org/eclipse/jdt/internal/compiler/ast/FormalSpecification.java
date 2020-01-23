@@ -173,6 +173,7 @@ public class FormalSpecification {
 				postconditionBlock.sourceStart = this.postconditions[0].sourceStart;
 				postconditionBlock.sourceEnd = this.postconditions[this.postconditions.length - 1].sourceEnd;
 				LambdaExpression postconditionLambda = new LambdaExpression(this.method.compilationResult, false);
+				postconditionLambda.allowReferencesToNonEffectivelyFinalOuterLocals = true;
 				if (this.method instanceof ConstructorDeclaration)
 					postconditionLambda.lateBindReceiver = true;
 				postconditionLambda.lambdaMethodSelector = CharOperation.concat(this.method.selector, POSTCONDITION_METHOD_NAME_SUFFIX);

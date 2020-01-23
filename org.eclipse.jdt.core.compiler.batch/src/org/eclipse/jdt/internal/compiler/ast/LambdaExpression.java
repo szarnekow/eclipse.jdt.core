@@ -141,6 +141,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	int firstLocalLocal; // analysis index of first local variable (if any) post parameter(s) in the lambda; ("local local" as opposed to "outer local")
 
 	public boolean lateBindReceiver;
+	public boolean allowReferencesToNonEffectivelyFinalOuterLocals;
 	public char[] lambdaMethodSelector;
 
 
