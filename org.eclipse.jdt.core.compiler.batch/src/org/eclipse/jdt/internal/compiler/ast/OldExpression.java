@@ -11,14 +11,16 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 public class OldExpression extends Expression {
 	
 	public Expression expression;
-	public int index = -1;
 	public LocalDeclaration declaration;
 	public SingleNameReference reference;
+	public char[] source;
 
-	public OldExpression(int sourceStart, Expression expression, int sourceEnd) {
+	public OldExpression(int sourceStart, Expression expression, int sourceEnd, char[] source) {
 		this.sourceStart = sourceStart;
 		this.expression = expression;
 		this.sourceEnd = sourceEnd;
+		this.source = new char[sourceEnd - sourceStart + 1];
+		System.arraycopy(source, sourceStart, this.source, 0, sourceEnd - sourceStart + 1);
 		this.constant = Constant.NotAConstant;
 	}
 

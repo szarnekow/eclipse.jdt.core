@@ -26,7 +26,7 @@ class GameCharacter {
 	 * @other | this is ignored
 	 * @post This game character's health equals its old health minus the given amount of damage.
 	 *    | getHealth() ==
-	 *    |    old(getHealth()) - amount
+	 *    |    2*old(getHealth()) - old(getHealth()) - amount
 	 */
 	public void takeDamage(int amount, boolean isBroken) {
 		if (isBroken)

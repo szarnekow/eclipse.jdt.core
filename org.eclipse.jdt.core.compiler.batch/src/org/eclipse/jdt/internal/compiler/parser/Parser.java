@@ -822,7 +822,7 @@ protected void checkNonNLSAfterBodyEnd(int declarationEnd){
 	}
 }
 private void consumeOldExpression() {
-	this.expressionStack[this.expressionPtr] = new OldExpression(this.intStack[this.intPtr--], this.expressionStack[this.expressionPtr], this.rParenPos);
+	this.expressionStack[this.expressionPtr] = new OldExpression(this.intStack[this.intPtr--], this.expressionStack[this.expressionPtr], this.rParenPos, this.scanner.source);
 }
 protected void classInstanceCreation(boolean isQualified) {
 	// ClassInstanceCreationExpression ::= 'new' ClassType '(' ArgumentListopt ')' ClassBodyopt

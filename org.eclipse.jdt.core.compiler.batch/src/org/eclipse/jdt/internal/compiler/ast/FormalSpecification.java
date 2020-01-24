@@ -1,6 +1,7 @@
 package org.eclipse.jdt.internal.compiler.ast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -116,6 +117,7 @@ public class FormalSpecification {
 					e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
 		} else {
 			ArrayList<Statement> statementsForBlock = new ArrayList<>();
+			HashMap<String, LocalDeclaration> oldExpressions = new HashMap<>();
 			int blockDeclarationsCount = 0;
 			this.statementsForMethodBody = new ArrayList<>();
 			if (this.preconditions != null) {
@@ -127,28 +129,39 @@ public class FormalSpecification {
 				}
 			}
 			if (this.postconditions != null) {
-				this.oldExpressions = new ArrayList<>();
 				for (int i = 0; i < this.postconditions.length; i++) {
 					this.postconditions[i].traverse(new ASTVisitor() {
 
 						@Override
 						public boolean visit(OldExpression oldExpression, BlockScope blockScope) {
-							if (oldExpression.index != -1)
-								throw new AssertionError();
-							oldExpression.index = FormalSpecification.this.oldExpressions.size();
-							oldExpression.declaration = new LocalDeclaration(CharOperation.concat(OLD_VARIABLE_PREFIX, String.valueOf(oldExpression.index).toCharArray()), oldExpression.sourceStart, oldExpression.sourceEnd);
+							char[] name = Arrays.copyOf(oldExpression.source, oldExpression.source.length);
+							for (int i = 0; i < name.length; i++) { // JVMS 4.2.2 field names cannot contain . ; [ / .
+								switch (name[i]) {
+									case '.': name[i] = '\u2024'; break; // ONE DOT LEADER
+									case ';': name[i] = '\u204f'; break; // REVERSED SEMICOLON 
+									case '[': name[i] = '\u298b'; break; // LEFT SQUARE BRACKET WITH UNDERBAR
+									case ']': name[i] = '\u298c'; break; // RIGHT SQUARE BRACKET WITH UNDERBAR
+									case '/': name[i] = '\u2afd'; break; // DOUBLE SOLIDUS OPERATOR
+								}
+							}
+							String nameString = String.valueOf(name);
+							LocalDeclaration declaration = oldExpressions.get(nameString);
 							long pos = (oldExpression.sourceStart << 32) + oldExpression.sourceEnd;
-							oldExpression.declaration.type = new SingleTypeReference("var".toCharArray(), pos); //$NON-NLS-1$
-							oldExpression.declaration.initialization = oldExpression.expression;
-							statementsForBlock.add(oldExpression.declaration);
-							oldExpression.reference = new SingleNameReference(oldExpression.declaration.name, pos);
-							FormalSpecification.this.oldExpressions.add(oldExpression);
+							if (declaration == null) {
+								declaration = new LocalDeclaration(name, oldExpression.sourceStart, oldExpression.sourceEnd);
+								declaration.type = new SingleTypeReference("var".toCharArray(), pos); //$NON-NLS-1$
+								declaration.initialization = oldExpression.expression;
+								statementsForBlock.add(declaration);
+								oldExpressions.put(nameString, declaration);
+							}
+							oldExpression.declaration = declaration;
+							oldExpression.reference = new SingleNameReference(name, pos);
 							return false;
 						}
 						
 					}, this.method.scope);
 				}
-				blockDeclarationsCount += this.oldExpressions.size();
+				blockDeclarationsCount += oldExpressions.size();
 				
 				ArrayList<Statement> postconditionBlockStatements = new ArrayList<>();
 				int postconditionBlockDeclarationsCount = 0;
