@@ -4201,6 +4201,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			int initializationCount = localVariable.initializationCount;
 			if (initializationCount == 0) continue;
 			//if (localVariable.declaration == null) continue; // FSC4J: Show captured locals inside lambda expression 
+			if (localVariable.name[0] == ' ') continue;
 			final TypeBinding localVariableTypeBinding = localVariable.type;
 			boolean isParameterizedType = localVariableTypeBinding.isParameterizedType() || localVariableTypeBinding.isTypeVariable();
 			if (isParameterizedType) {

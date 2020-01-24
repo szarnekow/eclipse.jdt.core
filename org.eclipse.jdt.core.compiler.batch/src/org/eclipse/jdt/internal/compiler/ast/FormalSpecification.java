@@ -21,7 +21,7 @@ public class FormalSpecification {
 	private static final char[] postconditionAssertionMessage = "Postcondition does not hold".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_VARIABLE_NAME = " $post".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_METHOD_NAME_SUFFIX = "$post".toCharArray(); //$NON-NLS-1$
-	static final char[] OLD_VARIABLE_PREFIX = " old$".toCharArray(); //$NON-NLS-1$
+	static final char[] OLD_VARIABLE_PREFIX = "old$".toCharArray(); //$NON-NLS-1$
 	private static final char[] LAMBDA_PARAMETER_NAME = " $result".toCharArray(); //$NON-NLS-1$
 	private static final char[] RESULT_NAME = "result".toCharArray(); //$NON-NLS-1$
 	
