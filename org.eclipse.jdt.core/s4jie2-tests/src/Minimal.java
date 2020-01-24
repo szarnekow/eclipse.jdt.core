@@ -1,7 +1,5 @@
-import java.util.ArrayList;
-
 class Minimal {
-	static java.util.function.Consumer<ArrayList<Integer>> foo(int x) {
-		return null;
+	static java.util.function.IntSupplier foo(int x) {
+		return () -> x;
 	}
 }

@@ -81,7 +81,7 @@ public class s4jie2TestSuite {
 		StringWriter errWriter = new StringWriter();
 		String path = "s4jie2-tests/src/" + filename + ".java";
 		String fullPath = new File(path).getAbsolutePath();
-		String args = "-source 10 -proc:none " + path + " -d " + binPath + "/" + filename;
+		String args = "-source 10 -proc:none " + path + " -g -d " + binPath + "/" + filename;
 		if (Main.compile(args, new PrintWriter(outWriter), new PrintWriter(errWriter)) != expectedSuccess) {
 			System.err.println("FAIL compiler success: expected: " + expectedSuccess + "; actual: " + !expectedSuccess);
 			System.err.println("=== standard output start ===");

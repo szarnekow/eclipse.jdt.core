@@ -42,7 +42,7 @@ public class SyntheticArgumentBinding extends LocalVariableBinding {
 	public SyntheticArgumentBinding(LocalVariableBinding actualOuterLocalVariable) {
 
 		super(
-			CharOperation.concat(TypeConstants.SYNTHETIC_OUTER_LOCAL_PREFIX, actualOuterLocalVariable.name),
+			actualOuterLocalVariable.name,
 			actualOuterLocalVariable.type,
 			ClassFileConstants.AccFinal,
 			true);
