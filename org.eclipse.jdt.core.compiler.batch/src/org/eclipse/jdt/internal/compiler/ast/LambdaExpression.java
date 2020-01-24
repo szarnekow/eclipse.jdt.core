@@ -1340,6 +1340,7 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			codeStream.load(this.arguments[0].binding);
 			codeStream.checkcast(classFile.referenceBinding);
 			codeStream.astore_0();
+			codeStream.recordPositionsFrom(0, this.body.sourceEnd);
 		}
 		if (this.body instanceof Block) {
 			this.body.generateCode(this.scope, codeStream);

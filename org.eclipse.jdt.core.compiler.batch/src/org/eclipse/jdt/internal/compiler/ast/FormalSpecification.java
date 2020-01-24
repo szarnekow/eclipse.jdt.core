@@ -171,7 +171,7 @@ public class FormalSpecification {
 				postconditionBlock.statements = new Statement[postconditionBlockStatements.size()];
 				postconditionBlockStatements.toArray(postconditionBlock.statements);
 				postconditionBlock.sourceStart = this.postconditions[0].sourceStart;
-				postconditionBlock.sourceEnd = this.postconditions[this.postconditions.length - 1].sourceEnd;
+				postconditionBlock.sourceEnd = this.method.bodyEnd;
 				LambdaExpression postconditionLambda = new LambdaExpression(this.method.compilationResult, false);
 				postconditionLambda.allowReferencesToNonEffectivelyFinalOuterLocals = true;
 				if (this.method instanceof ConstructorDeclaration)
@@ -180,8 +180,8 @@ public class FormalSpecification {
 				if (this.method.binding.returnType.id != TypeIds.T_void || this.method instanceof ConstructorDeclaration)
 					postconditionLambda.setArguments(new Argument[] {new Argument(LAMBDA_PARAMETER_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)});
 				postconditionLambda.setBody(postconditionBlock);
-				postconditionLambda.sourceStart = postconditionBlock.sourceStart;
-				postconditionLambda.sourceEnd = postconditionBlock.sourceEnd;
+				postconditionLambda.sourceStart = this.method.bodyStart;
+				postconditionLambda.sourceEnd = this.method.bodyEnd;
 				this.postconditionVariableDeclaration = new LocalDeclaration(POSTCONDITION_VARIABLE_NAME, this.method.bodyStart, this.method.bodyStart);
 				this.postconditionVariableDeclaration.type = getPostconditionLambdaType(this.method.binding.returnType, this.method instanceof MethodDeclaration ? ((MethodDeclaration)this.method).returnType : null);
 				this.statementsForMethodBody.add(this.postconditionVariableDeclaration);
