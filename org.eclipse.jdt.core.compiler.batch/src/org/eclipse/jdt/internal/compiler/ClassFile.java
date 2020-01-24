@@ -1693,7 +1693,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 		}
 		// then we do the local variable attribute
 		if ((this.produceAttributes & ClassFileConstants.ATTR_VARS) != 0) {
-			final boolean methodDeclarationIsStatic = this.codeStream.methodDeclaration != null ? this.codeStream.methodDeclaration.isStatic() : this.codeStream.lambdaExpression.binding.isStatic();
+			final boolean methodDeclarationIsStatic = this.codeStream.methodDeclaration != null ? this.codeStream.methodDeclaration.isStatic() : this.codeStream.lambdaExpression.binding.isStatic() && !this.codeStream.lambdaExpression.lateBindReceiver;
 			attributesNumber += generateLocalVariableTableAttribute(code_length, methodDeclarationIsStatic, false);
 		}
 
