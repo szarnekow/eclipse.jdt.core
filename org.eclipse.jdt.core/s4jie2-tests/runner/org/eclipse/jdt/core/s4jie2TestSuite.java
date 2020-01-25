@@ -178,12 +178,62 @@ public class s4jie2TestSuite {
 				"1 problem (1 error)\n");
 		testCompile("GameCharacter_pre_type_error", false, "",
 				"----------\n" + 
-				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
+				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 19)\n" + 
 				"	*    | amount\n" + 
 				"	       ^^^^^^\n" + 
 				"Type mismatch: cannot convert from int to boolean\n" + 
 				"----------\n" + 
-				"1 problem (1 error)\n");
+				"2. ERROR in SOURCE_FILE_FULL_PATH (at line 20)\n" + 
+				"	* @pre | new Foo().isOk()\n" + 
+				"	         ^^^^^^^^^\n" + 
+				"The constructor Foo() is not visible\n" + 
+				"----------\n" + 
+				"3. ERROR in SOURCE_FILE_FULL_PATH (at line 20)\n" + 
+				"	* @pre | new Foo().isOk()\n" + 
+				"	             ^^^\n" + 
+				"The type Foo is not visible\n" + 
+				"----------\n" + 
+				"4. ERROR in SOURCE_FILE_FULL_PATH (at line 20)\n" + 
+				"	* @pre | new Foo().isOk()\n" + 
+				"	                   ^^^^\n" + 
+				"The method isOk() from the type Foo is not visible\n" + 
+				"----------\n" + 
+				"5. ERROR in SOURCE_FILE_FULL_PATH (at line 21)\n" + 
+				"	* @pre | health == 0\n" + 
+				"	         ^^^^^^\n" + 
+				"The field GameCharacter_pre_type_error.health is not visible\n" + 
+				"----------\n" + 
+				"6. ERROR in SOURCE_FILE_FULL_PATH (at line 22)\n" + 
+				"	* @pre | this.health == 0\n" + 
+				"	         ^^^^^^^^^^^\n" + 
+				"The field GameCharacter_pre_type_error.health is not visible\n" + 
+				"----------\n" + 
+				"7. ERROR in SOURCE_FILE_FULL_PATH (at line 23)\n" + 
+				"	* @pre | helper()\n" + 
+				"	         ^^^^^^\n" + 
+				"The method helper() from the type GameCharacter_pre_type_error is not visible\n" + 
+				"----------\n" + 
+				"8. ERROR in SOURCE_FILE_FULL_PATH (at line 24)\n" + 
+				"	* @pre | Foo.class.getName() == \"Foo\"\n" + 
+				"	         ^^^\n" + 
+				"The type Foo is not visible\n" + 
+				"----------\n" + 
+				"9. ERROR in SOURCE_FILE_FULL_PATH (at line 25)\n" + 
+				"	* @pre | (bazz += 1) + (bazz = 1) + (bazz++) == 42\n" + 
+				"	         ^^^^^^^^^^^\n" + 
+				"Assignments are not allowed inside Javadoc comments\n" + 
+				"----------\n" + 
+				"10. ERROR in SOURCE_FILE_FULL_PATH (at line 25)\n" + 
+				"	* @pre | (bazz += 1) + (bazz = 1) + (bazz++) == 42\n" + 
+				"	                       ^^^^^^^^^^\n" + 
+				"Assignments are not allowed inside Javadoc comments\n" + 
+				"----------\n" + 
+				"11. ERROR in SOURCE_FILE_FULL_PATH (at line 25)\n" + 
+				"	* @pre | (bazz += 1) + (bazz = 1) + (bazz++) == 42\n" + 
+				"	                                    ^^^^^^^^\n" + 
+				"Assignments are not allowed inside Javadoc comments\n" + 
+				"----------\n" + 
+				"11 problems (11 errors)\n");
 		testCompile("GameCharacter_pre_post_syntax_error", false, "",
 				"----------\n" + 
 				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 

@@ -4156,6 +4156,15 @@ public void invalidConstructor(Statement statement, MethodBinding targetConstruc
 		sourceStart,
 		sourceEnd);
 }
+public void notVisibleConstructor(ASTNode node, MethodBinding targetConstructor) {
+	MethodBinding shownConstructor = targetConstructor;
+	this.handle(
+			IProblem.NotVisibleConstructor,
+			new String[] {new String(targetConstructor.declaringClass.readableName()), typesAsString(shownConstructor, false)},
+			new String[] {new String(targetConstructor.declaringClass.shortReadableName()), typesAsString(shownConstructor, true)},
+			node.sourceStart,
+			node.sourceEnd);
+}
 public void invalidContinue(ASTNode location) {
 	this.handle(
 		IProblem.InvalidContinue,
@@ -4355,6 +4364,35 @@ public void invalidField(NameReference nameRef, FieldBinding field) {
 		nameRef.sourceStart,
 		nameRef.sourceEnd);
 }
+public void notVisibleType(ASTNode node, TypeBinding binding) {
+	this.handle(
+			IProblem.NotVisibleType,
+			new String[] {String.valueOf(binding.readableName())},
+			new String[] {String.valueOf(binding.shortReadableName())},
+			node.sourceStart,
+			node.sourceEnd);
+}
+public void assignmentInJavadoc(ASTNode node) {
+	this.handle(32100,
+			new String[] {},
+			new String[] {},
+			node.sourceStart,
+			node.sourceEnd);
+}
+public void throwInJavadoc(ASTNode node) {
+	this.handle(32101,
+			new String[] {},
+			new String[] {},
+			node.sourceStart,
+			node.sourceEnd);
+}
+public void tryInJavadoc(ASTNode node) {
+	this.handle(32102,
+			new String[] {},
+			new String[] {},
+			node.sourceStart,
+			node.sourceEnd);
+}
 public void invalidField(QualifiedNameReference nameRef, FieldBinding field, int index, TypeBinding searchedType) {
 	//the resolution of the index-th field of qname failed
 	//qname.otherBindings[index] is the binding that has produced the error
@@ -4445,6 +4483,16 @@ public void invalidField(QualifiedNameReference nameRef, FieldBinding field, int
 		arguments,
 		nameRef.sourceStart,
 		(int) nameRef.sourcePositions[index]);
+}
+
+public void notVisibleField(ASTNode node, FieldBinding binding) {
+	String fieldName = String.valueOf(binding.name);
+	this.handle(
+			IProblem.NotVisibleField,
+			new String[] {fieldName, String.valueOf(binding.declaringClass.readableName())},
+			new String[] {fieldName, String.valueOf(binding.declaringClass.shortReadableName())},
+			node.sourceStart,
+			node.sourceEnd);
 }
 
 public void invalidFileNameForPackageAnnotations(Annotation annotation) {
@@ -4779,6 +4827,21 @@ public void invalidMethod(MessageSend messageSend, MethodBinding method, Scope s
 			new String(shownMethod.selector), typesAsString(shownMethod, true)},
 		(int) (messageSend.nameSourcePosition >>> 32),
 		(int) messageSend.nameSourcePosition);
+}
+public void notVisibleMethod(long nameSourcePosition, MethodBinding binding) {
+	this.handle(
+		IProblem.NotVisibleMethod,
+		new String[] {
+			String.valueOf(binding.declaringClass.readableName()),
+			String.valueOf(binding.selector),
+			typesAsString(binding, false)},
+		new String[] {
+			String.valueOf(binding.declaringClass.shortReadableName()),
+			String.valueOf(binding.selector),
+			typesAsString(binding, true)
+		},
+		(int)(nameSourcePosition >>> 32),
+		(int)nameSourcePosition);
 }
 public void invalidNullToSynchronize(Expression expression) {
 	this.handle(
