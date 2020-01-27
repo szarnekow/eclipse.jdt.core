@@ -7194,7 +7194,14 @@ public void reset(AbstractMethodDeclaration referenceMethod, ClassFile targetCla
 			this.lineNumberStart = 1;
 			this.lineNumberEnd = length == 0 ? 1 : length;
 		} else {
-			int start = Util.getLineNumber(referenceMethod.bodyStart, lineSeparatorPositions2, 0, lineSeparatorPositionsEnd);
+			int codeStart = referenceMethod.bodyStart;
+			if (referenceMethod.formalSpecification != null) {
+				if (referenceMethod.formalSpecification.preconditions != null)
+					codeStart = referenceMethod.formalSpecification.preconditions[0].sourceStart;
+				else
+					codeStart = referenceMethod.formalSpecification.postconditions[0].sourceStart;
+			}
+			int start = Util.getLineNumber(codeStart, lineSeparatorPositions2, 0, lineSeparatorPositionsEnd);
 			this.lineNumberStart = start;
 			if (start > lineSeparatorPositionsEnd) {
 				this.lineNumberEnd = start;

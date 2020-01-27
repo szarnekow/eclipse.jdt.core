@@ -482,11 +482,6 @@ public class FormalSpecification {
 			if (this.postconditions != null)
 				for (Expression e : this.postconditions)
 					e.traverse(checker, this.method.scope);
-			
-			if (this.preconditions != null)
-				this.method.bodyStart = this.preconditions[0].sourceStart;
-			else
-				this.method.bodyStart = this.postconditions[0].sourceStart;
 		}
 	}
 
