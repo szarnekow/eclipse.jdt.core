@@ -590,6 +590,14 @@ class ASTConverter {
 		MethodDeclaration methodDecl = new MethodDeclaration(this.ast);
 		ASTNode oldReferenceContext = this.referenceContext;
 		this.referenceContext = methodDecl;
+		if (methodDeclaration.formalSpecification != null) {
+			if (methodDeclaration.formalSpecification.preconditions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.preconditions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
+			if (methodDeclaration.formalSpecification.postconditions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.postconditions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
+		}
 		setModifiers(methodDecl, methodDeclaration);
 		boolean isConstructor = methodDeclaration.isConstructor();
 		methodDecl.setConstructor(isConstructor);

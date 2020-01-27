@@ -123,6 +123,20 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="dom/org/eclipse/jdt/core/dom/MethodDeclaration.java" type="org.eclipse.jdt.core.dom.MethodDeclaration">
+        <filter comment="Needed for Java 14" id="336658481">
+            <message_arguments>
+                <message_argument value="org.eclipse.jdt.core.dom.MethodDeclaration"/>
+                <message_argument value="COMPACT_CONSTRUCTOR_PROPERTY"/>
+            </message_arguments>
+        </filter>
+        <filter id="336658481">
+            <message_arguments>
+                <message_argument value="org.eclipse.jdt.core.dom.MethodDeclaration"/>
+                <message_argument value="FORMAL_SPECIFICATION_CLAUSES_PROPERTY"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="dom/org/eclipse/jdt/core/dom/MethodRef.java" type="org.eclipse.jdt.core.dom.MethodRef">
         <filter id="576725006">
             <message_arguments>
