@@ -266,13 +266,15 @@ public class FormalSpecification {
 				}
 				
 				private void checkTypeReference(ASTNode node, TypeBinding binding) {
-					if (!isVisible(binding))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleType(node, binding);
+					if (binding != null)
+						if (!isVisible(binding))
+							FormalSpecification.this.method.scope.problemReporter().notVisibleType(node, binding);
 				}
 				
 				private void checkConstructor(ASTNode node, MethodBinding binding) {
-					if (!isVisible(binding))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleConstructor(node, binding);
+					if (binding != null)
+						if (!isVisible(binding))
+							FormalSpecification.this.method.scope.problemReporter().notVisibleConstructor(node, binding);
 				}
 
 				@Override
@@ -334,8 +336,9 @@ public class FormalSpecification {
 				}
 				
 				private void checkFieldReference(ASTNode node, FieldBinding binding) {
-					if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleField(node, binding);
+					if (binding != null)
+						if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
+							FormalSpecification.this.method.scope.problemReporter().notVisibleField(node, binding);
 				}
 
 				@Override
@@ -351,8 +354,9 @@ public class FormalSpecification {
 				}
 				
 				private void checkMethodReference(long nameSourcePosition, MethodBinding binding) {
-					if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleMethod(nameSourcePosition, binding);
+					if (binding != null)
+						if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
+							FormalSpecification.this.method.scope.problemReporter().notVisibleMethod(nameSourcePosition, binding);
 				}
 
 				@Override
