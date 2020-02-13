@@ -195,7 +195,12 @@ public class FormalSpecification {
 				postconditionLambda.allowReferencesToNonEffectivelyFinalOuterLocals = true;
 				if (this.method instanceof ConstructorDeclaration)
 					postconditionLambda.lateBindReceiver = true;
-				postconditionLambda.lambdaMethodSelector = CharOperation.concat(this.method.selector, POSTCONDITION_METHOD_NAME_SUFFIX);
+				int overloadCount = this.method.scope.enclosingClassScope().registerOverload(this.method.selector);
+				postconditionLambda.lambdaMethodSelector =
+						overloadCount == 0 ?
+								CharOperation.concat(this.method.selector, POSTCONDITION_METHOD_NAME_SUFFIX)
+						:
+								CharOperation.concat(this.method.selector, ("$" + overloadCount).toCharArray(), POSTCONDITION_METHOD_NAME_SUFFIX); //$NON-NLS-1$
 				if (this.method.binding.returnType.id != TypeIds.T_void || this.method instanceof ConstructorDeclaration)
 					postconditionLambda.setArguments(new Argument[] {new Argument(LAMBDA_PARAMETER_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)});
 				postconditionLambda.setBody(postconditionBlock);

@@ -67,10 +67,23 @@ public class ClassScope extends Scope {
 	public TypeReference superTypeReference;
 	java.util.ArrayList<TypeReference> deferredBoundChecks;
 
+	HashMap<String, Integer> overloadCounts = null;
+
 	public ClassScope(Scope parent, TypeDeclaration context) {
 		super(Scope.CLASS_SCOPE, parent);
 		this.referenceContext = context;
 		this.deferredBoundChecks = null; // initialized if required
+	}
+
+	public int registerOverload(char[] selector) {
+		String selectorString = String.valueOf(selector);
+		if (this.overloadCounts == null)
+			this.overloadCounts = new HashMap<>();
+		if (!this.overloadCounts.containsKey(selectorString))
+			this.overloadCounts.put(selectorString, 0);
+		int oldCount = this.overloadCounts.get(selectorString);
+		this.overloadCounts.put(selectorString, oldCount + 1);
+		return oldCount;
 	}
 
 	void buildAnonymousTypeBinding(SourceTypeBinding enclosingType, ReferenceBinding supertype) {
