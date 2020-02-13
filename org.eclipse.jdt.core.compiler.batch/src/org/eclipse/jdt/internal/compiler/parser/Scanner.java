@@ -4563,6 +4563,9 @@ public final void setSource(char[] sourceString){
 	this.scanContext = null;
 	this.yieldColons = -1;
 	this.insideModuleInfo = false;
+	this.javadocCommentPtr = -1;
+	this.endOfLastJavadocComment = 0;
+
 }
 /*
  * Should be used if a parse (usually a diet parse) has already been performed on the unit,
