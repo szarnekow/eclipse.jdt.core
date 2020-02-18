@@ -41,43 +41,35 @@ public class FormalSpecification {
 		return new QualifiedTypeReference(sources, poss);
 	}
 	
-	private static final QualifiedTypeReference javaLangObject = getTypeReference("java.lang.Object"); //$NON-NLS-1$
-	private static final QualifiedTypeReference javaLangRunnable = getTypeReference("java.lang.Runnable"); //$NON-NLS-1$
-	private static final QualifiedTypeReference javaUtilFunctionConsumer = getTypeReference("java.util.function.Consumer"); //$NON-NLS-1$
-	private static final HashMap<Integer, QualifiedTypeReference> boxedTypeReferences = new HashMap<>();
-	
-	private static void addBoxedTypeReference(int typeId, String typeName) {
-		boxedTypeReferences.put(typeId, getTypeReference(typeName));
-	}
-	
-	static {
-		addBoxedTypeReference(TypeIds.T_boolean, "java.lang.Boolean"); //$NON-NLS-1$
-		addBoxedTypeReference(TypeIds.T_byte, "java.lang.Byte"); //$NON-NLS-1$
-		addBoxedTypeReference(TypeIds.T_char, "java.lang.Character"); //$NON-NLS-1$
-		addBoxedTypeReference(TypeIds.T_double, "java.lang.Double"); //$NON-NLS-1$
-		addBoxedTypeReference(TypeIds.T_float, "java.lang.Float"); //$NON-NLS-1$
-		addBoxedTypeReference(TypeIds.T_int, "java.lang.Integer"); //$NON-NLS-1$
-		addBoxedTypeReference(TypeIds.T_long, "java.lang.Long"); //$NON-NLS-1$
-		addBoxedTypeReference(TypeIds.T_short, "java.lang.Short"); //$NON-NLS-1$
-	}
+	private static QualifiedTypeReference javaLangObject() { return getTypeReference("java.lang.Object"); } //$NON-NLS-1$
+	private static QualifiedTypeReference javaLangRunnable() { return getTypeReference("java.lang.Runnable"); } //$NON-NLS-1$
+	private static QualifiedTypeReference javaUtilFunctionConsumer() { return getTypeReference("java.util.function.Consumer"); } //$NON-NLS-1$
 	
 	private static TypeReference getBoxedType(TypeBinding binding, TypeReference reference) {
-		TypeReference r = boxedTypeReferences.get(binding.id);
-		if (r == null)
-			return reference;
-		return r;
+		switch (binding.id) {
+			case TypeIds.T_boolean: return getTypeReference("java.lang.Boolean"); //$NON-NLS-1$
+			case TypeIds.T_byte: return getTypeReference("java.lang.Byte"); //$NON-NLS-1$
+			case TypeIds.T_char: return getTypeReference("java.lang.Character"); //$NON-NLS-1$
+			case TypeIds.T_double: return getTypeReference("java.lang.Double"); //$NON-NLS-1$
+			case TypeIds.T_float: return getTypeReference("java.lang.Float"); //$NON-NLS-1$
+			case TypeIds.T_int: return getTypeReference("java.lang.Integer"); //$NON-NLS-1$
+			case TypeIds.T_long: return getTypeReference("java.lang.Long"); //$NON-NLS-1$
+			case TypeIds.T_short: return getTypeReference("java.lang.Short"); //$NON-NLS-1$
+			default: return reference;
+		}
 	}
 	
 	private static QualifiedTypeReference getJavaUtilConsumerOf(TypeReference typeArgument) {
 		TypeReference[][] typeArguments = new TypeReference[][] { null, null, null, {typeArgument}};
+		QualifiedTypeReference javaUtilFunctionConsumer = javaUtilFunctionConsumer();
 		return new ParameterizedQualifiedTypeReference(javaUtilFunctionConsumer.tokens, typeArguments, 0, javaUtilFunctionConsumer.sourcePositions);
 	}
 	
 	private static QualifiedTypeReference getPostconditionLambdaType(TypeBinding returnTypeBinding, TypeReference returnType) {
 		if (returnType == null) // constructor
-			return getJavaUtilConsumerOf(javaLangObject);
+			return getJavaUtilConsumerOf(javaLangObject());
 		switch (returnTypeBinding.id) {
-			case TypeIds.T_void: return javaLangRunnable;
+			case TypeIds.T_void: return javaLangRunnable();
 			default: return getJavaUtilConsumerOf(getBoxedType(returnTypeBinding, returnType));
 		}
 	}

@@ -74,14 +74,19 @@ public class s4jie2TestSuite {
 
 	private static final String binPath = "s4jie2-tests/bin";
 
-	@SuppressWarnings("deprecation")
 	public static void testCompile(String filename, boolean expectedSuccess, String outExpected, String errExpected) {
+		testCompile(false, filename, expectedSuccess, outExpected, errExpected);
+	}
+	
+	@SuppressWarnings("deprecation")
+	public static void testCompile(boolean asModule, String filename, boolean expectedSuccess, String outExpected, String errExpected) {
 		System.out.println("     Test " + filename + " start");
 		StringWriter outWriter = new StringWriter();
 		StringWriter errWriter = new StringWriter();
 		String path = "s4jie2-tests/src/" + filename + ".java";
 		String fullPath = new File(path).getAbsolutePath();
-		String args = "-source 10 -proc:none " + path + " -g -d " + binPath + "/" + filename;
+		String moduleArgs = asModule ? "--module-source-path s4jie2-tests/src s4jie2-tests/src/module-info.java" : "";
+		String args = "-source 10 -proc:none " + moduleArgs + " " + path + " -g -d " + binPath + "/" + filename;
 		if (Main.compile(args, new PrintWriter(outWriter), new PrintWriter(errWriter)) != expectedSuccess) {
 			System.err.println("FAIL compiler success: expected: " + expectedSuccess + "; actual: " + !expectedSuccess);
 			System.err.println("=== standard output start ===");
@@ -339,7 +344,14 @@ public class s4jie2TestSuite {
 				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:25)\n" +
 				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:36)\n" +
 				"	at Main.main(GameCharacter_ctor_post.java:75)\n");
-
+		testCompile(true, "testpackage/unresolved_type", false, "", "----------\n" + 
+				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
+				"	* @post | Arrays.equals(getElements(), 0, getElements().length, old(getElements()), 0, old(getElements()).length)\n" + 
+				"	          ^^^^^^\n" + 
+				"Arrays cannot be resolved\n" + 
+				"----------\n" + 
+				"1 problem (1 error)\n");
+		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
 
