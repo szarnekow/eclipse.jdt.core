@@ -341,7 +341,7 @@ public class FormalSpecification {
 				}
 				
 				private void checkFieldReference(ASTNode node, FieldBinding binding) {
-					if (binding != null)
+					if (binding != null && binding.declaringClass != null) // https://github.com/fsc4j/fsc4j/issues/4
 						if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
 							FormalSpecification.this.method.scope.problemReporter().notVisibleField(node, binding);
 				}
