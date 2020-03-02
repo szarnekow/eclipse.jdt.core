@@ -104,6 +104,13 @@ public class Scanner implements TerminalTokens {
 	private int javadocCommentPtr = -1;
 	private int endOfLastJavadocComment = 0;
 
+	public static class JavadocCommentsInfo {
+		int sourceLength;
+		int sourceHash;
+		int[] javadocCommentStops;
+		int[] javadocCommentStarts;
+	}
+
 	// task tag support
 	public char[][] foundTaskTags = null;
 	public char[][] foundTaskMessages;
@@ -4548,6 +4555,20 @@ public final void setSource(char[] contents, CompilationResult compilationResult
  */
 public final void setSource(CompilationResult compilationResult) {
 	setSource(null, compilationResult);
+}
+public final void setJavadocCommentsInfo(JavadocCommentsInfo info) {
+	this.javadocCommentStops = Arrays.copyOf(info.javadocCommentStops, info.javadocCommentStops.length);
+	this.javadocCommentStarts = Arrays.copyOf(info.javadocCommentStarts, info.javadocCommentStarts.length);
+	this.javadocCommentPtr = this.javadocCommentStops.length - 1;
+	this.endOfLastJavadocComment = this.javadocCommentPtr < 0 ? 0 : this.javadocCommentStops[this.javadocCommentPtr];
+}
+public final JavadocCommentsInfo getJavadocCommentsInfo() {
+	JavadocCommentsInfo info = new JavadocCommentsInfo();
+	info.javadocCommentStarts = Arrays.copyOf(this.javadocCommentStarts, this.javadocCommentPtr + 1);
+	info.javadocCommentStops = Arrays.copyOf(this.javadocCommentStops, this.javadocCommentPtr + 1);
+	info.sourceLength = this.source.length;
+	info.sourceHash = Arrays.hashCode(this.source);
+	return info;
 }
 @Override
 public String toString() {

@@ -351,6 +351,10 @@ public class s4jie2TestSuite {
 				"Arrays cannot be resolved\n" + 
 				"----------\n" + 
 				"1 problem (1 error)\n");
+		testCompileAndRun(true, "multiline_lambdas", false, "",
+				"Exception in thread \"main\" java.lang.AssertionError: Postcondition does not hold\n" + 
+				"	at Main.main$post(multiline_lambdas.java:4)\n" + 
+				"	at Main.main(multiline_lambdas.java:8)\n");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

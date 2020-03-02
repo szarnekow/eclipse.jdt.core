@@ -55,6 +55,7 @@ import org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.eclipse.jdt.internal.compiler.parser.RecoveryScannerData;
+import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.compiler.util.Util;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -74,6 +75,7 @@ public class CompilationResult {
 	public boolean hasAnnotations = false;
 	public boolean hasFunctionalTypes = false;
 	public int lineSeparatorPositions[];
+	public Scanner.JavadocCommentsInfo javadocCommentsInfo;
 	public RecoveryScannerData recoveryScannerData;
 	public Map compiledTypes = new Hashtable(11);
 	public int unitIndex, totalUnitsKnown;
