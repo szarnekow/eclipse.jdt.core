@@ -27,9 +27,9 @@ public class OldExpression extends Expression {
 	@Override
 	public TypeBinding resolveType(BlockScope scope) {
 		if (this.reference != null)
-			return this.reference.resolveType(scope);
+			return this.resolvedType = this.reference.resolveType(scope);
 		else
-			return this.expression.resolveType(scope);
+			return this.resolvedType = this.expression.resolveType(scope);
 	}
 
 	@Override

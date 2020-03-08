@@ -344,7 +344,8 @@ public class s4jie2TestSuite {
 				"	at GameCharacter.GameCharacter$post(GameCharacter_ctor_post.java:25)\n" +
 				"	at GameCharacter.<init>(GameCharacter_ctor_post.java:36)\n" +
 				"	at Main.main(GameCharacter_ctor_post.java:75)\n");
-		testCompile(true, "testpackage/unresolved_type", false, "", "----------\n" + 
+		testCompile(true, "testpackage/unresolved_type", false, "",
+				"----------\n" + 
 				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
 				"	* @post | Arrays.equals(getElements(), 0, getElements().length, old(getElements()), 0, old(getElements()).length)\n" + 
 				"	          ^^^^^^\n" + 
@@ -355,6 +356,7 @@ public class s4jie2TestSuite {
 				"Exception in thread \"main\" java.lang.AssertionError: Postcondition does not hold\n" + 
 				"	at Main.main$post(multiline_lambdas.java:4)\n" + 
 				"	at Main.main(multiline_lambdas.java:8)\n");
+		testCompile("old_resolvedType", true, "", "");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
