@@ -106,6 +106,9 @@ public class FormalSpecification {
 	}
 
 	public void resolve() {
+		if (this.method.ignoreFurtherInvestigation)
+			return;
+			
 		if (this.method.isAbstract() || this.method.isNative()) {
 			if (this.preconditions != null)
 				for (Expression e : this.preconditions)
