@@ -365,6 +365,14 @@ public class s4jie2TestSuite {
 				"Incorrect number of arguments for type Foo<A,B>; it cannot be parameterized with arguments <Object>\n" +
 				"----------\n" +
 				"1 problem (1 error)\n");
+	    testCompile("qualified_name_visibility_check", false, "",
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" +
+	    		"	* @pre | bar.x != 0\n" +
+	    		"	         ^^^^^\n" +
+	    		"The field Foo.x is not visible\n" +
+	    		"----------\n" +
+	    		"1 problem (1 error)\n");
 
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

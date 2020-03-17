@@ -12,6 +12,7 @@ import org.eclipse.jdt.internal.compiler.codegen.Opcodes;
 import org.eclipse.jdt.internal.compiler.flow.ExceptionHandlingFlowContext;
 import org.eclipse.jdt.internal.compiler.flow.FlowInfo;
 import org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
+import org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
@@ -411,22 +412,29 @@ public class FormalSpecification {
 					return super.visit(qualifiedAllocationExpression, scope);
 				}
 				
-				private void checkNameReference(NameReference reference) {
-					if (reference.binding instanceof TypeBinding)
-						checkTypeReference(reference, (TypeBinding)reference.binding);
-					if (reference.binding instanceof FieldBinding)
-						checkFieldReference(reference, (FieldBinding)reference.binding);
+				private void checkBinding(ASTNode node, Binding binding) {
+					if (binding instanceof TypeBinding)
+						checkTypeReference(node, (TypeBinding)binding);
+					if (binding instanceof FieldBinding)
+						checkFieldReference(node, (FieldBinding)binding);
+				}
+				
+				private void checkQualifiedNameReference(QualifiedNameReference reference) {
+					checkBinding(reference, reference.binding);
+					if (reference.otherBindings != null)
+						for (int i = 0; i < reference.otherBindings.length; i++)
+							checkBinding(reference, reference.otherBindings[i]);
 				}
 
 				@Override
 				public boolean visit(QualifiedNameReference qualifiedNameReference, BlockScope scope) {
-					checkNameReference(qualifiedNameReference);
+					checkQualifiedNameReference(qualifiedNameReference);
 					return super.visit(qualifiedNameReference, scope);
 				}
 
 				@Override
 				public boolean visit(QualifiedNameReference qualifiedNameReference, ClassScope scope) {
-					checkNameReference(qualifiedNameReference);
+					checkQualifiedNameReference(qualifiedNameReference);
 					return super.visit(qualifiedNameReference, scope);
 				}
 
@@ -444,13 +452,13 @@ public class FormalSpecification {
 
 				@Override
 				public boolean visit(SingleNameReference singleNameReference, BlockScope scope) {
-					checkNameReference(singleNameReference);
+					checkBinding(singleNameReference, singleNameReference.binding);
 					return super.visit(singleNameReference, scope);
 				}
 
 				@Override
 				public boolean visit(SingleNameReference singleNameReference, ClassScope scope) {
-					checkNameReference(singleNameReference);
+					checkBinding(singleNameReference, singleNameReference.binding);
 					return super.visit(singleNameReference, scope);
 				}
 
