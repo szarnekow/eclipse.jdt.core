@@ -373,6 +373,14 @@ public class s4jie2TestSuite {
 	    		"The field Foo.x is not visible\n" +
 	    		"----------\n" +
 	    		"1 problem (1 error)\n");
+	    testCompile("bad_call", false, "",
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 4)\n" +
+	    		"	* @pre | xs.baz()\n" +
+	    		"	         ^^^^^^^^\n" +
+	    		"Cannot invoke baz() on the array type int[]\n" +
+	    		"----------\n" +
+	    		"1 problem (1 error)\n");
 
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

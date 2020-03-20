@@ -248,7 +248,7 @@ public class FormalSpecification {
 				}
 				
 				private boolean isVisible(ReferenceBinding binding) {
-					return isVisible(binding.modifiers, binding.fPackage);
+					return binding == null || isVisible(binding.modifiers, binding.fPackage);
 				}
 				
 				private boolean isVisible(TypeBinding binding) {
@@ -261,6 +261,8 @@ public class FormalSpecification {
 				}
 
 				private boolean isVisible(MethodBinding binding) {
+					if (binding == null || binding.declaringClass == null)
+						return true;
 					if (!isVisible(binding.declaringClass))
 						return false;
 					return isVisible(binding.modifiers, binding.declaringClass.fPackage);
@@ -355,7 +357,7 @@ public class FormalSpecification {
 				}
 				
 				private void checkMethodReference(long nameSourcePosition, MethodBinding binding) {
-					if (binding != null)
+					if (binding != null && binding.declaringClass != null) // https://github.com/fsc4j/fsc4j/issues/13
 						if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
 							FormalSpecification.this.method.scope.problemReporter().notVisibleMethod(nameSourcePosition, binding);
 				}
