@@ -381,7 +381,8 @@ public class s4jie2TestSuite {
 	    		"Cannot invoke baz() on the array type int[]\n" +
 	    		"----------\n" +
 	    		"1 problem (1 error)\n");
-
+	    testCompile("nested_lambda", true, "", "");
+		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
 
