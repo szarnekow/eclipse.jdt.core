@@ -76,6 +76,7 @@ public class FormalSpecification {
 	}
 
 	public final AbstractMethodDeclaration method;
+	public Expression[] invariants; // Package representation invariants are specified in the Javadoc comments for the default access getters.
 	public Expression[] preconditions;
 	public ArrayList<OldExpression> oldExpressions;
 	public Expression[] throwsConditions;
@@ -92,6 +93,13 @@ public class FormalSpecification {
 	}
 
 	public void print(int tab, StringBuffer output) {
+		if (this.invariants != null) {
+			for (int i = 0; i < this.invariants.length; i++) {
+				output.append("/** @invar | "); //$NON-NLS-1$
+				this.invariants[i].printExpression(tab, output);
+				output.append(" */"); //$NON-NLS-1$
+			}
+		}
 		if (this.preconditions != null) {
 			for (int i = 0; i < this.preconditions.length; i++) {
 				output.append("/** @pre | "); //$NON-NLS-1$
@@ -126,6 +134,9 @@ public class FormalSpecification {
 		if (this.method.ignoreFurtherInvestigation)
 			return;
 		
+		if (this.invariants != null)
+			for (Expression e : this.invariants)
+				e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
 		if (this.throwsConditions != null)
 			for (Expression e : this.throwsConditions)
 				e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
@@ -514,6 +525,9 @@ public class FormalSpecification {
 			
 		};
 		
+		if (this.invariants != null)
+			for (Expression e : this.invariants)
+				e.traverse(checker, this.method.scope);
 		if (this.preconditions != null)
 			for (Expression e : this.preconditions)
 				e.traverse(checker, this.method.scope);

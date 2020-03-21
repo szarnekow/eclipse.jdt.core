@@ -591,6 +591,9 @@ class ASTConverter {
 		ASTNode oldReferenceContext = this.referenceContext;
 		this.referenceContext = methodDecl;
 		if (methodDeclaration.formalSpecification != null) {
+			if (methodDeclaration.formalSpecification.invariants != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.invariants)
+					methodDecl.formalSpecificationClauses().add(convert(e));
 			if (methodDeclaration.formalSpecification.preconditions != null)
 				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.preconditions)
 					methodDecl.formalSpecificationClauses().add(convert(e));

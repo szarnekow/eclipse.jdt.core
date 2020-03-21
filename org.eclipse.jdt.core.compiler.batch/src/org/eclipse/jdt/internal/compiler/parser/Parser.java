@@ -4836,6 +4836,7 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 			if (md != null)
 				md.formalSpecification = new FormalSpecification(md);
 			ArrayList<Annotation> annotations = new ArrayList<>();
+			ArrayList<Expression> invariants = new ArrayList<>();
 			ArrayList<Expression> preconditions = new ArrayList<>();
 			ArrayList<Expression> throwsConditions = new ArrayList<>();
 			ArrayList<Expression> mayThrowConditions = new ArrayList<>();
@@ -4847,6 +4848,7 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 				else {
 					FormalSpecificationClause clause = (FormalSpecificationClause)e;
 					switch (clause.tag) {
+						case INVAR: invariants.add(clause.expression); break;
 						case PRE: preconditions.add(clause.expression); break;
 						case THROWS: throwsConditions.add(clause.expression); break;
 						case MAY_THROW: mayThrowConditions.add(clause.expression); break;
@@ -4864,6 +4866,8 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 				result = null;
 			// TODO(fsc4j): Report a problem if md == null?
 			if (md != null) {
+				if (!invariants.isEmpty())
+					md.formalSpecification.invariants = invariants.toArray(new Expression[invariants.size()]);
 				if (!preconditions.isEmpty())
 					md.formalSpecification.preconditions = preconditions.toArray(new Expression[preconditions.size()]);
 				if (!throwsConditions.isEmpty())

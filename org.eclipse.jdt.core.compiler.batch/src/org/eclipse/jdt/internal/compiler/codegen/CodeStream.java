@@ -7196,6 +7196,8 @@ public void reset(AbstractMethodDeclaration referenceMethod, ClassFile targetCla
 		} else {
 			int codeStart = referenceMethod.bodyStart;
 			if (referenceMethod.formalSpecification != null) {
+				if (referenceMethod.formalSpecification.invariants != null)
+					codeStart = Math.min(codeStart, referenceMethod.formalSpecification.invariants[0].sourceStart);
 				if (referenceMethod.formalSpecification.preconditions != null)
 					codeStart = Math.min(codeStart, referenceMethod.formalSpecification.preconditions[0].sourceStart);
 				if (referenceMethod.formalSpecification.throwsConditions != null)

@@ -2416,6 +2416,7 @@ lineLoop:
 			} else
 			newFormalPart: {
 				switch (lastTagSeen) {
+					case "invar": this.javadocFormalPartTag = FormalSpecificationClause.Tag.INVAR; break; //$NON-NLS-1$
 					case "pre": this.javadocFormalPartTag = FormalSpecificationClause.Tag.PRE; break; //$NON-NLS-1$
 					case "throws": this.javadocFormalPartTag = FormalSpecificationClause.Tag.THROWS; break; //$NON-NLS-1$
 					case "may_throw": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MAY_THROW; break; //$NON-NLS-1$

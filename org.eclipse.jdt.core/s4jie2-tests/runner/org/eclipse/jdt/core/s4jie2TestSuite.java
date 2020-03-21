@@ -421,6 +421,38 @@ public class s4jie2TestSuite {
 	    testCompileAndRun(true, "throws_may_throw_success", true,
 	    		"Caught the IAE\n" + 
 	    		"Caught the IAE\n", "");
+	    testCompile("invariants_syntax_error", false, "",
+	    		"----------\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" + 
+	    		"	* @invar | 10 <\n" + 
+	    		"	              ^\n" + 
+	    		"Syntax error on token \"<\", Expression expected after this token\n" + 
+	    		"----------\n" + 
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 7)\n" + 
+	    		"	* @invar | 10 <\n" + 
+	    		"	              ^\n" + 
+	    		"Syntax error on token \"<\", Expression expected after this token\n" + 
+	    		"----------\n" + 
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @invar | 10 <\n" + 
+	    		"	              ^\n" + 
+	    		"Syntax error on token \"<\", Expression expected after this token\n" + 
+	    		"----------\n" + 
+	    		"3 problems (3 errors)\n");
+	    testCompile("invariants_resolve_error", false, "",
+	    		"----------\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
+	    		"	* @invar | 10 < true\n" + 
+	    		"	           ^^^^^^^^^\n" + 
+	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
+	    		"----------\n" + 
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 17)\n" + 
+	    		"	* @invar | 10 < x\n" + 
+	    		"	                ^\n" + 
+	    		"The field invariants_resolve_error.x is not visible\n" + 
+	    		"----------\n" + 
+	    		"2 problems (2 errors)\n");
+	    testCompileAndRun(true, "invariants_success", true, "", "");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
