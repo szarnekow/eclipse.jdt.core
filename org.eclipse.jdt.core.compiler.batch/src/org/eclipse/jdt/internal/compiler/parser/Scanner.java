@@ -2397,7 +2397,7 @@ lineLoop:
 					this.currentPosition++;
 					// Check if this the start of a new block tag
 					int tagNameStart = this.currentPosition;
-					while ('a' <= src[this.currentPosition] && src[this.currentPosition] <= 'z')
+					while ('a' <= src[this.currentPosition] && src[this.currentPosition] <= 'z' || src[this.currentPosition] == '_')
 						this.currentPosition++;
 					lastTagSeen = String.copyValueOf(src, tagNameStart, this.currentPosition - tagNameStart);
 					break;
@@ -2417,6 +2417,8 @@ lineLoop:
 			newFormalPart: {
 				switch (lastTagSeen) {
 					case "pre": this.javadocFormalPartTag = FormalSpecificationClause.Tag.PRE; break; //$NON-NLS-1$
+					case "throws": this.javadocFormalPartTag = FormalSpecificationClause.Tag.THROWS; break; //$NON-NLS-1$
+					case "may_throw": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MAY_THROW; break; //$NON-NLS-1$
 					case "post": this.javadocFormalPartTag = FormalSpecificationClause.Tag.POST; break; //$NON-NLS-1$
 					default:
 						break newFormalPart;

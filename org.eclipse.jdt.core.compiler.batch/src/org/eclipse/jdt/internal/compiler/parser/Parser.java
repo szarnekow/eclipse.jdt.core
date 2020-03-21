@@ -4833,8 +4833,12 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 				length);
 		} catch (ArrayStoreException ex) {
 			// We have some javadoc formal parts
+			if (md != null)
+				md.formalSpecification = new FormalSpecification(md);
 			ArrayList<Annotation> annotations = new ArrayList<>();
 			ArrayList<Expression> preconditions = new ArrayList<>();
+			ArrayList<Expression> throwsConditions = new ArrayList<>();
+			ArrayList<Expression> mayThrowConditions = new ArrayList<>();
 			ArrayList<Expression> postconditions = new ArrayList<>();
 			for (int i = 0; i < length; i++) {
 				Expression e = this.expressionStack[this.expressionPtr + 1 + i];
@@ -4844,6 +4848,8 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 					FormalSpecificationClause clause = (FormalSpecificationClause)e;
 					switch (clause.tag) {
 						case PRE: preconditions.add(clause.expression); break;
+						case THROWS: throwsConditions.add(clause.expression); break;
+						case MAY_THROW: mayThrowConditions.add(clause.expression); break;
 						case POST: postconditions.add(clause.expression); break;
 						default:
 							// TODO: Report a problem
@@ -4858,17 +4864,14 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 				result = null;
 			// TODO(fsc4j): Report a problem if md == null?
 			if (md != null) {
-				if (!preconditions.isEmpty()) {
-					md.formalSpecification = new FormalSpecification(md);
-					md.formalSpecification.preconditions = new Expression[preconditions.size()];
-					preconditions.toArray(md.formalSpecification.preconditions);
-				}
-				if (!postconditions.isEmpty()) {
-					if (md.formalSpecification == null)
-						md.formalSpecification = new FormalSpecification(md);
-					md.formalSpecification.postconditions = new Expression[postconditions.size()];
-					postconditions.toArray(md.formalSpecification.postconditions);
-				}
+				if (!preconditions.isEmpty())
+					md.formalSpecification.preconditions = preconditions.toArray(new Expression[preconditions.size()]);
+				if (!throwsConditions.isEmpty())
+					md.formalSpecification.throwsConditions = throwsConditions.toArray(new Expression[throwsConditions.size()]);
+				if (!mayThrowConditions.isEmpty())
+					md.formalSpecification.mayThrowConditions = mayThrowConditions.toArray(new Expression[mayThrowConditions.size()]);
+				if (!postconditions.isEmpty())
+					md.formalSpecification.postconditions = postconditions.toArray(new Expression[postconditions.size()]);
 			}
 		}
 	}

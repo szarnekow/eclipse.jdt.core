@@ -5,7 +5,7 @@ import java.util.Locale;
 // The fact that this class extends 'Expression' is a hack. It allows instances to be stored in the expressionStack during parsing.
 public class FormalSpecificationClause extends Expression {
 
-	public static enum Tag { PRE, POST }
+	public static enum Tag { PRE, POST, THROWS, MAY_THROW }
 
 	public Tag tag;
 	public Expression expression;

@@ -594,6 +594,12 @@ class ASTConverter {
 			if (methodDeclaration.formalSpecification.preconditions != null)
 				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.preconditions)
 					methodDecl.formalSpecificationClauses().add(convert(e));
+			if (methodDeclaration.formalSpecification.throwsConditions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.throwsConditions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
+			if (methodDeclaration.formalSpecification.mayThrowConditions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.mayThrowConditions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
 			if (methodDeclaration.formalSpecification.postconditions != null)
 				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.postconditions)
 					methodDecl.formalSpecificationClauses().add(convert(e));
