@@ -395,7 +395,7 @@ public class s4jie2TestSuite {
 	    		"Syntax error on token \"<=\", Expression expected after this token\n" +
 	    		"----------\n" +
 	    		"2 problems (2 errors)\n");
-	    testCompile("throws_may_throw", false, "",
+	    testCompile("throws_may_throw_resolve_error", false, "",
 	    		"----------\n" +
 	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" +
 	    		"	*    | 10000 <= y\n" +
@@ -418,7 +418,10 @@ public class s4jie2TestSuite {
 	    		"The field Foo.z is not visible\n" +
 	    		"----------\n" +
 	    		"4 problems (4 errors)\n");
-
+	    testCompileAndRun(true, "throws_may_throw_success", true,
+	    		"Caught the IAE\n" + 
+	    		"Caught the IAE\n", "");
+		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
 
