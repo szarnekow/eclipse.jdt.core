@@ -430,6 +430,8 @@ private void remember(IGenericType suppliedType, ReferenceBinding typeBinding) {
 	this.bindingMap.put(typeBinding, suppliedType);
 }
 private void remember(IType type, ReferenceBinding typeBinding) {
+	if (type.getCompilationUnit() == null)
+		return;
 	if (((CompilationUnit)type.getCompilationUnit()).isOpen()) {
 		try {
 			IGenericType genericType = (IGenericType)((JavaElement)type).getElementInfo();
