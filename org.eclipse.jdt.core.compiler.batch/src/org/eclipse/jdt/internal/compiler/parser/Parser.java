@@ -2242,7 +2242,7 @@ private void consumeClassOrRecordHeaderName1(boolean isRecord) {
 	}
 
 	// consume annotations
-	typeDecl.annotations = consumeAnnotations(null);
+	typeDecl.annotations = consumeTypeDeclarationAnnotations(typeDecl);
 	typeDecl.bodyStart = typeDecl.sourceEnd + 1;
 	if (isRecord) {
 		typeDecl.modifiers |= ExtraCompilerModifiers.AccRecord;
@@ -4819,6 +4819,45 @@ protected void consumeMethodHeaderName(boolean isAnnotationMethod) {
 			this.restartRecovery = true;
 		}
 	}
+}
+private Annotation[] consumeTypeDeclarationAnnotations(TypeDeclaration td) {
+	Annotation[] result = null;
+	int length;
+	if ((length = this.expressionLengthStack[this.expressionLengthPtr--]) != 0) {
+		try {
+			System.arraycopy(
+				this.expressionStack,
+				(this.expressionPtr -= length) + 1,
+				result = new Annotation[length],
+				0,
+				length);
+		} catch (ArrayStoreException ex) {
+			// We have some javadoc formal parts
+			ArrayList<Annotation> annotations = new ArrayList<>();
+			ArrayList<Expression> invariants = new ArrayList<>();
+			for (int i = 0; i < length; i++) {
+				Expression e = this.expressionStack[this.expressionPtr + 1 + i];
+				if (e instanceof Annotation)
+					annotations.add((Annotation)e);
+				else {
+					FormalSpecificationClause clause = (FormalSpecificationClause)e;
+					switch (clause.tag) {
+						case INVAR: invariants.add(clause.expression); break;
+						default:
+							// TODO: Report a problem
+					}
+				}
+			}
+			if (!annotations.isEmpty()) {
+				result = new Annotation[annotations.size()];
+				annotations.toArray(result);
+			} else
+				result = null;
+			if (!invariants.isEmpty())
+				td.invariants = invariants.toArray(new Expression[invariants.size()]);
+		}
+	}
+	return result;
 }
 private Annotation[] consumeFieldAnnotations(FieldDeclaration fd) {
 	Annotation[] result = null;

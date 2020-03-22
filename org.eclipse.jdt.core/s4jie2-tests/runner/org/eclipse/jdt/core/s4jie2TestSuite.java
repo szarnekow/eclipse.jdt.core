@@ -441,27 +441,37 @@ public class s4jie2TestSuite {
 	    		"3 problems (3 errors)\n");
 	    testCompile("invariants_resolve_error", false, "",
 	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" + 
 	    		"	* @invar | 10 < true\n" + 
 	    		"	           ^^^^^^^^^\n" + 
 	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
 	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 3)\n" + 
 	    		"	* @invar | 10 < y\n" + 
 	    		"	                ^\n" + 
 	    		"y cannot be resolved to a variable\n" + 
 	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
 	    		"	* @invar | 10 < true\n" + 
 	    		"	           ^^^^^^^^^\n" + 
 	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
 	    		"----------\n" + 
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 17)\n" + 
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
+	    		"	* @invar | 10 < y\n" + 
+	    		"	                ^\n" + 
+	    		"y cannot be resolved to a variable\n" + 
+	    		"----------\n" + 
+	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
+	    		"	* @invar | 10 < true\n" + 
+	    		"	           ^^^^^^^^^\n" + 
+	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
+	    		"----------\n" + 
+	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 17)\n" + 
 	    		"	* @invar | 10 < x\n" + 
 	    		"	                ^\n" + 
 	    		"The field invariants_resolve_error.x is not visible\n" + 
 	    		"----------\n" + 
-	    		"4 problems (4 errors)\n");
+	    		"6 problems (6 errors)\n");
 	    testCompileAndRun(true, "invariants_success", true, "", "");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");

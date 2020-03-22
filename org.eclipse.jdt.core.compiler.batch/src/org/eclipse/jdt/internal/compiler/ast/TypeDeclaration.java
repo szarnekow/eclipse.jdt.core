@@ -80,6 +80,8 @@ public class TypeDeclaration extends Statement implements ProblemSeverities, Ref
 	public CompilationResult compilationResult;
 	public MethodDeclaration[] missingAbstractMethods;
 	public Javadoc javadoc;
+	
+	public Expression[] invariants;
 
 	public QualifiedAllocationExpression allocation; // for anonymous only
 	public TypeDeclaration enclosingType; // for member types only
@@ -1451,6 +1453,9 @@ public void resolve() {
 		if (this.maxFieldCount < localMaxFieldCount) {
 			this.maxFieldCount = localMaxFieldCount;
 		}
+		if (this.invariants != null)
+			for (Expression e : this.invariants)
+				e.resolveTypeExpecting(this.initializerScope, TypeBinding.BOOLEAN);
 		if (needSerialVersion) {
 			//check that the current type doesn't extend javax.rmi.CORBA.Stub
 			TypeBinding javaxRmiCorbaStub = this.scope.getType(TypeConstants.JAVAX_RMI_CORBA_STUB, 4);
