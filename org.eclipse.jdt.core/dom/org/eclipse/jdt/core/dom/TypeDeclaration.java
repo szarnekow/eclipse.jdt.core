@@ -64,6 +64,12 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 		internalJavadocPropertyFactory(TypeDeclaration.class);
 
 	/**
+	 * @since 3.24
+	 */
+	public static final ChildListPropertyDescriptor FORMAL_SPECIFICATION_CLAUSES_PROPERTY =
+			new ChildListPropertyDescriptor(TypeDeclaration.class, "formalSpecificationClauses", Expression.class, CYCLE_RISK); //$NON-NLS-1$
+
+	/**
 	 * The "modifiers" structural property of this node type (type: {@link Integer}) (JLS2 API only).
 	 * @deprecated In the JLS3 API, this property is replaced by {@link #MODIFIERS2_PROPERTY}.
 	 * @since 3.0
@@ -181,9 +187,10 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 		addProperty(BODY_DECLARATIONS_PROPERTY, propertyList);
 		PROPERTY_DESCRIPTORS_2_0 = reapPropertyList(propertyList);
 
-		propertyList = new ArrayList(9);
+		propertyList = new ArrayList(10);
 		createPropertyList(TypeDeclaration.class, propertyList);
 		addProperty(JAVADOC_PROPERTY, propertyList);
+		addProperty(FORMAL_SPECIFICATION_CLAUSES_PROPERTY, propertyList);
 		addProperty(MODIFIERS2_PROPERTY, propertyList);
 		addProperty(INTERFACE_PROPERTY, propertyList);
 		addProperty(NAME_PROPERTY, propertyList);
@@ -226,6 +233,8 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 		}
 		return PROPERTY_DESCRIPTORS_3_0;
 	}
+
+	private ASTNode.NodeList formalSpecificationClauses = new ASTNode.NodeList(FORMAL_SPECIFICATION_CLAUSES_PROPERTY);
 
 	/**
 	 * <code>true</code> for an interface, <code>false</code> for a class.
@@ -384,6 +393,9 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 
 	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
+		if (property == FORMAL_SPECIFICATION_CLAUSES_PROPERTY) {
+			return formalSpecificationClauses();
+		}
 		if (property == MODIFIERS2_PROPERTY) {
 			return modifiers();
 		}
@@ -440,6 +452,8 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 	ASTNode clone0(AST target) {
 		TypeDeclaration result = new TypeDeclaration(target);
 		result.setSourceRange(getStartPosition(), getLength());
+		result.formalSpecificationClauses().addAll(
+			ASTNode.copySubtrees(target, formalSpecificationClauses()));
 		result.setJavadoc(
 			(Javadoc) ASTNode.copySubtree(target, getJavadoc()));
 		if (this.ast.apiLevel == AST.JLS2_INTERNAL) {
@@ -490,6 +504,7 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 			}
 			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
 				acceptChild(visitor, getJavadoc());
+				acceptChildren(visitor, this.formalSpecificationClauses);
 				acceptChildren(visitor, this.modifiers);
 				acceptChild(visitor, getName());
 				acceptChildren(visitor, this.typeParameters);
@@ -502,6 +517,13 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 			}
 		}
 		visitor.endVisit(this);
+	}
+
+	/**
+	 * @since 3.24
+	 */
+	public List formalSpecificationClauses() {
+		return this.formalSpecificationClauses;
 	}
 
 	/**
@@ -842,6 +864,7 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 	int treeSize() {
 		return memSize()
 			+ (this.optionalDocComment == null ? 0 : getJavadoc().treeSize())
+			+ (this.formalSpecificationClauses.listSize())
 			+ (this.modifiers == null ? 0 : this.modifiers.listSize())
 			+ (this.typeName == null ? 0 : getName().treeSize())
 			+ (this.typeParameters == null ? 0 : this.typeParameters.listSize())
