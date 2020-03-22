@@ -50,6 +50,12 @@ public class FieldDeclaration extends BodyDeclaration {
 		internalJavadocPropertyFactory(FieldDeclaration.class);
 
 	/**
+	 * @since 3.24
+	 */
+	public static final ChildListPropertyDescriptor FORMAL_SPECIFICATION_CLAUSES_PROPERTY =
+		new ChildListPropertyDescriptor(FieldDeclaration.class, "formalSpecificationClauses", Expression.class, CYCLE_RISK); //$NON-NLS-1$
+
+	/**
 	 * The "modifiers" structural property of this node type (type: {@link Integer}) (JLS2 API only).
 	 * @since 3.0
 	 * @deprecated In the JLS3 API, this property is replaced by {@link #MODIFIERS2_PROPERTY}.
@@ -103,9 +109,10 @@ public class FieldDeclaration extends BodyDeclaration {
 		addProperty(FRAGMENTS_PROPERTY, properyList);
 		PROPERTY_DESCRIPTORS_2_0 = reapPropertyList(properyList);
 
-		properyList = new ArrayList(5);
+		properyList = new ArrayList(6);
 		createPropertyList(FieldDeclaration.class, properyList);
 		addProperty(JAVADOC_PROPERTY, properyList);
+		addProperty(FORMAL_SPECIFICATION_CLAUSES_PROPERTY, properyList);
 		addProperty(MODIFIERS2_PROPERTY, properyList);
 		addProperty(TYPE_PROPERTY, properyList);
 		addProperty(FRAGMENTS_PROPERTY, properyList);
@@ -130,6 +137,8 @@ public class FieldDeclaration extends BodyDeclaration {
 			return PROPERTY_DESCRIPTORS_3_0;
 		}
 	}
+
+	private ASTNode.NodeList formalSpecificationClauses = new ASTNode.NodeList(FORMAL_SPECIFICATION_CLAUSES_PROPERTY);
 
 	/**
 	 * The base type; lazily initialized; defaults to an unspecified,
@@ -206,6 +215,9 @@ public class FieldDeclaration extends BodyDeclaration {
 
 	@Override
 	final List internalGetChildListProperty(ChildListPropertyDescriptor property) {
+		if (property == FORMAL_SPECIFICATION_CLAUSES_PROPERTY) {
+			return formalSpecificationClauses();
+		}
 		if (property == MODIFIERS2_PROPERTY) {
 			return modifiers();
 		}
@@ -240,6 +252,8 @@ public class FieldDeclaration extends BodyDeclaration {
 	ASTNode clone0(AST target) {
 		FieldDeclaration result = new FieldDeclaration(target);
 		result.setSourceRange(getStartPosition(), getLength());
+		result.formalSpecificationClauses().addAll(
+			ASTNode.copySubtrees(target, formalSpecificationClauses()));
 		result.setJavadoc(
 			(Javadoc) ASTNode.copySubtree(target, getJavadoc()));
 		if (this.ast.apiLevel == AST.JLS2_INTERNAL) {
@@ -266,6 +280,7 @@ public class FieldDeclaration extends BodyDeclaration {
 		if (visitChildren) {
 			// visit children in normal left to right reading order
 			acceptChild(visitor, getJavadoc());
+			acceptChildren(visitor, this.formalSpecificationClauses);
 			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
 				acceptChildren(visitor, this.modifiers);
 			}
@@ -273,6 +288,13 @@ public class FieldDeclaration extends BodyDeclaration {
 			acceptChildren(visitor, this.variableDeclarationFragments);
 		}
 		visitor.endVisit(this);
+	}
+
+	/**
+	 * @since 3.24
+	 */
+	public List formalSpecificationClauses() {
+		return this.formalSpecificationClauses;
 	}
 
 	/**
@@ -343,6 +365,7 @@ public class FieldDeclaration extends BodyDeclaration {
 		return
 			memSize()
 			+ (this.optionalDocComment == null ? 0 : getJavadoc().treeSize())
+			+ (this.formalSpecificationClauses.listSize())
 			+ (this.modifiers == null ? 0 : this.modifiers.listSize())
 			+ (this.baseType == null ? 0 : getType().treeSize())
 			+ this.variableDeclarationFragments.listSize();

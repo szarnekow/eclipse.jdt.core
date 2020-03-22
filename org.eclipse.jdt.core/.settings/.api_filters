@@ -123,6 +123,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="dom/org/eclipse/jdt/core/dom/FieldDeclaration.java" type="org.eclipse.jdt.core.dom.FieldDeclaration">
+        <filter id="336658481">
+            <message_arguments>
+                <message_argument value="org.eclipse.jdt.core.dom.FieldDeclaration"/>
+                <message_argument value="FORMAL_SPECIFICATION_CLAUSES_PROPERTY"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="dom/org/eclipse/jdt/core/dom/MethodDeclaration.java" type="org.eclipse.jdt.core.dom.MethodDeclaration">
         <filter comment="Needed for Java 14" id="336658481">
             <message_arguments>

@@ -3785,6 +3785,9 @@ class ASTConverter {
 			recordNodes(variableDeclarationFragment, fieldDecl);
 			variableDeclarationFragment.resolveBinding();
 		}
+		if (fieldDecl.invariants != null)
+			for (org.eclipse.jdt.internal.compiler.ast.Expression e : fieldDecl.invariants)
+				fieldDeclaration.formalSpecificationClauses().add(convert(e));
 		fieldDeclaration.setSourceRange(fieldDecl.declarationSourceStart, fieldDecl.declarationEnd - fieldDecl.declarationSourceStart + 1);
 		Type type = convertType(fieldDecl.type);
 		setTypeForField(fieldDeclaration, type, variableDeclarationFragment.getExtraDimensions());
