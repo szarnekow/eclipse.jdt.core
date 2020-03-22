@@ -55,6 +55,8 @@ public class FieldDeclaration extends AbstractVariableDeclaration {
 	public int endPart1Position;
 	public int endPart2Position;
 	public boolean isARecordComponent; // used in record components
+	
+	public Expression[] invariants;
 
 public FieldDeclaration() {
 	// for subtypes or conversion
