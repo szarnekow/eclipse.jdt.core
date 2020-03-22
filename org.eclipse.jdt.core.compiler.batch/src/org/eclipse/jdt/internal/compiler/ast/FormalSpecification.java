@@ -259,22 +259,43 @@ public class FormalSpecification {
 			for (Statement s : this.statementsForMethodBody)
 				s.resolve(this.method.scope);
 		}
-			
+		
+		int thisElementModifiers = this.method.binding.modifiers;
+		ReferenceBinding thisClassBinding = this.method.binding.declaringClass;
+		
+		if (this.invariants != null)
+			for (Expression e : this.invariants)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		if (this.preconditions != null)
+			for (Expression e : this.preconditions)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		if (this.throwsConditions != null)
+			for (Expression e : this.throwsConditions)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		if (this.mayThrowConditions != null)
+			for (Expression e : this.mayThrowConditions)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		if (this.postconditions != null)
+			for (Expression e : this.postconditions)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+	}
+	
+	public static void check(int thisElementModifiers, ReferenceBinding thisClassBinding, BlockScope thisScope, Expression e) {
 		ASTVisitor checker = new ASTVisitor() {
 			
 			private boolean isVisible(int modifiers, PackageBinding packageBinding) {
 				if ((modifiers & ClassFileConstants.AccPublic) != 0)
 					return true;
-				if (FormalSpecification.this.method.binding.isPublic() && FormalSpecification.this.method.binding.declaringClass.isPublic())
+				if ((thisElementModifiers & ClassFileConstants.AccPublic) != 0 && thisClassBinding.isPublic())
 					return false;
-				if (FormalSpecification.this.method.binding.isPrivate())
+				if ((thisElementModifiers & ClassFileConstants.AccPrivate) != 0)
 					return true;
 				if ((modifiers & ClassFileConstants.AccPrivate) != 0)
 					return false;
 				// Here, both elements are either protected or package-accessible
-				if (packageBinding != FormalSpecification.this.method.binding.declaringClass.fPackage)
+				if (packageBinding != thisClassBinding.fPackage)
 					return false;
-				if (FormalSpecification.this.method.binding.isProtected()) {
+				if ((thisElementModifiers & ClassFileConstants.AccProtected) != 0) {
 					// TODO(fsc4j): More checks are required here
 					if (!((modifiers & ClassFileConstants.AccProtected) != 0))
 						return false;
@@ -306,13 +327,13 @@ public class FormalSpecification {
 			private void checkTypeReference(ASTNode node, TypeBinding binding) {
 				if (binding != null)
 					if (!isVisible(binding))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleType(node, binding);
+						thisScope.problemReporter().notVisibleType(node, binding);
 			}
 			
 			private void checkConstructor(ASTNode node, MethodBinding binding) {
 				if (binding != null)
 					if (!isVisible(binding))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleConstructor(node, binding);
+						thisScope.problemReporter().notVisibleConstructor(node, binding);
 			}
 
 			@Override
@@ -352,7 +373,7 @@ public class FormalSpecification {
 			}
 			
 			private void checkAssignment(ASTNode node) {
-				FormalSpecification.this.method.scope.problemReporter().assignmentInJavadoc(node);
+				thisScope.problemReporter().assignmentInJavadoc(node);
 			}
 
 			@Override
@@ -376,7 +397,7 @@ public class FormalSpecification {
 			private void checkFieldReference(ASTNode node, FieldBinding binding) {
 				if (binding != null && binding.declaringClass != null) // https://github.com/fsc4j/fsc4j/issues/4
 					if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleField(node, binding);
+						thisScope.problemReporter().notVisibleField(node, binding);
 			}
 
 			@Override
@@ -394,7 +415,7 @@ public class FormalSpecification {
 			private void checkMethodReference(long nameSourcePosition, MethodBinding binding) {
 				if (binding != null && binding.declaringClass != null) // https://github.com/fsc4j/fsc4j/issues/13
 					if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
-						FormalSpecification.this.method.scope.problemReporter().notVisibleMethod(nameSourcePosition, binding);
+						thisScope.problemReporter().notVisibleMethod(nameSourcePosition, binding);
 			}
 
 			@Override
@@ -513,33 +534,19 @@ public class FormalSpecification {
 
 			@Override
 			public boolean visit(ThrowStatement throwStatement, BlockScope scope) {
-				FormalSpecification.this.method.scope.problemReporter().throwInJavadoc(throwStatement);
+				scope.problemReporter().throwInJavadoc(throwStatement);
 				return super.visit(throwStatement, scope);
 			}
 
 			@Override
 			public boolean visit(TryStatement tryStatement, BlockScope scope) {
-				FormalSpecification.this.method.scope.problemReporter().tryInJavadoc(tryStatement);
+				scope.problemReporter().tryInJavadoc(tryStatement);
 				return super.visit(tryStatement, scope);
 			}
 			
 		};
 		
-		if (this.invariants != null)
-			for (Expression e : this.invariants)
-				e.traverse(checker, this.method.scope);
-		if (this.preconditions != null)
-			for (Expression e : this.preconditions)
-				e.traverse(checker, this.method.scope);
-		if (this.throwsConditions != null)
-			for (Expression e : this.throwsConditions)
-				e.traverse(checker, this.method.scope);
-		if (this.mayThrowConditions != null)
-			for (Expression e : this.mayThrowConditions)
-				e.traverse(checker, this.method.scope);
-		if (this.postconditions != null)
-			for (Expression e : this.postconditions)
-				e.traverse(checker, this.method.scope);
+		e.traverse(checker, thisScope);
 	}
 
 	public void generatePostconditionCheck(CodeStream codeStream) {

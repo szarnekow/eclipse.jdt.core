@@ -451,27 +451,37 @@ public class s4jie2TestSuite {
 	    		"	                ^\n" + 
 	    		"y cannot be resolved to a variable\n" + 
 	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	* @invar | 10 < true\n" + 
-	    		"	           ^^^^^^^^^\n" + 
-	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
-	    		"----------\n" + 
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
-	    		"	* @invar | 10 < y\n" + 
-	    		"	                ^\n" + 
-	    		"y cannot be resolved to a variable\n" + 
-	    		"----------\n" + 
-	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
-	    		"	* @invar | 10 < true\n" + 
-	    		"	           ^^^^^^^^^\n" + 
-	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
-	    		"----------\n" + 
-	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 17)\n" + 
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 4)\n" + 
 	    		"	* @invar | 10 < x\n" + 
 	    		"	                ^\n" + 
 	    		"The field invariants_resolve_error.x is not visible\n" + 
 	    		"----------\n" + 
-	    		"6 problems (6 errors)\n");
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 5)\n" + 
+	    		"	* @invar | 10 < getX()\n" + 
+	    		"	                ^^^^\n" + 
+	    		"The method getX() from the type invariants_resolve_error is not visible\n" + 
+	    		"----------\n" + 
+	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
+	    		"	* @invar | 10 < true\n" + 
+	    		"	           ^^^^^^^^^\n" + 
+	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
+	    		"----------\n" + 
+	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
+	    		"	* @invar | 10 < y\n" + 
+	    		"	                ^\n" + 
+	    		"y cannot be resolved to a variable\n" + 
+	    		"----------\n" + 
+	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
+	    		"	* @invar | 10 < true\n" + 
+	    		"	           ^^^^^^^^^\n" + 
+	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
+	    		"----------\n" + 
+	    		"8. ERROR in SOURCE_FILE_FULL_PATH (at line 17)\n" + 
+	    		"	* @invar | 10 < x\n" + 
+	    		"	                ^\n" + 
+	    		"The field invariants_resolve_error.x is not visible\n" + 
+	    		"----------\n" + 
+	    		"8 problems (8 errors)\n");
 	    testCompileAndRun(true, "invariants_success", true, "", "");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");

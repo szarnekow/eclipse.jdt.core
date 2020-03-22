@@ -1447,15 +1447,19 @@ public void resolve() {
 			if (hasInvariants)
 				for (FieldDeclaration field : this.fields)
 					if (field.invariants != null)
-						for (Expression e : field.invariants)
+						for (Expression e : field.invariants) {
 							e.resolveTypeExpecting(this.initializerScope, TypeBinding.BOOLEAN);
+							FormalSpecification.check(field.modifiers, this.binding, this.initializerScope, e);
+						}
 		}
 		if (this.maxFieldCount < localMaxFieldCount) {
 			this.maxFieldCount = localMaxFieldCount;
 		}
 		if (this.invariants != null)
-			for (Expression e : this.invariants)
+			for (Expression e : this.invariants) {
 				e.resolveTypeExpecting(this.initializerScope, TypeBinding.BOOLEAN);
+				FormalSpecification.check(this.modifiers, this.binding, this.initializerScope, e);
+			}
 		if (needSerialVersion) {
 			//check that the current type doesn't extend javax.rmi.CORBA.Stub
 			TypeBinding javaxRmiCorbaStub = this.scope.getType(TypeConstants.JAVAX_RMI_CORBA_STUB, 4);
