@@ -515,22 +515,42 @@ public class s4jie2TestSuite {
 	    		"4 problems (4 errors)\n");
 	    testCompile("effect_clauses_resolve_error", false, "",
 	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" + 
-	    		"	* @inspects | this, ...stuff, other, zazz\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
+	    		"	* @inspects | this, ...stuff, other, zazz, x\n" + 
 	    		"	                                     ^^^^\n" + 
 	    		"zazz cannot be resolved to a variable\n" + 
 	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 7)\n" + 
-	    		"	* @mutates | quux, bar(3)\n" + 
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
+	    		"	* @inspects | this, ...stuff, other, zazz, x\n" + 
+	    		"	                                           ^\n" + 
+	    		"The field Foo.x is not visible\n" + 
+	    		"----------\n" + 
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
+	    		"	* @mutates | quux, bar(3), x\n" + 
 	    		"	                   ^^^\n" + 
 	    		"The method bar() in the type Foo is not applicable for the arguments (int)\n" + 
 	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
-	    		"	* @mutates_properties | bar(), other\n" + 
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
+	    		"	* @mutates | quux, bar(3), x\n" + 
+	    		"	                           ^\n" + 
+	    		"The field Foo.x is not visible\n" + 
+	    		"----------\n" + 
+	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
+	    		"	* @mutates_properties | bar(), other, x\n" + 
 	    		"	                               ^^^^^\n" + 
 	    		"Method call expected\n" + 
 	    		"----------\n" + 
-	    		"3 problems (3 errors)\n");
+	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
+	    		"	* @mutates_properties | bar(), other, x\n" + 
+	    		"	                                      ^\n" + 
+	    		"Method call expected\n" + 
+	    		"----------\n" + 
+	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
+	    		"	* @mutates_properties | bar(), other, x\n" + 
+	    		"	                                      ^\n" + 
+	    		"The field Foo.x is not visible\n" + 
+	    		"----------\n" + 
+	    		"7 problems (7 errors)\n");
 	    testCompileAndRun(true, "effect_clauses_success", true, "", "");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");

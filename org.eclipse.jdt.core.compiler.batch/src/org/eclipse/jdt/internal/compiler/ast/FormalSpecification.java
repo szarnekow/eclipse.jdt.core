@@ -345,6 +345,20 @@ public class FormalSpecification {
 		if (this.postconditions != null)
 			for (Expression e : this.postconditions)
 				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		
+		if (this.inspectsExpressions != null)
+			for (Expression e : this.inspectsExpressions)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		if (this.mutatesExpressions != null)
+			for (Expression e : this.mutatesExpressions)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		if (this.mutatesPropertiesExpressions != null)
+			for (Expression e : this.mutatesPropertiesExpressions)
+				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
+		// TODO(fs4j): Enable once @creates clauses are typechecked
+//		if (this.createsExpressions != null)
+//			for (Expression e : this.createsExpressions)
+//				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
 	}
 	
 	public static void check(int thisElementModifiers, ReferenceBinding thisClassBinding, BlockScope thisScope, Expression e) {
