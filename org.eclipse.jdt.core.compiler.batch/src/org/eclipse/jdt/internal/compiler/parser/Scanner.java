@@ -2404,7 +2404,28 @@ lineLoop:
 						this.currentPosition++;
 					this.javadocFormalPartTagEnd = this.currentPosition - 1;
 					lastTagSeen = String.copyValueOf(src, tagNameStart, this.currentPosition - tagNameStart);
-					break;
+					
+					// Eat text; support "@throws IllegalArgumentException | x < 0" or "@mutates nothing |"
+					for (;;) {
+						switch (src[this.currentPosition]) {
+							case '*':
+								this.currentPosition++;
+								if (src[this.currentPosition] == '/') {
+									this.currentPosition++;
+									break lineLoop;
+								}
+								break;
+							case '\n':
+							case '\r':
+								this.currentPosition++;
+								continue indentationLoop;
+							case '|':
+								break indentationLoop;
+							default:
+								this.currentPosition++;
+								break;
+						}
+					}
 				}
 				default:
 					break indentationLoop;
