@@ -606,6 +606,20 @@ class ASTConverter {
 			if (methodDeclaration.formalSpecification.postconditions != null)
 				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.postconditions)
 					methodDecl.formalSpecificationClauses().add(convert(e));
+			
+			if (methodDeclaration.formalSpecification.inspectsExpressions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.inspectsExpressions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
+			if (methodDeclaration.formalSpecification.mutatesExpressions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.mutatesExpressions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
+			if (methodDeclaration.formalSpecification.mutatesPropertiesExpressions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.mutatesPropertiesExpressions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
+			// TODO(fsc4j): Enable once @creates expressions are typechecked
+			if (methodDeclaration.formalSpecification.inspectsExpressions != null)
+				for (org.eclipse.jdt.internal.compiler.ast.Expression e : methodDeclaration.formalSpecification.inspectsExpressions)
+					methodDecl.formalSpecificationClauses().add(convert(e));
 		}
 		setModifiers(methodDecl, methodDeclaration);
 		boolean isConstructor = methodDeclaration.isConstructor();
