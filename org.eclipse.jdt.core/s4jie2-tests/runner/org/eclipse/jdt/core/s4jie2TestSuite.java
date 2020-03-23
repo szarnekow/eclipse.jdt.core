@@ -381,7 +381,14 @@ public class s4jie2TestSuite {
 	    		"Cannot invoke baz() on the array type int[]\n" +
 	    		"----------\n" +
 	    		"1 problem (1 error)\n");
-	    testCompile("nested_lambda", true, "", "");
+	    testCompile("nested_lambda", false, "",
+	    		"----------\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
+	    		"	* @post | \n" + 
+	    		"	  ^^^^^\n" + 
+	    		"Expression expected in formal part\n" + 
+	    		"----------\n" + 
+	    		"1 problem (1 error)\n");
 	    testCompile("throws_may_throw_syntax_error", false, "",
 	    		"----------\n" +
 	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" +
@@ -483,6 +490,48 @@ public class s4jie2TestSuite {
 	    		"----------\n" + 
 	    		"8 problems (8 errors)\n");
 	    testCompileAndRun(true, "invariants_success", true, "", "");
+	    testCompile("effect_clauses_syntax_error", false, "",
+	    		"----------\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" + 
+	    		"	* @inspects | this, ...stuff, other,\n" + 
+	    		"	                                   ^\n" + 
+	    		"Syntax error on token \",\", JavadocFormalPartExpression expected after this token\n" + 
+	    		"----------\n" + 
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
+	    		"	* @mutates | quux, bar(\n" + 
+	    		"	                      ^\n" + 
+	    		"Syntax error, insert \")\" to complete JavadocFormalPartExpression\n" + 
+	    		"----------\n" + 
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
+	    		"	* @mutates_properties | bar)\n" + 
+	    		"	                           ^\n" + 
+	    		"Syntax error on token \")\", delete this token\n" + 
+	    		"----------\n" + 
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 21)\n" + 
+	    		"	* @creates | result -\n" + 
+	    		"	                    ^\n" + 
+	    		"Syntax error on token \"-\", -- expected\n" + 
+	    		"----------\n" + 
+	    		"4 problems (4 errors)\n");
+	    testCompile("effect_clauses_resolve_error", false, "",
+	    		"----------\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" + 
+	    		"	* @inspects | this, ...stuff, other, zazz\n" + 
+	    		"	                                     ^^^^\n" + 
+	    		"zazz cannot be resolved to a variable\n" + 
+	    		"----------\n" + 
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 7)\n" + 
+	    		"	* @mutates | quux, bar(3)\n" + 
+	    		"	                   ^^^\n" + 
+	    		"The method bar() in the type Foo is not applicable for the arguments (int)\n" + 
+	    		"----------\n" + 
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
+	    		"	* @mutates_properties | bar(), other\n" + 
+	    		"	                               ^^^^^\n" + 
+	    		"Method call expected\n" + 
+	    		"----------\n" + 
+	    		"3 problems (3 errors)\n");
+	    testCompileAndRun(true, "effect_clauses_success", true, "", "");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

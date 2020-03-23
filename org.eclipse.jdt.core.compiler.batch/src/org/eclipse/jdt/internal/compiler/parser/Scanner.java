@@ -2367,6 +2367,8 @@ protected int scanForTextBlock() throws InvalidInputException {
 		throw unterminatedTextBlock();
 	}
 }
+public int javadocFormalPartTagStart;
+public int javadocFormalPartTagEnd;
 public FormalSpecificationClause.Tag javadocFormalPartTag;
 private int skipToNextJavadocFormalLine(boolean insideFormalPart) {
 	char[] src = this.source;
@@ -2394,11 +2396,13 @@ lineLoop:
 					break;
 				case '@':
 				{
+					this.javadocFormalPartTagStart = this.currentPosition;
 					this.currentPosition++;
 					// Check if this the start of a new block tag
 					int tagNameStart = this.currentPosition;
 					while ('a' <= src[this.currentPosition] && src[this.currentPosition] <= 'z' || src[this.currentPosition] == '_')
 						this.currentPosition++;
+					this.javadocFormalPartTagEnd = this.currentPosition - 1;
 					lastTagSeen = String.copyValueOf(src, tagNameStart, this.currentPosition - tagNameStart);
 					break;
 				}
@@ -2421,6 +2425,10 @@ lineLoop:
 					case "throws": this.javadocFormalPartTag = FormalSpecificationClause.Tag.THROWS; break; //$NON-NLS-1$
 					case "may_throw": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MAY_THROW; break; //$NON-NLS-1$
 					case "post": this.javadocFormalPartTag = FormalSpecificationClause.Tag.POST; break; //$NON-NLS-1$
+					case "inspects": this.javadocFormalPartTag = FormalSpecificationClause.Tag.INSPECTS; break; //$NON-NLS-1$
+					case "mutates": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MUTATES; break; //$NON-NLS-1$
+					case "mutates_properties": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MUTATES_PROPERTIES; break; //$NON-NLS-1$
+					case "creates": this.javadocFormalPartTag = FormalSpecificationClause.Tag.CREATES; break; //$NON-NLS-1$
 					default:
 						break newFormalPart;
 						// fall through; this is not a formal part

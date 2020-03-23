@@ -83,6 +83,12 @@ public class FormalSpecification {
 	public Expression[] mayThrowConditions;
 	public Expression[] postconditions;
 	
+	// All of the below are null if no corresponding Javadoc tag is present; they are an empty array if an empty tag is present.
+	public Expression[] inspectsExpressions;
+	public Expression[] mutatesExpressions;
+	public Expression[] mutatesPropertiesExpressions;
+	public Expression[] createsExpressions;
+	
 	public Block block;
 	public LocalDeclaration postconditionVariableDeclaration;
 	public MessageSend postconditionMethodCall;
@@ -128,6 +134,55 @@ public class FormalSpecification {
 				output.append(" */"); //$NON-NLS-1$
 			}
 		}
+		if (this.inspectsExpressions != null) {
+			output.append("/** @inspects | "); //$NON-NLS-1$
+			for (int i = 0; i < this.inspectsExpressions.length; i++) {
+				if (i != 0)
+					output.append(", "); //$NON-NLS-1$
+				this.inspectsExpressions[i].printExpression(tab, output);
+			}
+			output.append(" */"); //$NON-NLS-1$
+		}
+		if (this.mutatesExpressions != null) {
+			output.append("/** @mutates | "); //$NON-NLS-1$
+			for (int i = 0; i < this.mutatesExpressions.length; i++) {
+				if (i != 0)
+					output.append(", "); //$NON-NLS-1$
+				this.mutatesExpressions[i].printExpression(tab, output);
+			}
+			output.append(" */"); //$NON-NLS-1$
+		}
+		if (this.mutatesPropertiesExpressions != null) {
+			output.append("/** @mutates_properties | "); //$NON-NLS-1$
+			for (int i = 0; i < this.mutatesPropertiesExpressions.length; i++) {
+				if (i != 0)
+					output.append(", "); //$NON-NLS-1$
+				this.mutatesPropertiesExpressions[i].printExpression(tab, output);
+			}
+			output.append(" */"); //$NON-NLS-1$
+		}
+		if (this.createsExpressions != null) {
+			output.append("/** @creates | "); //$NON-NLS-1$
+			for (int i = 0; i < this.createsExpressions.length; i++) {
+				if (i != 0)
+					output.append(", "); //$NON-NLS-1$
+				this.createsExpressions[i].printExpression(tab, output);
+			}
+			output.append(" */"); //$NON-NLS-1$
+		}
+	}
+	
+	private void resolveEffectClause(Expression[] expressions) {
+		TypeBinding javaLangObject = this.method.scope.getJavaLangObject();
+		
+		if (expressions != null) {
+			for (Expression e : expressions) {
+				if (e instanceof SpreadExpression)
+					((SpreadExpression)e).body.resolveTypeExpecting(this.method.scope, javaLangObject); // TODO: Should be Iterable<?>
+				else
+					e.resolveTypeExpecting(this.method.scope, javaLangObject);
+			}
+		}
 	}
 
 	public void resolve() {
@@ -143,7 +198,19 @@ public class FormalSpecification {
 		if (this.mayThrowConditions != null)
 			for (Expression e : this.mayThrowConditions)
 				e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
-			
+		
+		resolveEffectClause(this.inspectsExpressions);
+		resolveEffectClause(this.mutatesExpressions);
+		//resolveEffectClause(this.createsExpressions); // @creates expressions can refer to 'result'
+		
+		if (this.mutatesPropertiesExpressions != null) {
+			for (Expression e : this.mutatesPropertiesExpressions) {
+				e.resolveType(this.method.scope);
+				if (!(e instanceof MessageSend))
+					this.method.scope.problemReporter().mutatesPropertiesExpressionShouldBeMethodCall(e);
+			}
+		}
+		
 		if (this.method.isAbstract() || this.method.isNative()) {
 			if (this.preconditions != null)
 				for (Expression e : this.preconditions)

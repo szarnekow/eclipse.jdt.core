@@ -691,11 +691,26 @@ Modifier ::= Annotation
 /.$putCase consumeAnnotationAsModifier(); $break ./
 /:$readableName Modifier:/
 
-JavadocFormalParts ::= Expressionopt
+JavadocFormalParts ::= JavadocFormalPartExpressionsopt
 /.$putCase consumeJavadocFormalPart(); $break ./
-JavadocFormalParts -> JavadocFormalParts JAVADOC_FORMAL_PART_SEPARATOR Expressionopt
-/.$putCase consumeJavadocFormalPart(); concatJavadocFormalPartLists(); $break ./
+JavadocFormalParts -> JavadocFormalParts JAVADOC_FORMAL_PART_SEPARATOR JavadocFormalPartExpressionsopt
+/.$putCase consumeJavadocFormalPart(); concatExpressionLists(); $break ./
 /:$readableName JavadocFormalParts:/
+
+JavadocFormalPartExpressionsopt ::= JavadocFormalPartExpressions
+JavadocFormalPartExpressionsopt -> $empty
+/.$putCase consumeEmptyExpression(); $break ./
+/:$readableName JavadocFormalPartExpressionsopt:/
+
+JavadocFormalPartExpressions ::= JavadocFormalPartExpression
+JavadocFormalPartExpressions -> JavadocFormalPartExpressions ',' JavadocFormalPartExpression
+/.$putCase concatExpressionLists(); $break ./
+/:$readableName JavadocFormalPartExpressions:/
+
+JavadocFormalPartExpression ::= Expression
+JavadocFormalPartExpression -> '...' Expression
+/.$putCase consumeSpreadExpression(); $break ./
+/:$readableName JavadocFormalPartExpression:/
 
 --18.8 Productions from 8: Class Declarations
 --ClassModifier ::=

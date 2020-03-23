@@ -4393,6 +4393,34 @@ public void tryInJavadoc(ASTNode node) {
 			node.sourceStart,
 			node.sourceEnd);
 }
+public void expressionExpectedInJavadocFormalPart(ASTNode node) {
+	this.handle(32103,
+			new String[] {},
+			new String[] {},
+			node.sourceStart,
+			node.sourceEnd);
+}
+public void singleExpressionExpectedInJavadocFormalPart(ASTNode node) {
+	this.handle(32104,
+			new String[] {},
+			new String[] {},
+			node.sourceStart,
+			node.sourceEnd);
+}
+public void spreadExpressionNotAllowedHere(ASTNode node) {
+	this.handle(32105,
+			new String[] {},
+			new String[] {},
+			node.sourceStart,
+			node.sourceEnd);
+}
+public void mutatesPropertiesExpressionShouldBeMethodCall(ASTNode node) {
+	this.handle(32106,
+			new String[] {},
+			new String[] {},
+			node.sourceStart,
+			node.sourceEnd);
+}
 public void invalidField(QualifiedNameReference nameRef, FieldBinding field, int index, TypeBinding searchedType) {
 	//the resolution of the index-th field of qname failed
 	//qname.otherBindings[index] is the binding that has produced the error
