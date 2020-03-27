@@ -211,14 +211,7 @@ public class FormalSpecification {
 			}
 		}
 		
-		if (this.method.isAbstract() || this.method.isNative()) {
-			if (this.preconditions != null)
-				for (Expression e : this.preconditions)
-					e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
-			if (this.postconditions != null)
-				for (Expression e : this.postconditions)
-					e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
-		} else {
+		{
 			ArrayList<Statement> statementsForBlock = new ArrayList<>();
 			HashMap<String, LocalDeclaration> oldExpressions = new HashMap<>();
 			int blockDeclarationsCount = 0;

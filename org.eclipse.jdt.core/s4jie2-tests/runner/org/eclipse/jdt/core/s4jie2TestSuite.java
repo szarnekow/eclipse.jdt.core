@@ -552,6 +552,7 @@ public class s4jie2TestSuite {
 	    		"----------\n" + 
 	    		"7 problems (7 errors)\n");
 	    testCompileAndRun(true, "effect_clauses_success", true, "", "");
+	    testCompileAndRun(true, "abstract_methods", true, "Success!\n", "");
 		
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
