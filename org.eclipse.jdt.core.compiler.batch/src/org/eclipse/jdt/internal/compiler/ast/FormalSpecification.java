@@ -248,6 +248,8 @@ public class FormalSpecification {
 							long pos = (oldExpression.sourceStart << 32) + oldExpression.sourceEnd;
 							if (distinctExpression == null) {
 								distinctExpression = new OldExpression.DistinctExpression();
+								oldExpressions.put(nameString, distinctExpression);
+								
 								distinctExpression.exceptionDeclaration = new LocalDeclaration(exceptionName, oldExpression.sourceStart, oldExpression.sourceEnd);
 								distinctExpression.exceptionDeclaration.type = javaLangThrowable();
 								distinctExpression.exceptionDeclaration.initialization = new NullLiteral(oldExpression.sourceStart, oldExpression.sourceEnd);
@@ -256,12 +258,28 @@ public class FormalSpecification {
 								distinctExpression.outerDeclaration.type = javaLangObject();
 								distinctExpression.outerDeclaration.initialization = new NullLiteral(oldExpression.sourceStart, oldExpression.sourceEnd);
 								statementsForBlock.add(distinctExpression.outerDeclaration);
+
+								Block tryBlock = new Block(1);
 								distinctExpression.innerDeclaration = new LocalDeclaration(innerName, oldExpression.sourceStart, oldExpression.sourceEnd);
 								distinctExpression.innerDeclaration.type = new SingleTypeReference("var".toCharArray(), pos); //$NON-NLS-1$
 								distinctExpression.innerDeclaration.initialization = oldExpression.expression;
-								statementsForBlock.add(distinctExpression.innerDeclaration);
-								statementsForBlock.add(new Assignment(new SingleNameReference(name, pos), new SingleNameReference(innerName, pos), oldExpression.sourceEnd));
-								oldExpressions.put(nameString, distinctExpression);
+								tryBlock.statements = new Statement[] {
+										distinctExpression.innerDeclaration,
+										new Assignment(new SingleNameReference(name, pos), new SingleNameReference(innerName, pos), oldExpression.sourceEnd)
+								};
+								
+								char[] catchArgumentName = "$exception".toCharArray(); //$NON-NLS-1$
+								Argument catchArgument = new Argument(catchArgumentName, pos, javaLangThrowable(), 0);
+								Block catchBlock = new Block(0);
+								catchBlock.statements = new Statement[] {
+										new Assignment(new SingleNameReference(exceptionName, pos), new SingleNameReference(catchArgumentName, pos), oldExpression.sourceEnd)
+								};
+								
+								TryStatement tryStatement = new TryStatement();
+								tryStatement.tryBlock = tryBlock;
+								tryStatement.catchArguments = new Argument[] {catchArgument};
+								tryStatement.catchBlocks = new Block[] {catchBlock};
+								statementsForBlock.add(tryStatement);
 							}
 							oldExpression.distinctExpression = distinctExpression;
 							oldExpression.reference = new SingleNameReference(name, pos);
@@ -271,7 +289,7 @@ public class FormalSpecification {
 						
 					}, this.method.scope);
 				}
-				blockDeclarationsCount += 3 * oldExpressions.size();
+				blockDeclarationsCount += 2 * oldExpressions.size();
 				
 				ArrayList<Statement> postconditionBlockStatements = new ArrayList<>();
 				int postconditionBlockDeclarationsCount = 0;

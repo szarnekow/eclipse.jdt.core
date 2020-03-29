@@ -1,6 +1,7 @@
 package org.eclipse.jdt.internal.compiler.ast;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
 import org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.eclipse.jdt.internal.compiler.flow.FlowContext;
 import org.eclipse.jdt.internal.compiler.flow.FlowInfo;
@@ -83,10 +84,14 @@ public class OldExpression extends Expression {
 	public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {
 		if (this.reference != null) {
 			if (valueRequired) {
-				//this.exceptionReference.generateCode(currentScope, codeStream, valueRequired);
-				//codeStream.dup();
-				//BranchLabel nonnullLabel = new BranchLabel(codeStream);
-				//codeStream.ifnonnull(nonnullLabel);
+				this.exceptionReference.generateCode(currentScope, codeStream, valueRequired);
+				BranchLabel nullLabel = new BranchLabel(codeStream);
+				codeStream.ifnull(nullLabel);
+				
+				this.exceptionReference.generateCode(currentScope, codeStream, valueRequired);
+				codeStream.athrow();
+				
+				nullLabel.place();
 				this.reference.generateCode(currentScope, codeStream, valueRequired);
 				TypeBinding resultType = this.distinctExpression.innerDeclaration.binding.type;
 				if (resultType.isBaseType()) {
