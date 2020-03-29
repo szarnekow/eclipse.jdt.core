@@ -29,7 +29,8 @@ public class FormalSpecification {
 	private static final char[] postconditionAssertionMessage = "Postcondition does not hold".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_VARIABLE_NAME = " $post".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_METHOD_NAME_SUFFIX = "$post".toCharArray(); //$NON-NLS-1$
-	static final char[] OLD_VARIABLE_PREFIX = "old$".toCharArray(); //$NON-NLS-1$
+	static final char[] OLD_VARIABLE_INNER_SUFFIX = " inner".toCharArray(); //$NON-NLS-1$
+	static final char[] OLD_VARIABLE_EXCEPTION_SUFFIX = " exception".toCharArray(); //$NON-NLS-1$
 	private static final char[] LAMBDA_PARAMETER_NAME = " $result".toCharArray(); //$NON-NLS-1$
 	private static final char[] RESULT_NAME = "result".toCharArray(); //$NON-NLS-1$
 	
@@ -43,6 +44,7 @@ public class FormalSpecification {
 	}
 	
 	private static QualifiedTypeReference javaLangObject() { return getTypeReference("java.lang.Object"); } //$NON-NLS-1$
+	private static QualifiedTypeReference javaLangThrowable() { return getTypeReference("java.lang.Throwable"); } //$NON-NLS-1$
 	private static QualifiedTypeReference javaLangRunnable() { return getTypeReference("java.lang.Runnable"); } //$NON-NLS-1$
 	private static QualifiedTypeReference javaUtilFunctionConsumer() { return getTypeReference("java.util.function.Consumer"); } //$NON-NLS-1$
 	
@@ -78,7 +80,6 @@ public class FormalSpecification {
 	public final AbstractMethodDeclaration method;
 	public Expression[] invariants; // Package representation invariants are specified in the Javadoc comments for the default access getters.
 	public Expression[] preconditions;
-	public ArrayList<OldExpression> oldExpressions;
 	public Expression[] throwsConditions;
 	public Expression[] mayThrowConditions;
 	public Expression[] postconditions;
@@ -213,7 +214,7 @@ public class FormalSpecification {
 		
 		{
 			ArrayList<Statement> statementsForBlock = new ArrayList<>();
-			HashMap<String, LocalDeclaration> oldExpressions = new HashMap<>();
+			HashMap<String, OldExpression.DistinctExpression> oldExpressions = new HashMap<>();
 			int blockDeclarationsCount = 0;
 			this.statementsForMethodBody = new ArrayList<>();
 			if (this.preconditions != null) {
@@ -240,24 +241,37 @@ public class FormalSpecification {
 									case '/': name[i] = '\u2afd'; break; // DOUBLE SOLIDUS OPERATOR
 								}
 							}
+							char[] innerName = CharOperation.concat(name, OLD_VARIABLE_INNER_SUFFIX);
+							char[] exceptionName = CharOperation.concat(name, OLD_VARIABLE_EXCEPTION_SUFFIX);
 							String nameString = String.valueOf(name);
-							LocalDeclaration declaration = oldExpressions.get(nameString);
+							OldExpression.DistinctExpression distinctExpression = oldExpressions.get(nameString);
 							long pos = (oldExpression.sourceStart << 32) + oldExpression.sourceEnd;
-							if (declaration == null) {
-								declaration = new LocalDeclaration(name, oldExpression.sourceStart, oldExpression.sourceEnd);
-								declaration.type = new SingleTypeReference("var".toCharArray(), pos); //$NON-NLS-1$
-								declaration.initialization = oldExpression.expression;
-								statementsForBlock.add(declaration);
-								oldExpressions.put(nameString, declaration);
+							if (distinctExpression == null) {
+								distinctExpression = new OldExpression.DistinctExpression();
+								distinctExpression.exceptionDeclaration = new LocalDeclaration(exceptionName, oldExpression.sourceStart, oldExpression.sourceEnd);
+								distinctExpression.exceptionDeclaration.type = javaLangThrowable();
+								distinctExpression.exceptionDeclaration.initialization = new NullLiteral(oldExpression.sourceStart, oldExpression.sourceEnd);
+								statementsForBlock.add(distinctExpression.exceptionDeclaration);
+								distinctExpression.outerDeclaration = new LocalDeclaration(name, oldExpression.sourceStart, oldExpression.sourceEnd);
+								distinctExpression.outerDeclaration.type = javaLangObject();
+								distinctExpression.outerDeclaration.initialization = new NullLiteral(oldExpression.sourceStart, oldExpression.sourceEnd);
+								statementsForBlock.add(distinctExpression.outerDeclaration);
+								distinctExpression.innerDeclaration = new LocalDeclaration(innerName, oldExpression.sourceStart, oldExpression.sourceEnd);
+								distinctExpression.innerDeclaration.type = new SingleTypeReference("var".toCharArray(), pos); //$NON-NLS-1$
+								distinctExpression.innerDeclaration.initialization = oldExpression.expression;
+								statementsForBlock.add(distinctExpression.innerDeclaration);
+								statementsForBlock.add(new Assignment(new SingleNameReference(name, pos), new SingleNameReference(innerName, pos), oldExpression.sourceEnd));
+								oldExpressions.put(nameString, distinctExpression);
 							}
-							oldExpression.declaration = declaration;
+							oldExpression.distinctExpression = distinctExpression;
 							oldExpression.reference = new SingleNameReference(name, pos);
+							oldExpression.exceptionReference = new SingleNameReference(exceptionName, pos);
 							return false;
 						}
 						
 					}, this.method.scope);
 				}
-				blockDeclarationsCount += oldExpressions.size();
+				blockDeclarationsCount += 3 * oldExpressions.size();
 				
 				ArrayList<Statement> postconditionBlockStatements = new ArrayList<>();
 				int postconditionBlockDeclarationsCount = 0;
