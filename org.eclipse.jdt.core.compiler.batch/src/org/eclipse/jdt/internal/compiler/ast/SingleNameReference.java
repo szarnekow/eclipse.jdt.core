@@ -913,7 +913,7 @@ public void manageEnclosingInstanceAccessIfNecessary(BlockScope currentScope, Fl
 				// local was tagged as uninitialized
 				return;
 			}
-			if ((localVariableBinding.tagBits & TagBits.IsEffectivelyFinal) == 0) {
+			if ((localVariableBinding.tagBits & TagBits.IsEffectivelyFinal) == 0 && !NameReference.allowsReferencesToNonEffectivelyFinalOuterLocals(currentScope)) {
 				// local was tagged as not effectively final
 				return;
 			}

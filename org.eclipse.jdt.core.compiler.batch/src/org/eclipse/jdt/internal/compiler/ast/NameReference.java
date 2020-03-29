@@ -135,7 +135,7 @@ public boolean checkEffectiveFinality(VariableBinding localBinding, Scope scope)
 public boolean isType() {
 	return (this.bits & Binding.TYPE) != 0;
 }
-private static boolean allowsReferencesToNonEffectivelyFinalOuterLocals(Scope scope) {
+public static boolean allowsReferencesToNonEffectivelyFinalOuterLocals(Scope scope) {
 	if (scope instanceof MethodScope) {
 		MethodScope methodScope = (MethodScope)scope;
 		if (methodScope.referenceContext instanceof LambdaExpression) {
