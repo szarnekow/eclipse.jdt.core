@@ -702,15 +702,16 @@ JavadocFormalPartExpressionsopt -> $empty
 /.$putCase consumeEmptyExpression(); $break ./
 /:$readableName JavadocFormalPartExpressionsopt:/
 
-JavadocFormalPartExpressions ::= JavadocFormalPartExpression
-JavadocFormalPartExpressions -> JavadocFormalPartExpressions ',' JavadocFormalPartExpression
+JavadocFormalPartExpressions ::= Expression
+JavadocFormalPartExpressions -> JavadocFormalPartExpressions ',' Expression
 /.$putCase concatExpressionLists(); $break ./
 /:$readableName JavadocFormalPartExpressions:/
 
-JavadocFormalPartExpression ::= Expression
-JavadocFormalPartExpression -> '...' Expression
+Expression -> '...' Expression
 /.$putCase consumeSpreadExpression(); $break ./
-/:$readableName JavadocFormalPartExpression:/
+
+Expression_NotName -> '...' Expression
+/.$putCase consumeSpreadExpression(); $break ./
 
 --18.8 Productions from 8: Class Declarations
 --ClassModifier ::=

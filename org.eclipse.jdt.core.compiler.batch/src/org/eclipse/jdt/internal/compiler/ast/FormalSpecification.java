@@ -206,9 +206,34 @@ public class FormalSpecification {
 		
 		if (this.mutatesPropertiesExpressions != null) {
 			for (Expression e : this.mutatesPropertiesExpressions) {
-				e.resolveType(this.method.scope);
 				if (!(e instanceof MessageSend))
 					this.method.scope.problemReporter().mutatesPropertiesExpressionShouldBeMethodCall(e);
+				else {
+					MessageSend messageSend = (MessageSend)e;
+					if (messageSend.arguments != null && messageSend.arguments.length != 0)
+						this.method.scope.problemReporter().mutatesPropertiesMethodCallShouldNotSpecifyArguments(e);
+					else if (messageSend.receiver instanceof SpreadExpression) {
+						SpreadExpression receiver = (SpreadExpression)messageSend.receiver;
+						char[] elementName = "spread$element".toCharArray();
+						LocalDeclaration elementVariable = new LocalDeclaration(elementName, e.sourceStart, e.sourceEnd);
+						long pos = ((long)e.sourceStart << 32) + e.sourceEnd;
+						elementVariable.type = new SingleTypeReference("var".toCharArray(), pos);
+						elementVariable.bits |= ASTNode.IsForeachElementVariable;
+						ForeachStatement s = new ForeachStatement(elementVariable, e.sourceStart);
+						s.collection = receiver.body;
+						MessageSend elementCall = new MessageSend();
+						elementCall.sourceStart = e.sourceStart;
+						elementCall.sourceEnd = e.sourceEnd;
+						elementCall.receiver = new SingleNameReference(elementName, pos);
+						elementCall.selector = messageSend.selector;
+						elementCall.arguments = messageSend.arguments;
+						elementCall.nameSourcePosition = messageSend.nameSourcePosition;
+						s.action = elementCall;
+						s.resolve(this.method.scope);
+					} else {
+						e.resolveType(this.method.scope);
+					}
+				}
 			}
 		}
 		

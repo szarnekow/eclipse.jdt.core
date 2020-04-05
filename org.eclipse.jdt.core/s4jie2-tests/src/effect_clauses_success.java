@@ -9,9 +9,9 @@ class Foo {
 	/**
 	 * @inspects | this, ...stuff, other
 	 * @mutates | quux, bar(), ...stuff
-	 * @mutates_properties | bar(), other.getX()
+	 * @mutates_properties | bar(), other.getX(), (...stuff).bar(), (...things).bar()
 	 */
-	Foo bar(Foo other, Iterable<Foo> stuff, Foo quux) {
+	Foo bar(Foo other, Iterable<Foo> stuff, Foo[] things, Foo quux) {
 		return this;
 	}
 }
@@ -21,6 +21,6 @@ class Main {
 		Foo foo = new Foo();
 		ArrayList<Foo> foos = new ArrayList<>();
 		foos.add(foo);
-		foo.bar(foo, foos, foo);
+		foo.bar(foo, foos, new Foo[] {foo, foo}, foo);
 	}
 }

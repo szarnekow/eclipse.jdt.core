@@ -41,7 +41,7 @@ public class SpreadExpression extends Expression {
 
 	@Override
 	public StringBuffer printExpression(int indent, StringBuffer output) {
-		output.append("..."); //$NON-NLS-1$
+		output.append("(..."); //$NON-NLS-1$
 		this.body.printExpression(indent, output);
 		output.append(")"); //$NON-NLS-1$
 		return output;

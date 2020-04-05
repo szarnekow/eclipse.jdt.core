@@ -97,8 +97,8 @@ public class s4jie2TestSuite {
 			System.err.println("=== standard error end ===");
 			System.exit(1);
 		}
-		assertEquals(outWriter.toString(), outExpected.replace("SOURCE_FILE_FULL_PATH", fullPath), "standard output");
-		assertEquals(errWriter.toString(), errExpected.replace("SOURCE_FILE_FULL_PATH", fullPath), "standard error");
+		assertEquals(outWriter.toString().replace(fullPath, "SOURCE_FILE_FULL_PATH"), outExpected, "standard output");
+		assertEquals(errWriter.toString().replace(fullPath, "SOURCE_FILE_FULL_PATH"), errExpected, "standard error");
 		System.out.println("PASS Test " + filename + " compile success");
 	}
 
@@ -495,12 +495,12 @@ public class s4jie2TestSuite {
 	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" + 
 	    		"	* @inspects | this, ...stuff, other,\n" + 
 	    		"	                                   ^\n" + 
-	    		"Syntax error on token \",\", JavadocFormalPartExpression expected after this token\n" + 
+	    		"Syntax error on token \",\", Expression expected after this token\n" + 
 	    		"----------\n" + 
 	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
 	    		"	* @mutates | quux, bar(\n" + 
 	    		"	                      ^\n" + 
-	    		"Syntax error, insert \")\" to complete JavadocFormalPartExpression\n" + 
+	    		"Syntax error, insert \")\" to complete Expression\n" + 
 	    		"----------\n" + 
 	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
 	    		"	* @mutates_properties | bar)\n" + 
@@ -515,42 +515,67 @@ public class s4jie2TestSuite {
 	    		"4 problems (4 errors)\n");
 	    testCompile("effect_clauses_resolve_error", false, "",
 	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
 	    		"	* @inspects | this, ...stuff, other, zazz, x\n" + 
 	    		"	                                     ^^^^\n" + 
 	    		"zazz cannot be resolved to a variable\n" + 
 	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
 	    		"	* @inspects | this, ...stuff, other, zazz, x\n" + 
 	    		"	                                           ^\n" + 
 	    		"The field Foo.x is not visible\n" + 
 	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
-	    		"	* @mutates | quux, bar(3), x\n" + 
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
+	    		"	* @mutates | quux, bar(3), ...x, x\n" + 
 	    		"	                   ^^^\n" + 
 	    		"The method bar() in the type Foo is not applicable for the arguments (int)\n" + 
 	    		"----------\n" + 
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
-	    		"	* @mutates | quux, bar(3), x\n" + 
-	    		"	                           ^\n" + 
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
+	    		"	* @mutates | quux, bar(3), ...x, x\n" + 
+	    		"	                              ^\n" + 
 	    		"The field Foo.x is not visible\n" + 
 	    		"----------\n" + 
-	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	* @mutates_properties | bar(), other, x\n" + 
-	    		"	                               ^^^^^\n" + 
-	    		"Method call expected\n" + 
-	    		"----------\n" + 
-	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	* @mutates_properties | bar(), other, x\n" + 
-	    		"	                                      ^\n" + 
-	    		"Method call expected\n" + 
-	    		"----------\n" + 
-	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	* @mutates_properties | bar(), other, x\n" + 
-	    		"	                                      ^\n" + 
+	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
+	    		"	* @mutates | quux, bar(3), ...x, x\n" + 
+	    		"	                                 ^\n" + 
 	    		"The field Foo.x is not visible\n" + 
 	    		"----------\n" + 
-	    		"7 problems (7 errors)\n");
+	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
+	    		"	                               ^^^^^^\n" + 
+	    		"Method calls with arguments are not supported here\n" + 
+	    		"----------\n" + 
+	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
+	    		"	                                       ^^^^^\n" + 
+	    		"Method call expected\n" + 
+	    		"----------\n" + 
+	    		"8. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
+	    		"	                                                  ^\n" + 
+	    		"Can only iterate over an array or an instance of java.lang.Iterable\n" + 
+	    		"----------\n" + 
+	    		"9. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
+	    		"	                                                  ^\n" + 
+	    		"The field Foo.x is not visible\n" + 
+	    		"----------\n" + 
+	    		"10. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
+	    		"	                                                     ^^^\n" + 
+	    		"The method bar() is undefined for the type Object\n" + 
+	    		"----------\n" + 
+	    		"11. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
+	    		"	                                                            ^\n" + 
+	    		"Method call expected\n" + 
+	    		"----------\n" + 
+	    		"12. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
+	    		"	                                                                          ^^^^\n" + 
+	    		"The method quux() is undefined for the type Foo\n" + 
+	    		"----------\n" + 
+	    		"12 problems (12 errors)\n");
 	    testCompileAndRun(true, "effect_clauses_success", true, "", "");
 	    testCompileAndRun(true, "abstract_methods", true, "Success!\n", "");
 	    testCompileAndRun(true, "old_exception", true, "Success\nSuccess\n", "");
