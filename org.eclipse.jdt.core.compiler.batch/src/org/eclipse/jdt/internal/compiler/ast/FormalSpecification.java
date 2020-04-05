@@ -19,6 +19,7 @@ import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
@@ -221,15 +222,10 @@ public class FormalSpecification {
 						elementVariable.bits |= ASTNode.IsForeachElementVariable;
 						ForeachStatement s = new ForeachStatement(elementVariable, e.sourceStart);
 						s.collection = receiver.body;
-						MessageSend elementCall = new MessageSend();
-						elementCall.sourceStart = e.sourceStart;
-						elementCall.sourceEnd = e.sourceEnd;
-						elementCall.receiver = new SingleNameReference(elementName, pos);
-						elementCall.selector = messageSend.selector;
-						elementCall.arguments = messageSend.arguments;
-						elementCall.nameSourcePosition = messageSend.nameSourcePosition;
-						s.action = elementCall;
+						messageSend.receiver = new SingleNameReference(elementName, pos);
+						s.action = messageSend;
 						s.resolve(this.method.scope);
+						messageSend.receiver = receiver;
 					} else {
 						e.resolveType(this.method.scope);
 					}
@@ -544,7 +540,7 @@ public class FormalSpecification {
 			}
 			
 			private void checkMethodReference(long nameSourcePosition, MethodBinding binding) {
-				if (binding != null && binding.declaringClass != null) // https://github.com/fsc4j/fsc4j/issues/13
+				if (binding != null && binding.declaringClass != null && !(binding instanceof ProblemMethodBinding)) // https://github.com/fsc4j/fsc4j/issues/13
 					if (!isVisible(binding.declaringClass) || !isVisible(binding.modifiers, binding.declaringClass.fPackage))
 						thisScope.problemReporter().notVisibleMethod(nameSourcePosition, binding);
 			}
