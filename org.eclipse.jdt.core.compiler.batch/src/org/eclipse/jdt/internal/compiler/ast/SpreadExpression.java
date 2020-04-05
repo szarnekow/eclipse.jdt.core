@@ -9,7 +9,7 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public class SpreadExpression extends Expression {
 	
-	Expression body;
+	public Expression body;
 	
 	public SpreadExpression(int sourceStart, Expression body) {
 		this.body = body;
