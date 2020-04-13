@@ -579,6 +579,13 @@ public class s4jie2TestSuite {
 	    testCompileAndRun(true, "effect_clauses_success", true, "", "");
 	    testCompileAndRun(true, "abstract_methods", true, "Success!\n", "");
 	    testCompileAndRun(true, "old_exception", true, "Success\nSuccess\n", "");
+	    testCompile("issue16", false, "", "----------\n" + 
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" + 
+	    		"	* @invar | ( */\n" + 
+	    		"	           ^\n" + 
+	    		"Syntax error on token \"(\", delete this token\n" + 
+	    		"----------\n" + 
+	    		"1 problem (1 error)\n");
 	    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

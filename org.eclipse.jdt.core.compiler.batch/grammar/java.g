@@ -1835,7 +1835,9 @@ PrimaryNoNewArray -> ArrayAccess
 --                   Start of rules for JSR 335
 -----------------------------------------------------------------------
 
-PrimaryNoNewArray -> LambdaExpression
+Expression -> ExpressionLambdaExpression
+
+PrimaryNoNewArray -> BlockLambdaExpression
 PrimaryNoNewArray -> ReferenceExpression
 /:$readableName Expression:/
 
@@ -1889,7 +1891,12 @@ IdentifierOrNew ::= 'new'
 /:$readableName IdentifierOrNew:/
 /:$compliance 1.8:/
 
-LambdaExpression ::= LambdaParameters '->' LambdaBody
+ExpressionLambdaExpression ::= LambdaParameters '->' Expression
+/.$putCase consumeExpressionLambdaExpression(); $break ./
+/:$readableName LambdaExpression:/
+/:$compliance 1.8:/
+
+BlockLambdaExpression ::= LambdaParameters '->' Block
 /.$putCase consumeLambdaExpression(); $break ./
 /:$readableName LambdaExpression:/
 /:$compliance 1.8:/
@@ -1929,17 +1936,6 @@ TypeElidedFormalParameterList ::= TypeElidedFormalParameterList ',' TypeElidedFo
 TypeElidedFormalParameter ::= Modifiersopt Identifier
 /.$putCase consumeTypeElidedLambdaParameter(true); $break ./
 /:$readableName TypeElidedFormalParameter:/
-/:$compliance 1.8:/
-
--- A lambda body of the form x is really '{' return x; '}'
-LambdaBody -> ElidedLeftBraceAndReturn Expression ElidedSemicolonAndRightBrace
-LambdaBody -> Block
-/:$readableName LambdaBody:/
-/:$compliance 1.8:/
-
-ElidedLeftBraceAndReturn ::= $empty
-/.$putCase consumeElidedLeftBraceAndReturn(); $break ./
-/:$readableName ElidedLeftBraceAndReturn:/
 /:$compliance 1.8:/
 
 -----------------------------------------------------------------------
@@ -2311,7 +2307,6 @@ AssignmentOperator ::= '|='
 -- For handling lambda expressions, we need to know when a full Expression
 -- has been reduced.
 Expression ::= AssignmentExpression
-/.$putCase consumeExpression(); $break ./
 /:$readableName Expression:/
 /:$recovery_template Identifier:/
 
