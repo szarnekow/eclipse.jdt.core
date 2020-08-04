@@ -83,6 +83,7 @@ public class TypeDeclaration extends Statement implements ProblemSeverities, Ref
 	
 	public Expression[] invariants;
 	public MethodDeclaration classRepresentationInvariantsMethod;
+	public MethodDeclaration packageRepresentationInvariantsMethod;
 
 	public QualifiedAllocationExpression allocation; // for anonymous only
 	public TypeDeclaration enclosingType; // for member types only
@@ -963,12 +964,26 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 	}
 	{
 		ArrayList<Expression> classRepresentationInvariants = null;
+		ArrayList<Expression> packageRepresentationInvariants = null;
 		if (this.fields != null)
 			for (FieldDeclaration field : this.fields)
-				if ((field.modifiers & ClassFileConstants.AccPrivate) != 0 && (field.modifiers & ClassFileConstants.AccStatic) == 0 && field.invariants != null) {
-					if (classRepresentationInvariants == null)
-						classRepresentationInvariants = new ArrayList<>();
-					classRepresentationInvariants.addAll(Arrays.asList(field.invariants));
+				if ((field.modifiers & ClassFileConstants.AccStatic) == 0 && field.invariants != null) {
+					if ((field.modifiers & ClassFileConstants.AccPrivate) != 0) {
+						if (classRepresentationInvariants == null)
+							classRepresentationInvariants = new ArrayList<>();
+						classRepresentationInvariants.addAll(Arrays.asList(field.invariants));
+					} else if ((field.modifiers & (ClassFileConstants.AccProtected | ClassFileConstants.AccPublic)) == 0) {
+						if (packageRepresentationInvariants == null)
+							packageRepresentationInvariants = new ArrayList<>();
+						packageRepresentationInvariants.addAll(Arrays.asList(field.invariants));
+					}
+				}
+		if (this.methods != null)
+			for (AbstractMethodDeclaration method : this.methods)
+				if ((method.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate | ClassFileConstants.AccProtected | ClassFileConstants.AccPublic)) == 0 && method.formalSpecification != null && method.formalSpecification.invariants != null) {
+					if (packageRepresentationInvariants == null)
+						packageRepresentationInvariants = new ArrayList<>();
+					packageRepresentationInvariants.addAll(Arrays.asList(method.formalSpecification.invariants));
 				}
 		if (classRepresentationInvariants != null) {
 			this.classRepresentationInvariantsMethod = new MethodDeclaration(this.compilationResult);
@@ -987,6 +1002,24 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 				body.add(new AssertStatement(invariant, invariant.sourceStart));
 			this.classRepresentationInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
 			this.classRepresentationInvariantsMethod.analyseCode(this.scope, parentContext, flowInfo.copy());
+		}
+		if (packageRepresentationInvariants != null) {
+			this.packageRepresentationInvariantsMethod = new MethodDeclaration(this.compilationResult);
+			this.packageRepresentationInvariantsMethod.bodyStart = this.declarationSourceStart;
+			this.packageRepresentationInvariantsMethod.bodyEnd = this.declarationSourceEnd;
+			this.packageRepresentationInvariantsMethod.binding = new MethodBinding(
+					ClassFileConstants.AccPublic,
+					"$packageRepresentationInvariants".toCharArray(), //$NON-NLS-1$
+					TypeBinding.VOID,
+					null,
+					null,
+					this.binding);
+			this.packageRepresentationInvariantsMethod.scope = new MethodScope(this.scope, this.packageRepresentationInvariantsMethod, false);
+			ArrayList<Statement> body = new ArrayList<>();
+			for (Expression invariant : packageRepresentationInvariants)
+				body.add(new AssertStatement(invariant, invariant.sourceStart));
+			this.packageRepresentationInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
+			this.packageRepresentationInvariantsMethod.analyseCode(this.scope, parentContext, flowInfo.copy());
 		}
 	}
 	// enable enum support ?

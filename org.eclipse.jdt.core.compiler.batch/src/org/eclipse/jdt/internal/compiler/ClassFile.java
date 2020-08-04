@@ -1204,7 +1204,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			int codeAttributeOffset = this.contentsOffset;
 			generateCodeAttributeHeader();
 			this.codeStream.reset(type.classRepresentationInvariantsMethod, this);
-			type.classRepresentationInvariantsMethod.scope.computeLocalVariablePositions(1, codeStream);
+			type.classRepresentationInvariantsMethod.scope.computeLocalVariablePositions(1, this.codeStream);
 			for (Statement statement : type.classRepresentationInvariantsMethod.statements)
 				statement.generateCode(type.classRepresentationInvariantsMethod.scope, this.codeStream);
 			this.codeStream.return_();
@@ -1213,6 +1213,24 @@ public class ClassFile implements TypeConstants, TypeIds {
 			this.completeCodeAttribute(codeAttributeOffset, type.classRepresentationInvariantsMethod.scope);
 			attributeNumber++;
 			this.completeMethodInfo(type.classRepresentationInvariantsMethod.binding, methodAttributeOffset, attributeNumber);
+		}
+		if (type.packageRepresentationInvariantsMethod != null) {
+			this.codeStream.wideMode = false;
+			generateMethodInfoHeader(type.packageRepresentationInvariantsMethod.binding);
+			int methodAttributeOffset = this.contentsOffset;
+			int attributeNumber = generateMethodInfoAttributes(type.packageRepresentationInvariantsMethod.binding);
+			int codeAttributeOffset = this.contentsOffset;
+			generateCodeAttributeHeader();
+			this.codeStream.reset(type.packageRepresentationInvariantsMethod, this);
+			type.packageRepresentationInvariantsMethod.scope.computeLocalVariablePositions(1, this.codeStream);
+			for (Statement statement : type.packageRepresentationInvariantsMethod.statements)
+				statement.generateCode(type.packageRepresentationInvariantsMethod.scope, this.codeStream);
+			this.codeStream.return_();
+			this.codeStream.exitUserScope(type.packageRepresentationInvariantsMethod.scope);
+			this.codeStream.recordPositionsFrom(0, type.sourceEnd);
+			this.completeCodeAttribute(codeAttributeOffset, type.packageRepresentationInvariantsMethod.scope);
+			attributeNumber++;
+			this.completeMethodInfo(type.packageRepresentationInvariantsMethod.binding, methodAttributeOffset, attributeNumber);
 		}
 	}
 

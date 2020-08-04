@@ -483,6 +483,11 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 					codeStream.aload_0();
 					codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
 				}
+				AbstractMethodDeclaration packageRepresentationInvariantsMethod = (this.modifiers & (ClassFileConstants.AccPublic | ClassFileConstants.AccProtected)) != 0 ? this.scope.enclosingClassScope().referenceContext.packageRepresentationInvariantsMethod : null;
+				if (packageRepresentationInvariantsMethod != null) {
+					codeStream.aload_0();
+					codeStream.invoke(Opcodes.OPC_invokespecial, packageRepresentationInvariantsMethod.binding, packageRepresentationInvariantsMethod.binding.declaringClass);
+				}
 			}
 			if (this.formalSpecification != null)
 				this.formalSpecification.generatePostconditionCheck(codeStream);
