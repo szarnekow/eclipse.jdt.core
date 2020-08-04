@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 
 import org.eclipse.jdt.internal.compiler.batch.Main;
 
@@ -73,6 +74,10 @@ public class s4jie2TestSuite {
 	}
 
 	private static final String binPath = "s4jie2-tests/bin";
+	private static final String multifileBinPath = "s4jie2-tests/bin_multifile";
+	private static final String junitPath = System.getenv("JUNIT_PATH");
+	private static final String junitPlatformConsoleStandalonePath = junitPath;
+	private static final String pathSeparator = System.getProperty("path.separator");
 
 	public static void testCompile(String filename, boolean expectedSuccess, String outExpected, String errExpected) {
 		testCompile(false, filename, expectedSuccess, outExpected, errExpected);
@@ -102,6 +107,34 @@ public class s4jie2TestSuite {
 		System.out.println("PASS Test " + filename + " compile success");
 	}
 
+	@SuppressWarnings("deprecation")
+	public static void testCompileMultifile(String rootDirectory, boolean expectedSuccess, String outExpected, String errExpected) {
+		System.out.println("     Multifile test " + rootDirectory + " start");
+		StringWriter outWriter = new StringWriter();
+		StringWriter errWriter = new StringWriter();
+		String path = "s4jie2-tests/src_multifile/" + rootDirectory;
+		String fullPath = new File(path).getAbsolutePath();
+		ArrayList<String> classPath = new ArrayList<>();
+		classPath.add(junitPath);
+		if (!rootDirectory.equals("logicalcollections"))
+			classPath.add(multifileBinPath + "/logicalcollections");
+		String classPathString = String.join(pathSeparator, classPath);
+		String args = "-11 -cp " + classPathString + " -proc:none " + path + " -g -d " + multifileBinPath + "/" + rootDirectory;
+		if (Main.compile(args, new PrintWriter(outWriter), new PrintWriter(errWriter)) != expectedSuccess) {
+			System.err.println("FAIL compiler success: expected: " + expectedSuccess + "; actual: " + !expectedSuccess);
+			System.err.println("=== standard output start ===");
+			System.err.println(outWriter.toString().replace(fullPath, "SOURCE_ROOT_PATH"));
+			System.err.println("=== standard output end ===");
+			System.err.println("=== standard error start ===");
+			System.err.println(errWriter.toString().replace(fullPath, "SOURCE_ROOT_PATH"));
+			System.err.println("=== standard error end ===");
+			System.exit(1);
+		}
+		assertEquals(outWriter.toString().replace(fullPath, "SOURCE_ROOT_PATH"), outExpected, "standard output");
+		assertEquals(errWriter.toString().replace(fullPath, "SOURCE_ROOT_PATH"), errExpected, "standard error");
+		System.out.println("PASS Multifile test " + rootDirectory + " compile success");
+	}
+
 	public static void readFullyInto(InputStream stream, StringBuilder builder) {
 		InputStreamReader reader = new InputStreamReader(stream);
 		char[] buffer = new char[65536];
@@ -121,10 +154,7 @@ public class s4jie2TestSuite {
 		testCompile(filename, true, "", "");
 
 		String classpath = binPath+"/"+filename;
-		String java10Home = System.getenv("JAVA_10_HOME");
-		if (java10Home == null)
-			throw new AssertionError("Please make JAVA_10_HOME point to a Java 10 or later JRE or JDK");
-		Process process = new ProcessBuilder(java10Home + "/bin/java", "-classpath", classpath, enableAssertions ? "-ea" : "-da", "Main").start();
+		Process process = new ProcessBuilder(System.getProperty("java.home") + "/bin/java", "-classpath", classpath, enableAssertions ? "-ea" : "-da", "Main").start();
 		StringBuilder stdoutBuffer = new StringBuilder();
 		Thread stdoutThread = new Thread(() -> readFullyInto(process.getInputStream(), stdoutBuffer));
 		stdoutThread.start();
@@ -157,9 +187,52 @@ public class s4jie2TestSuite {
 		System.out.println("PASS Test "+ filename + " execution success");
 	}
 
+	public static void testCompileAndRunMultifile(String rootDirectory, boolean expectedSuccess, String outExpected, String errExpected) throws IOException {
+		testCompileMultifile(rootDirectory, true, "", "");
+
+		String classpath =
+				//junitPath + pathSeparator +
+				junitPlatformConsoleStandalonePath + pathSeparator +
+				multifileBinPath + "/logicalcollections" + pathSeparator +
+				multifileBinPath + "/" + rootDirectory;
+		Process process = new ProcessBuilder(System.getProperty("java.home") + "/bin/java", "-classpath", classpath, "-ea", "org.junit.platform.console.ConsoleLauncher", "--fail-if-no-tests", "--disable-banner", "-details-theme=ascii", "--disable-ansi-colors", "--include-classname=.*", "--scan-classpath=" + multifileBinPath + "/" + rootDirectory).start();
+		StringBuilder stdoutBuffer = new StringBuilder();
+		Thread stdoutThread = new Thread(() -> readFullyInto(process.getInputStream(), stdoutBuffer));
+		stdoutThread.start();
+		StringBuilder stderrBuffer = new StringBuilder();
+		Thread stderrThread = new Thread(() -> readFullyInto(process.getErrorStream(), stderrBuffer));
+		stderrThread.start();
+		int exitCode;
+		try {
+			exitCode = process.waitFor();
+			stdoutThread.join();
+			stderrThread.join();
+		} catch (InterruptedException e) {
+			throw new AssertionError(e);
+		}
+		String stdout = stdoutBuffer.toString().replace("Thanks for using JUnit! Support its development at https://junit.org/sponsoring\n\n", "").trim().replaceFirst("Test run finished after [0-9]+ ms", "Test run finished after XX ms");
+		String stderr = stderrBuffer.toString();
+
+		if ((exitCode == 0) != expectedSuccess) {
+			System.err.println("FAIL execution success: expected: " + expectedSuccess + "; actual: exit code " + exitCode);
+			System.err.println("=== standard output start ===");
+			System.err.println(stdout);
+			System.err.println("=== standard output end ===");
+			System.err.println("=== standard error start ===");
+			System.err.println(stderr);
+			System.err.println("=== standard error end ===");
+			System.exit(1);
+		}
+		assertEquals(stdout, outExpected, "standard output");
+		assertEquals(stderr, errExpected, "standard error");
+		System.out.println("PASS Multifile test "+ rootDirectory + " execution success");
+	}
+
 	public static void main(String[] args) throws IOException {
 		if (new File(binPath).exists())
 			deleteFileTree(binPath);
+		if (new File(multifileBinPath).exists())
+			deleteFileTree(multifileBinPath);
 
 		testCompile("Minimal", true, "", "");
 
@@ -382,12 +455,12 @@ public class s4jie2TestSuite {
 	    		"----------\n" +
 	    		"1 problem (1 error)\n");
 	    testCompile("nested_lambda", false, "",
-	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" + 
-	    		"	* @post | \n" + 
-	    		"	  ^^^^^\n" + 
-	    		"Expression expected in formal part\n" + 
-	    		"----------\n" + 
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 9)\n" +
+	    		"	* @post | \n" +
+	    		"	  ^^^^^\n" +
+	    		"Expression expected in formal part\n" +
+	    		"----------\n" +
 	    		"1 problem (1 error)\n");
 	    testCompile("throws_may_throw_syntax_error", false, "",
 	    		"----------\n" +
@@ -403,191 +476,651 @@ public class s4jie2TestSuite {
 	    		"----------\n" +
 	    		"2 problems (2 errors)\n");
 	    testCompile("throws_may_throw_resolve_error", false, "",
-	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
-	    		"	* @throws IllegalArgumentException | 10000 <= y\n" + 
-	    		"	                                              ^\n" + 
-	    		"y cannot be resolved to a variable\n" + 
-	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	*    | 10000 <= z\n" + 
-	    		"	                ^\n" + 
-	    		"The field Foo.z is not visible\n" + 
-	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 14)\n" + 
-	    		"	*    | 5000 <= y\n" + 
-	    		"	               ^\n" + 
-	    		"y cannot be resolved to a variable\n" + 
-	    		"----------\n" + 
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 15)\n" + 
-	    		"	* @may_throw IllegalArgumentException | 5000 <= z \n" + 
-	    		"	                                                ^\n" + 
-	    		"The field Foo.z is not visible\n" + 
-	    		"----------\n" + 
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" +
+	    		"	* @throws IllegalArgumentException | 10000 <= y\n" +
+	    		"	                                              ^\n" +
+	    		"y cannot be resolved to a variable\n" +
+	    		"----------\n" +
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" +
+	    		"	*    | 10000 <= z\n" +
+	    		"	                ^\n" +
+	    		"The field Foo.z is not visible\n" +
+	    		"----------\n" +
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 14)\n" +
+	    		"	*    | 5000 <= y\n" +
+	    		"	               ^\n" +
+	    		"y cannot be resolved to a variable\n" +
+	    		"----------\n" +
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 15)\n" +
+	    		"	* @may_throw IllegalArgumentException | 5000 <= z \n" +
+	    		"	                                                ^\n" +
+	    		"The field Foo.z is not visible\n" +
+	    		"----------\n" +
 	    		"4 problems (4 errors)\n");
 	    testCompileAndRun(true, "throws_may_throw_success", true,
-	    		"Caught the IAE\n" + 
+	    		"Caught the IAE\n" +
 	    		"Caught the IAE\n", "");
 	    testCompile("invariants_syntax_error", false, "",
-	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" + 
-	    		"	* @invar | 10 <\n" + 
-	    		"	              ^\n" + 
-	    		"Syntax error on token \"<\", Expression expected after this token\n" + 
-	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 7)\n" + 
-	    		"	* @invar | 10 <\n" + 
-	    		"	              ^\n" + 
-	    		"Syntax error on token \"<\", Expression expected after this token\n" + 
-	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @invar | 10 <\n" + 
-	    		"	              ^\n" + 
-	    		"Syntax error on token \"<\", Expression expected after this token\n" + 
-	    		"----------\n" + 
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" +
+	    		"	* @invar | 10 <\n" +
+	    		"	              ^\n" +
+	    		"Syntax error on token \"<\", Expression expected after this token\n" +
+	    		"----------\n" +
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 7)\n" +
+	    		"	* @invar | 10 <\n" +
+	    		"	              ^\n" +
+	    		"Syntax error on token \"<\", Expression expected after this token\n" +
+	    		"----------\n" +
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @invar | 10 <\n" +
+	    		"	              ^\n" +
+	    		"Syntax error on token \"<\", Expression expected after this token\n" +
+	    		"----------\n" +
 	    		"3 problems (3 errors)\n");
 	    testCompile("invariants_resolve_error", false, "",
-	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" + 
-	    		"	* @invar | 10 < true\n" + 
-	    		"	           ^^^^^^^^^\n" + 
-	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
-	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 3)\n" + 
-	    		"	* @invar | 10 < y\n" + 
-	    		"	                ^\n" + 
-	    		"y cannot be resolved to a variable\n" + 
-	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 4)\n" + 
-	    		"	* @invar | 10 < x\n" + 
-	    		"	                ^\n" + 
-	    		"The field invariants_resolve_error.x is not visible\n" + 
-	    		"----------\n" + 
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 5)\n" + 
-	    		"	* @invar | 10 < getX()\n" + 
-	    		"	                ^^^^\n" + 
-	    		"The method getX() from the type invariants_resolve_error is not visible\n" + 
-	    		"----------\n" + 
-	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	* @invar | 10 < true\n" + 
-	    		"	           ^^^^^^^^^\n" + 
-	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
-	    		"----------\n" + 
-	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
-	    		"	* @invar | 10 < y\n" + 
-	    		"	                ^\n" + 
-	    		"y cannot be resolved to a variable\n" + 
-	    		"----------\n" + 
-	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
-	    		"	* @invar | 10 < true\n" + 
-	    		"	           ^^^^^^^^^\n" + 
-	    		"The operator < is undefined for the argument type(s) int, boolean\n" + 
-	    		"----------\n" + 
-	    		"8. ERROR in SOURCE_FILE_FULL_PATH (at line 17)\n" + 
-	    		"	* @invar | 10 < x\n" + 
-	    		"	                ^\n" + 
-	    		"The field invariants_resolve_error.x is not visible\n" + 
-	    		"----------\n" + 
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" +
+	    		"	* @invar | 10 < true\n" +
+	    		"	           ^^^^^^^^^\n" +
+	    		"The operator < is undefined for the argument type(s) int, boolean\n" +
+	    		"----------\n" +
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 3)\n" +
+	    		"	* @invar | 10 < y\n" +
+	    		"	                ^\n" +
+	    		"y cannot be resolved to a variable\n" +
+	    		"----------\n" +
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 4)\n" +
+	    		"	* @invar | 10 < x\n" +
+	    		"	                ^\n" +
+	    		"The field invariants_resolve_error.x is not visible\n" +
+	    		"----------\n" +
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 5)\n" +
+	    		"	* @invar | 10 < getX()\n" +
+	    		"	                ^^^^\n" +
+	    		"The method getX() from the type invariants_resolve_error is not visible\n" +
+	    		"----------\n" +
+	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" +
+	    		"	* @invar | 10 < true\n" +
+	    		"	           ^^^^^^^^^\n" +
+	    		"The operator < is undefined for the argument type(s) int, boolean\n" +
+	    		"----------\n" +
+	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" +
+	    		"	* @invar | 10 < y\n" +
+	    		"	                ^\n" +
+	    		"y cannot be resolved to a variable\n" +
+	    		"----------\n" +
+	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" +
+	    		"	* @invar | 10 < true\n" +
+	    		"	           ^^^^^^^^^\n" +
+	    		"The operator < is undefined for the argument type(s) int, boolean\n" +
+	    		"----------\n" +
+	    		"8. ERROR in SOURCE_FILE_FULL_PATH (at line 17)\n" +
+	    		"	* @invar | 10 < x\n" +
+	    		"	                ^\n" +
+	    		"The field invariants_resolve_error.x is not visible\n" +
+	    		"----------\n" +
 	    		"8 problems (8 errors)\n");
 	    testCompileAndRun(true, "invariants_success", true, "", "");
 	    testCompile("effect_clauses_syntax_error", false, "",
-	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" + 
-	    		"	* @inspects | this, ...stuff, other,\n" + 
-	    		"	                                   ^\n" + 
-	    		"Syntax error on token \",\", Expression expected after this token\n" + 
-	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
-	    		"	* @mutates | quux, bar(\n" + 
-	    		"	                      ^\n" + 
-	    		"Syntax error, insert \")\" to complete Expression\n" + 
-	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" + 
-	    		"	* @mutates_properties | bar)\n" + 
-	    		"	                           ^\n" + 
-	    		"Syntax error on token \")\", delete this token\n" + 
-	    		"----------\n" + 
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 21)\n" + 
-	    		"	* @creates | result -\n" + 
-	    		"	                    ^\n" + 
-	    		"Syntax error on token \"-\", -- expected\n" + 
-	    		"----------\n" + 
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 6)\n" +
+	    		"	* @inspects | this, ...stuff, other,\n" +
+	    		"	                                   ^\n" +
+	    		"Syntax error on token \",\", Expression expected after this token\n" +
+	    		"----------\n" +
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" +
+	    		"	* @mutates | quux, bar(\n" +
+	    		"	                      ^\n" +
+	    		"Syntax error, insert \")\" to complete Expression\n" +
+	    		"----------\n" +
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n" +
+	    		"	* @mutates_properties | bar)\n" +
+	    		"	                           ^\n" +
+	    		"Syntax error on token \")\", delete this token\n" +
+	    		"----------\n" +
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 21)\n" +
+	    		"	* @creates | result -\n" +
+	    		"	                    ^\n" +
+	    		"Syntax error on token \"-\", -- expected\n" +
+	    		"----------\n" +
 	    		"4 problems (4 errors)\n");
 	    testCompile("effect_clauses_resolve_error", false, "",
-	    		"----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	* @inspects | this, ...stuff, other, zazz, x\n" + 
-	    		"	                                     ^^^^\n" + 
-	    		"zazz cannot be resolved to a variable\n" + 
-	    		"----------\n" + 
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" + 
-	    		"	* @inspects | this, ...stuff, other, zazz, x\n" + 
-	    		"	                                           ^\n" + 
-	    		"The field Foo.x is not visible\n" + 
-	    		"----------\n" + 
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
-	    		"	* @mutates | quux, bar(3), ...x, x\n" + 
-	    		"	                   ^^^\n" + 
-	    		"The method bar() in the type Foo is not applicable for the arguments (int)\n" + 
-	    		"----------\n" + 
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
-	    		"	* @mutates | quux, bar(3), ...x, x\n" + 
-	    		"	                              ^\n" + 
-	    		"The field Foo.x is not visible\n" + 
-	    		"----------\n" + 
-	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" + 
-	    		"	* @mutates | quux, bar(3), ...x, x\n" + 
-	    		"	                                 ^\n" + 
-	    		"The field Foo.x is not visible\n" + 
-	    		"----------\n" + 
-	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
-	    		"	                               ^^^^^^\n" + 
-	    		"Method calls with arguments are not supported here\n" + 
-	    		"----------\n" + 
-	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
-	    		"	                                       ^^^^^\n" + 
-	    		"Method call expected\n" + 
-	    		"----------\n" + 
-	    		"8. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
-	    		"	                                                  ^\n" + 
-	    		"Can only iterate over an array or an instance of java.lang.Iterable\n" + 
-	    		"----------\n" + 
-	    		"9. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
-	    		"	                                                  ^\n" + 
-	    		"The field Foo.x is not visible\n" + 
-	    		"----------\n" + 
-	    		"10. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
-	    		"	                                                     ^^^\n" + 
-	    		"The method bar() is undefined for the type Object\n" + 
-	    		"----------\n" + 
-	    		"11. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
-	    		"	                                                            ^\n" + 
-	    		"Method call expected\n" + 
-	    		"----------\n" + 
-	    		"12. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" + 
-	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" + 
-	    		"	                                                                          ^^^^\n" + 
-	    		"The method quux() is undefined for the type Foo\n" + 
-	    		"----------\n" + 
+	    		"----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" +
+	    		"	* @inspects | this, ...stuff, other, zazz, x\n" +
+	    		"	                                     ^^^^\n" +
+	    		"zazz cannot be resolved to a variable\n" +
+	    		"----------\n" +
+	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" +
+	    		"	* @inspects | this, ...stuff, other, zazz, x\n" +
+	    		"	                                           ^\n" +
+	    		"The field Foo.x is not visible\n" +
+	    		"----------\n" +
+	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" +
+	    		"	* @mutates | quux, bar(3), ...x, x\n" +
+	    		"	                   ^^^\n" +
+	    		"The method bar() in the type Foo is not applicable for the arguments (int)\n" +
+	    		"----------\n" +
+	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" +
+	    		"	* @mutates | quux, bar(3), ...x, x\n" +
+	    		"	                              ^\n" +
+	    		"The field Foo.x is not visible\n" +
+	    		"----------\n" +
+	    		"5. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n" +
+	    		"	* @mutates | quux, bar(3), ...x, x\n" +
+	    		"	                                 ^\n" +
+	    		"The field Foo.x is not visible\n" +
+	    		"----------\n" +
+	    		"6. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" +
+	    		"	                               ^^^^^^\n" +
+	    		"Method calls with arguments are not supported here\n" +
+	    		"----------\n" +
+	    		"7. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" +
+	    		"	                                       ^^^^^\n" +
+	    		"Method call expected\n" +
+	    		"----------\n" +
+	    		"8. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" +
+	    		"	                                                  ^\n" +
+	    		"Can only iterate over an array or an instance of java.lang.Iterable\n" +
+	    		"----------\n" +
+	    		"9. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" +
+	    		"	                                                  ^\n" +
+	    		"The field Foo.x is not visible\n" +
+	    		"----------\n" +
+	    		"10. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" +
+	    		"	                                                     ^^^\n" +
+	    		"The method bar() is undefined for the type Object\n" +
+	    		"----------\n" +
+	    		"11. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" +
+	    		"	                                                            ^\n" +
+	    		"Method call expected\n" +
+	    		"----------\n" +
+	    		"12. ERROR in SOURCE_FILE_FULL_PATH (at line 12)\n" +
+	    		"	* @mutates_properties | bar(), baz(3), other, (...x).bar(), x, (...stuff).quux()\n" +
+	    		"	                                                                          ^^^^\n" +
+	    		"The method quux() is undefined for the type Foo\n" +
+	    		"----------\n" +
 	    		"12 problems (12 errors)\n");
 	    testCompileAndRun(true, "effect_clauses_success", true, "", "");
 	    testCompileAndRun(true, "abstract_methods", true, "Success!\n", "");
 	    testCompileAndRun(true, "old_exception", true, "Success\nSuccess\n", "");
-	    testCompile("issue16", false, "", "----------\n" + 
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" + 
-	    		"	* @invar | ( */\n" + 
-	    		"	           ^\n" + 
-	    		"Syntax error on token \"(\", delete this token\n" + 
-	    		"----------\n" + 
+	    testCompile("issue16", false, "", "----------\n" +
+	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" +
+	    		"	* @invar | ( */\n" +
+	    		"	           ^\n" +
+	    		"Syntax error on token \"(\", delete this token\n" +
+	    		"----------\n" +
 	    		"1 problem (1 error)\n");
-	    
+	    testCompileMultifile("logicalcollections", true, "", "");
+	    testCompileAndRunMultifile("fractions", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| +-- FractionContainerTest [OK]\n"
+	    		+ "| | +-- testAdd() [OK]\n"
+	    		+ "| | +-- testFinancial() [OK]\n"
+	    		+ "| | '-- testEquals() [OK]\n"
+	    		+ "| '-- FractionTest [OK]\n"
+	    		+ "|   '-- test() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[         5 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[         5 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[         5 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[         4 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[         4 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[         4 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+	    testCompileAndRunMultifile("teams", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| '-- TeamsTest [OK]\n"
+	    		+ "|   '-- test() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[         4 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[         4 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[         4 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[         1 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[         1 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[         1 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+	    testCompileAndRunMultifile("bigteams", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| '-- BigTeamsTest [OK]\n"
+	    		+ "|   '-- test() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[         4 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[         4 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[         4 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[         1 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[         1 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[         1 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+	    testCompileAndRunMultifile("bigteams_nested_abs", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| '-- BigTeamsTest [OK]\n"
+	    		+ "|   '-- test() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[         4 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[         4 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[         4 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[         1 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[         1 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[         1 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+	    testCompileAndRunMultifile("html", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| '-- HtmlTest [OK]\n"
+	    		+ "|   '-- test() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[         4 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[         4 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[         4 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[         1 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[         1 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[         1 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+	    testCompileAndRunMultifile("networks", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| +-- NodeAppearancesTest [OK]\n"
+	    		+ "| | '-- test() [OK]\n"
+	    		+ "| '-- NodesTest [OK]\n"
+	    		+ "|   '-- test() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[         5 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[         5 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[         5 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[         2 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[         2 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[         2 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+	    testCompileAndRunMultifile("exams_rooms", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| '-- ExamsRoomsTest [OK]\n"
+	    		+ "|   '-- test() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[         4 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[         4 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[         4 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[         1 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[         1 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[         1 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+	    testCompileAndRunMultifile("drawit", true,
+	    		".\n"
+	    		+ "+-- JUnit Jupiter [OK]\n"
+	    		+ "| +-- ExtentOfLeftTopWidthHeightTest [OK]\n"
+	    		+ "| | +-- testGetRight() [OK]\n"
+	    		+ "| | +-- testGetWidth() [OK]\n"
+	    		+ "| | +-- testGetTopLeft() [OK]\n"
+	    		+ "| | +-- testGetLeft() [OK]\n"
+	    		+ "| | +-- testWithLeft() [OK]\n"
+	    		+ "| | +-- testContains() [OK]\n"
+	    		+ "| | +-- testWithTop() [OK]\n"
+	    		+ "| | +-- testWithBottom() [OK]\n"
+	    		+ "| | +-- testGetBottom() [OK]\n"
+	    		+ "| | +-- testWithHeight() [OK]\n"
+	    		+ "| | +-- testGetHeight() [OK]\n"
+	    		+ "| | +-- testGetTop() [OK]\n"
+	    		+ "| | +-- testWithRight() [OK]\n"
+	    		+ "| | +-- testWithWidth() [OK]\n"
+	    		+ "| | '-- testGetBottomRight() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_LeavesOnly_NoSetExtent [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | '-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_LeavesOnly_NoSetExtent [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | '-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_Nonleaves_1Level_setExtent [OK]\n"
+	    		+ "| | +-- testSendToBack1() [OK]\n"
+	    		+ "| | +-- testSendToBack2() [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroupAt() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testGetSubgroup() [OK]\n"
+	    		+ "| | +-- testSendToBack_bringToFront() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroups() [OK]\n"
+	    		+ "| | +-- testBringToFront1() [OK]\n"
+	    		+ "| | +-- testBringToFront2() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| | '-- testGetSubgroupCount() [OK]\n"
+	    		+ "| +-- ExtentOfLeftTopRightBottomTest [OK]\n"
+	    		+ "| | +-- testGetRight() [OK]\n"
+	    		+ "| | +-- testGetWidth() [OK]\n"
+	    		+ "| | +-- testToString() [OK]\n"
+	    		+ "| | +-- testGetTopLeft() [OK]\n"
+	    		+ "| | +-- testGetLeft() [OK]\n"
+	    		+ "| | +-- testWithLeft() [OK]\n"
+	    		+ "| | +-- testEqualsObject() [OK]\n"
+	    		+ "| | +-- testContains() [OK]\n"
+	    		+ "| | +-- testHashCode() [OK]\n"
+	    		+ "| | +-- testWithTop() [OK]\n"
+	    		+ "| | +-- testWithBottom() [OK]\n"
+	    		+ "| | +-- testGetBottom() [OK]\n"
+	    		+ "| | +-- testWithHeight() [OK]\n"
+	    		+ "| | +-- testGetHeight() [OK]\n"
+	    		+ "| | +-- testGetTop() [OK]\n"
+	    		+ "| | +-- testWithRight() [OK]\n"
+	    		+ "| | +-- testWithWidth() [OK]\n"
+	    		+ "| | '-- testGetBottomRight() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_LeavesOnly_SetExtent [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | '-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| +-- RoundedPolygonTest [OK]\n"
+	    		+ "| | +-- testSetVertices_improper() [OK]\n"
+	    		+ "| | +-- testContains_true_on_edge() [OK]\n"
+	    		+ "| | +-- testContains_false() [OK]\n"
+	    		+ "| | +-- testUpdate_improper() [OK]\n"
+	    		+ "| | +-- testRemove_proper() [OK]\n"
+	    		+ "| | +-- testGetters() [OK]\n"
+	    		+ "| | +-- testRemove_improper() [OK]\n"
+	    		+ "| | +-- testContains_true_interior() [OK]\n"
+	    		+ "| | +-- testPreciseRoundedPolygonContainsTestStrategy() [OK]\n"
+	    		+ "| | +-- testSetVertices_proper() [OK]\n"
+	    		+ "| | +-- testFastRoundedPolygonContainsTestStrategy() [OK]\n"
+	    		+ "| | +-- testUpdate_proper() [OK]\n"
+	    		+ "| | +-- testContains_true_vertex() [OK]\n"
+	    		+ "| | +-- testSetRadius() [OK]\n"
+	    		+ "| | '-- testInsert_proper() [OK]\n"
+	    		+ "| +-- PointArraysTest [OK]\n"
+	    		+ "| | +-- testCopy() [OK]\n"
+	    		+ "| | +-- testCheckDefinesProperPolygon_coincidingVertices() [OK]\n"
+	    		+ "| | +-- testCheckDefinesProperPolygon_proper() [OK]\n"
+	    		+ "| | +-- testCheckDefinesProperPolygon_vertexOnEdge() [OK]\n"
+	    		+ "| | +-- testInsert() [OK]\n"
+	    		+ "| | +-- testCheckDefinesProperPolygon_intersectingEdges() [OK]\n"
+	    		+ "| | +-- testRemove() [OK]\n"
+	    		+ "| | '-- testUpdate() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_Nonleaves_1Level_setExtent [OK]\n"
+	    		+ "| | +-- testSendToBack1() [OK]\n"
+	    		+ "| | +-- testSendToBack2() [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroupAt() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testGetSubgroup() [OK]\n"
+	    		+ "| | +-- testSendToBack_bringToFront() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroups() [OK]\n"
+	    		+ "| | +-- testBringToFront1() [OK]\n"
+	    		+ "| | +-- testBringToFront2() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| | '-- testGetSubgroupCount() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_LeavesOnly_SetExtent [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | '-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| +-- IntPointTest [OK]\n"
+	    		+ "| | +-- testMinus() [OK]\n"
+	    		+ "| | +-- testPlus() [OK]\n"
+	    		+ "| | +-- testConstructorAndGetters() [OK]\n"
+	    		+ "| | +-- testLineSegmentsIntersect() [OK]\n"
+	    		+ "| | +-- testIsOnLineSegment() [OK]\n"
+	    		+ "| | +-- testAsDoublePoint() [OK]\n"
+	    		+ "| | '-- testEquals() [OK]\n"
+	    		+ "| +-- ExtentOfLeftTopRightBottomTest [OK]\n"
+	    		+ "| | +-- testGetRight() [OK]\n"
+	    		+ "| | +-- testGetWidth() [OK]\n"
+	    		+ "| | +-- testToString() [OK]\n"
+	    		+ "| | +-- testGetTopLeft() [OK]\n"
+	    		+ "| | +-- testGetLeft() [OK]\n"
+	    		+ "| | +-- testWithLeft() [OK]\n"
+	    		+ "| | +-- testEqualsObject() [OK]\n"
+	    		+ "| | +-- testContains() [OK]\n"
+	    		+ "| | +-- testHashCode() [OK]\n"
+	    		+ "| | +-- testWithTop() [OK]\n"
+	    		+ "| | +-- testWithBottom() [OK]\n"
+	    		+ "| | +-- testGetBottom() [OK]\n"
+	    		+ "| | +-- testWithHeight() [OK]\n"
+	    		+ "| | +-- testGetHeight() [OK]\n"
+	    		+ "| | +-- testGetTop() [OK]\n"
+	    		+ "| | +-- testWithRight() [OK]\n"
+	    		+ "| | +-- testWithWidth() [OK]\n"
+	    		+ "| | '-- testGetBottomRight() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_Nonleaves_1Level [OK]\n"
+	    		+ "| | +-- testSendToBack1() [OK]\n"
+	    		+ "| | +-- testSendToBack2() [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroupAt() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testGetSubgroup() [OK]\n"
+	    		+ "| | +-- testSendToBack_bringToFront() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroups() [OK]\n"
+	    		+ "| | +-- testBringToFront1() [OK]\n"
+	    		+ "| | +-- testBringToFront2() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| | '-- testGetSubgroupCount() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_Nonleaves_2Levels [OK]\n"
+	    		+ "| | +-- testSendToBack1() [OK]\n"
+	    		+ "| | +-- testSendToBack2() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_contains() [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_toGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetDrawingCommands() [OK]\n"
+	    		+ "| | +-- testGetSubgroupAt() [OK]\n"
+	    		+ "| | +-- testExporter() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testGetSubgroup() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_createControlPoints_move_bottomRight() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_createControlPoints_move() [OK]\n"
+	    		+ "| | +-- testSendToBack_bringToFront() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_createControlPoints_getLocation() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_toShapeCoordinates() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_createControlPoints_getLocation() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_getters() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_createControlPoints_remove() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_contains() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroups() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_toGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_toShapeCoordinates() [OK]\n"
+	    		+ "| | +-- testBringToFront1() [OK]\n"
+	    		+ "| | +-- testBringToFront2() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_getters() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_createControlPoints_move_upperLeft() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| | '-- testGetSubgroupCount() [OK]\n"
+	    		+ "| +-- ShapeGroupTest_Nonleaves_2Levels [OK]\n"
+	    		+ "| | +-- testSendToBack1() [OK]\n"
+	    		+ "| | +-- testSendToBack2() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_contains() [OK]\n"
+	    		+ "| | +-- testGetShape() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_toGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testGetOriginalExtent() [OK]\n"
+	    		+ "| | +-- testGetDrawingCommands() [OK]\n"
+	    		+ "| | +-- testGetSubgroupAt() [OK]\n"
+	    		+ "| | +-- testGetParentGroup() [OK]\n"
+	    		+ "| | +-- testGetSubgroup() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_createControlPoints_move_bottomRight() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_createControlPoints_move() [OK]\n"
+	    		+ "| | +-- testSendToBack_bringToFront() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_createControlPoints_getLocation() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_toShapeCoordinates() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_createControlPoints_getLocation() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_getters() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_createControlPoints_remove() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_contains() [OK]\n"
+	    		+ "| | +-- testGetExtent() [OK]\n"
+	    		+ "| | +-- testGetSubgroups() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_toGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_toShapeCoordinates() [OK]\n"
+	    		+ "| | +-- testBringToFront1() [OK]\n"
+	    		+ "| | +-- testBringToFront2() [OK]\n"
+	    		+ "| | +-- testRoundedPolygonShape_getters() [OK]\n"
+	    		+ "| | +-- testShapeGroupShape_createControlPoints_move_upperLeft() [OK]\n"
+	    		+ "| | +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "| | +-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "| | '-- testGetSubgroupCount() [OK]\n"
+	    		+ "| +-- ExtentOfLeftTopWidthHeightTest [OK]\n"
+	    		+ "| | +-- testGetRight() [OK]\n"
+	    		+ "| | +-- testGetWidth() [OK]\n"
+	    		+ "| | +-- testGetTopLeft() [OK]\n"
+	    		+ "| | +-- testGetLeft() [OK]\n"
+	    		+ "| | +-- testWithLeft() [OK]\n"
+	    		+ "| | +-- testContains() [OK]\n"
+	    		+ "| | +-- testWithTop() [OK]\n"
+	    		+ "| | +-- testWithBottom() [OK]\n"
+	    		+ "| | +-- testGetBottom() [OK]\n"
+	    		+ "| | +-- testWithHeight() [OK]\n"
+	    		+ "| | +-- testGetHeight() [OK]\n"
+	    		+ "| | +-- testGetTop() [OK]\n"
+	    		+ "| | +-- testWithRight() [OK]\n"
+	    		+ "| | +-- testWithWidth() [OK]\n"
+	    		+ "| | '-- testGetBottomRight() [OK]\n"
+	    		+ "| +-- IntVectorTest [OK]\n"
+	    		+ "| | +-- testAsDoubleVector() [OK]\n"
+	    		+ "| | +-- testConstructorAndGetters() [OK]\n"
+	    		+ "| | +-- testIsCollinearWith() [OK]\n"
+	    		+ "| | +-- testDotProduct() [OK]\n"
+	    		+ "| | '-- testCrossProduct() [OK]\n"
+	    		+ "| +-- DoubleVectorTest [OK]\n"
+	    		+ "| | +-- testScale() [OK]\n"
+	    		+ "| | +-- testPlus() [OK]\n"
+	    		+ "| | +-- testAsAngle() [OK]\n"
+	    		+ "| | +-- testConstructorAndGetters() [OK]\n"
+	    		+ "| | +-- testGetSize() [OK]\n"
+	    		+ "| | +-- testDotProduct() [OK]\n"
+	    		+ "| | '-- testCrossProduct() [OK]\n"
+	    		+ "| +-- DoublePointTest [OK]\n"
+	    		+ "| | +-- testMinus() [OK]\n"
+	    		+ "| | +-- testRound() [OK]\n"
+	    		+ "| | +-- testPlus() [OK]\n"
+	    		+ "| | '-- testConstructorAndGetters() [OK]\n"
+	    		+ "| '-- ShapeGroupTest_Nonleaves_1Level [OK]\n"
+	    		+ "|   +-- testSendToBack1() [OK]\n"
+	    		+ "|   +-- testSendToBack2() [OK]\n"
+	    		+ "|   +-- testGetShape() [OK]\n"
+	    		+ "|   +-- testGetOriginalExtent() [OK]\n"
+	    		+ "|   +-- testGetSubgroupAt() [OK]\n"
+	    		+ "|   +-- testGetParentGroup() [OK]\n"
+	    		+ "|   +-- testGetSubgroup() [OK]\n"
+	    		+ "|   +-- testSendToBack_bringToFront() [OK]\n"
+	    		+ "|   +-- testToInnerCoordinates_IntPoint() [OK]\n"
+	    		+ "|   +-- testGetExtent() [OK]\n"
+	    		+ "|   +-- testGetSubgroups() [OK]\n"
+	    		+ "|   +-- testBringToFront1() [OK]\n"
+	    		+ "|   +-- testBringToFront2() [OK]\n"
+	    		+ "|   +-- testToGlobalCoordinates() [OK]\n"
+	    		+ "|   +-- testToInnerCoordinates_IntVector() [OK]\n"
+	    		+ "|   '-- testGetSubgroupCount() [OK]\n"
+	    		+ "+-- JUnit Vintage [OK]\n"
+	    		+ "'-- JUnit Platform Suite [OK]\n"
+	    		+ "\n"
+	    		+ "Test run finished after XX ms\n"
+	    		+ "[        23 containers found      ]\n"
+	    		+ "[         0 containers skipped    ]\n"
+	    		+ "[        23 containers started    ]\n"
+	    		+ "[         0 containers aborted    ]\n"
+	    		+ "[        23 containers successful ]\n"
+	    		+ "[         0 containers failed     ]\n"
+	    		+ "[       267 tests found           ]\n"
+	    		+ "[         0 tests skipped         ]\n"
+	    		+ "[       267 tests started         ]\n"
+	    		+ "[         0 tests aborted         ]\n"
+	    		+ "[       267 tests successful      ]\n"
+	    		+ "[         0 tests failed          ]", "");
+
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
-	
+
 }
