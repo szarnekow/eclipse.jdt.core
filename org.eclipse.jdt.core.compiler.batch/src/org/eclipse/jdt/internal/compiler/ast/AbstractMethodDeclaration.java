@@ -351,6 +351,15 @@ public abstract class AbstractMethodDeclaration
 					argBinding.recordInitializationStartPC(0);
 				}
 			}
+			if (!this.binding.isPrivate() && !this.binding.isStatic()) {
+				AbstractMethodDeclaration classRepresentationInvariantsMethod = this.scope.enclosingClassScope().referenceContext.classRepresentationInvariantsMethod;
+				if (classRepresentationInvariantsMethod != null && FormalSpecification.isGetterName(this.selector)) {
+					int pc = codeStream.position;
+					codeStream.aload_0();
+					codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
+					codeStream.recordPositionsFrom(pc, this.bodyStart);
+				}
+			}
 			if (this.formalSpecification != null)
 				this.formalSpecification.generateCode(this.scope, codeStream);
 			if (this.statements != null) {
