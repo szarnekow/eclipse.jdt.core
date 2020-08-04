@@ -477,6 +477,13 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 			throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 		}
 		if ((this.bits & ASTNode.NeedFreeReturn) != 0) {
+			if ((this.modifiers & ClassFileConstants.AccPrivate) == 0) {
+				AbstractMethodDeclaration classRepresentationInvariantsMethod = this.scope.enclosingClassScope().referenceContext.classRepresentationInvariantsMethod;
+				if (classRepresentationInvariantsMethod != null) {
+					codeStream.aload_0();
+					codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
+				}
+			}
 			if (this.formalSpecification != null)
 				this.formalSpecification.generatePostconditionCheck(codeStream);
 			codeStream.return_();

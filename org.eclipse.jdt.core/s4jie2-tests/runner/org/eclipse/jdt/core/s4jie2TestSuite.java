@@ -1119,7 +1119,12 @@ public class s4jie2TestSuite {
 	    		+ "[         0 tests aborted         ]\n"
 	    		+ "[       267 tests successful      ]\n"
 	    		+ "[         0 tests failed          ]", "");
-
+	    testCompileAndRun(true, "invariants_fail", false, "",
+	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"	at invariants_fail.$classRepresentationInvariants(invariants_fail.java:5)\n" + 
+	    		"	at invariants_fail.<init>(invariants_fail.java:1)\n" + 
+	    		"	at Main.main(invariants_fail.java:14)\n");
+	    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
 

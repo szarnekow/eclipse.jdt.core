@@ -79,6 +79,7 @@ import org.eclipse.jdt.internal.compiler.ast.RequiresStatement;
 import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
+import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
@@ -1074,6 +1075,8 @@ public class ClassFile implements TypeConstants, TypeIds {
 
 		// add all methods (default abstract methods and synthetic)
 
+		addInvariantsMethods();
+
 		// default abstract methods
 		generateMissingAbstractMethods(this.referenceBinding.scope.referenceType().missingAbstractMethods, this.referenceBinding.scope.referenceCompilationUnit().compilationResult);
 
@@ -1189,6 +1192,27 @@ public class ClassFile implements TypeConstants, TypeIds {
 					}
 				}
 			} while (restart);
+		}
+	}
+	private void addInvariantsMethods() {
+		TypeDeclaration type = this.referenceBinding.scope.referenceContext;
+		if (type.classRepresentationInvariantsMethod != null) {
+			this.codeStream.wideMode = false;
+			generateMethodInfoHeader(type.classRepresentationInvariantsMethod.binding);
+			int methodAttributeOffset = this.contentsOffset;
+			int attributeNumber = generateMethodInfoAttributes(type.classRepresentationInvariantsMethod.binding);
+			int codeAttributeOffset = this.contentsOffset;
+			generateCodeAttributeHeader();
+			this.codeStream.reset(type.classRepresentationInvariantsMethod, this);
+			type.classRepresentationInvariantsMethod.scope.computeLocalVariablePositions(1, codeStream);
+			for (Statement statement : type.classRepresentationInvariantsMethod.statements)
+				statement.generateCode(type.classRepresentationInvariantsMethod.scope, this.codeStream);
+			this.codeStream.return_();
+			this.codeStream.exitUserScope(type.classRepresentationInvariantsMethod.scope);
+			this.codeStream.recordPositionsFrom(0, type.sourceEnd);
+			this.completeCodeAttribute(codeAttributeOffset, type.classRepresentationInvariantsMethod.scope);
+			attributeNumber++;
+			this.completeMethodInfo(type.classRepresentationInvariantsMethod.binding, methodAttributeOffset, attributeNumber);
 		}
 	}
 
@@ -4200,7 +4224,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 			LocalVariableBinding localVariable = this.codeStream.locals[i];
 			int initializationCount = localVariable.initializationCount;
 			if (initializationCount == 0) continue;
-			//if (localVariable.declaration == null) continue; // FSC4J: Show captured locals inside lambda expression 
+			//if (localVariable.declaration == null) continue; // FSC4J: Show captured locals inside lambda expression
 			if (localVariable.name[0] == ' ') continue;
 			final TypeBinding localVariableTypeBinding = localVariable.type;
 			boolean isParameterizedType = localVariableTypeBinding.isParameterizedType() || localVariableTypeBinding.isTypeVariable();
