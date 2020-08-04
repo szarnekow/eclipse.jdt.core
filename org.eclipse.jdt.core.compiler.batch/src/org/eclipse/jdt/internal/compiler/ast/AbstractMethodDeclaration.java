@@ -353,11 +353,18 @@ public abstract class AbstractMethodDeclaration
 			}
 			if (!this.binding.isPrivate() && !this.binding.isStatic()) {
 				AbstractMethodDeclaration classRepresentationInvariantsMethod = this.scope.enclosingClassScope().referenceContext.classRepresentationInvariantsMethod;
-				if (classRepresentationInvariantsMethod != null && FormalSpecification.isGetterName(this.selector)) {
-					int pc = codeStream.position;
-					codeStream.aload_0();
-					codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
-					codeStream.recordPositionsFrom(pc, this.bodyStart);
+				if (classRepresentationInvariantsMethod != null) {
+					int inspectsThisSourceLocation = -1;
+					if (FormalSpecification.isGetterName(this.selector))
+						inspectsThisSourceLocation = this.bodyStart;
+					else if (this.formalSpecification != null)
+						inspectsThisSourceLocation = this.formalSpecification.inspectsThisSourceLocation();
+					if (inspectsThisSourceLocation != -1) {
+						int pc = codeStream.position;
+						codeStream.aload_0();
+						codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
+						codeStream.recordPositionsFrom(pc, inspectsThisSourceLocation);
+					}
 				}
 			}
 			if (this.formalSpecification != null)

@@ -1130,6 +1130,27 @@ public class s4jie2TestSuite {
 	    		"	at invariants_fail2.getDifference(invariants_fail2.java:10)\n" + 
 	    		"	at invariants_fail2.<init>(invariants_fail2.java:16)\n" + 
 	    		"	at Main.main(invariants_fail2.java:24)\n");
+	    testCompileAndRun(true, "invariants_fail3", true, "",
+	    		"java.lang.AssertionError\n" + 
+	    		"	at invariants_fail3.$classRepresentationInvariants(invariants_fail3.java:5)\n" + 
+	    		"	at invariants_fail3.foo(invariants_fail3.java:12)\n" + 
+	    		"	at invariants_fail3.bar1(invariants_fail3.java:19)\n" + 
+	    		"	at Main.main(invariants_fail3.java:45)\n" + 
+	    		"java.lang.AssertionError\n" + 
+	    		"	at invariants_fail3.$classRepresentationInvariants(invariants_fail3.java:5)\n" + 
+	    		"	at invariants_fail3.bar1(invariants_fail3.java:16)\n" + 
+	    		"	at invariants_fail3.bar2(invariants_fail3.java:25)\n" + 
+	    		"	at Main.main(invariants_fail3.java:52)\n" + 
+	    		"java.lang.AssertionError\n" + 
+	    		"	at invariants_fail3.$classRepresentationInvariants(invariants_fail3.java:5)\n" + 
+	    		"	at invariants_fail3.bar2(invariants_fail3.java:22)\n" + 
+	    		"	at invariants_fail3.bar3(invariants_fail3.java:31)\n" + 
+	    		"	at Main.main(invariants_fail3.java:59)\n" + 
+	    		"java.lang.AssertionError\n" + 
+	    		"	at invariants_fail3.$classRepresentationInvariants(invariants_fail3.java:5)\n" + 
+	    		"	at invariants_fail3.bar3(invariants_fail3.java:28)\n" + 
+	    		"	at invariants_fail3.bar4(invariants_fail3.java:37)\n" + 
+	    		"	at Main.main(invariants_fail3.java:66)\n");
 	    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

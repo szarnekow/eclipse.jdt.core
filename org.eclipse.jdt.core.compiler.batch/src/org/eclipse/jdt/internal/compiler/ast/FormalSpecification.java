@@ -722,5 +722,25 @@ public class FormalSpecification {
 			return true;
 		return false;
 	}
+	
+	public int mutatesThisSourceLocation() {
+		if (this.mutatesExpressions != null)
+			for (Expression e : this.mutatesExpressions)
+				if (e instanceof ThisReference)
+					return e.sourceStart;
+		if (this.mutatesPropertiesExpressions != null)
+			for (Expression e : this.mutatesPropertiesExpressions)
+				if (e instanceof MessageSend && ((MessageSend)e).receiver instanceof ThisReference)
+					return e.sourceStart;
+		return -1;
+	}
+	
+	public int inspectsThisSourceLocation() {
+		if (this.inspectsExpressions != null)
+			for (Expression e : this.inspectsExpressions)
+				if (e instanceof ThisReference)
+					return e.sourceStart;
+		return mutatesThisSourceLocation();
+	}
 
 }

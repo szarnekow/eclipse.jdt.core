@@ -7206,6 +7206,12 @@ public void reset(AbstractMethodDeclaration referenceMethod, ClassFile targetCla
 					codeStart = Math.min(codeStart, referenceMethod.formalSpecification.mayThrowConditions[0].sourceStart);
 				if (referenceMethod.formalSpecification.postconditions != null)
 					codeStart = Math.min(codeStart, referenceMethod.formalSpecification.postconditions[0].sourceStart);
+				if (referenceMethod.formalSpecification.inspectsExpressions != null && referenceMethod.formalSpecification.inspectsExpressions.length > 0)
+					codeStart = Math.min(codeStart, referenceMethod.formalSpecification.inspectsExpressions[0].sourceStart);
+				if (referenceMethod.formalSpecification.mutatesExpressions != null && referenceMethod.formalSpecification.mutatesExpressions.length > 0)
+					codeStart = Math.min(codeStart, referenceMethod.formalSpecification.mutatesExpressions[0].sourceStart);
+				if (referenceMethod.formalSpecification.mutatesPropertiesExpressions != null && referenceMethod.formalSpecification.mutatesPropertiesExpressions.length > 0)
+					codeStart = Math.min(codeStart, referenceMethod.formalSpecification.mutatesPropertiesExpressions[0].sourceStart);
 			}
 			int start = Util.getLineNumber(codeStart, lineSeparatorPositions2, 0, lineSeparatorPositionsEnd);
 			this.lineNumberStart = start;
