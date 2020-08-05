@@ -83,8 +83,10 @@ public class TypeDeclaration extends Statement implements ProblemSeverities, Ref
 	
 	public Expression[] invariants;
 	public SyntheticFieldBinding invariantsCheckingStateField;
-	public MethodDeclaration classRepresentationInvariantsMethod;
-	public MethodDeclaration packageRepresentationInvariantsMethod;
+	public MethodDeclaration classInvariantsMethod;
+	public int classRepresentationInvariantsCount;
+	public MethodDeclaration packageInvariantsMethod;
+	public int packageRepresentationInvariantsCount;
 
 	public QualifiedAllocationExpression allocation; // for anonymous only
 	public TypeDeclaration enclosingType; // for member types only
@@ -963,78 +965,109 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 			}
 		}
 	}
-	{
-		ArrayList<Expression> classRepresentationInvariants = null;
-		ArrayList<Expression> packageRepresentationInvariants = null;
-		if (this.fields != null)
-			for (FieldDeclaration field : this.fields)
-				if ((field.modifiers & ClassFileConstants.AccStatic) == 0 && field.invariants != null) {
-					if ((field.modifiers & ClassFileConstants.AccPrivate) != 0) {
-						if (classRepresentationInvariants == null)
-							classRepresentationInvariants = new ArrayList<>();
-						classRepresentationInvariants.addAll(Arrays.asList(field.invariants));
-					} else if ((field.modifiers & (ClassFileConstants.AccProtected | ClassFileConstants.AccPublic)) == 0) {
-						if (packageRepresentationInvariants == null)
-							packageRepresentationInvariants = new ArrayList<>();
-						packageRepresentationInvariants.addAll(Arrays.asList(field.invariants));
-					}
-				}
-		if (this.methods != null)
-			for (AbstractMethodDeclaration method : this.methods)
-				if ((method.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate | ClassFileConstants.AccProtected | ClassFileConstants.AccPublic)) == 0 && method.formalSpecification != null && method.formalSpecification.invariants != null) {
-					if (packageRepresentationInvariants == null)
-						packageRepresentationInvariants = new ArrayList<>();
-					packageRepresentationInvariants.addAll(Arrays.asList(method.formalSpecification.invariants));
-				}
-		if (classRepresentationInvariants != null || packageRepresentationInvariants != null) {
-			this.invariantsCheckingStateField = new SyntheticFieldBinding(
-					"$invariantsCheckingState".toCharArray(), //$NON-NLS-1$
-					TypeBinding.INT,
-					ClassFileConstants.AccPrivate|ClassFileConstants.AccSynthetic,
-					this.binding,
-					Constant.NotAConstant,
-					Integer.MIN_VALUE);
-		}
-		if (classRepresentationInvariants != null) {
-			this.classRepresentationInvariantsMethod = new MethodDeclaration(this.compilationResult);
-			this.classRepresentationInvariantsMethod.bodyStart = this.declarationSourceStart;
-			this.classRepresentationInvariantsMethod.bodyEnd = this.declarationSourceEnd;
-			this.classRepresentationInvariantsMethod.binding = new MethodBinding(
-					ClassFileConstants.AccPublic,
-					"$classRepresentationInvariants".toCharArray(), //$NON-NLS-1$
-					TypeBinding.VOID,
-					null,
-					null,
-					this.binding);
-			this.classRepresentationInvariantsMethod.scope = new MethodScope(this.scope, this.classRepresentationInvariantsMethod, false);
-			ArrayList<Statement> body = new ArrayList<>();
-			for (Expression invariant : classRepresentationInvariants)
-				body.add(new AssertStatement(invariant, invariant.sourceStart));
-			this.classRepresentationInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
-			this.classRepresentationInvariantsMethod.analyseCode(this.scope, parentContext, flowInfo.copy());
-		}
-		if (packageRepresentationInvariants != null) {
-			this.packageRepresentationInvariantsMethod = new MethodDeclaration(this.compilationResult);
-			this.packageRepresentationInvariantsMethod.bodyStart = this.declarationSourceStart;
-			this.packageRepresentationInvariantsMethod.bodyEnd = this.declarationSourceEnd;
-			this.packageRepresentationInvariantsMethod.binding = new MethodBinding(
-					ClassFileConstants.AccPublic,
-					"$packageRepresentationInvariants".toCharArray(), //$NON-NLS-1$
-					TypeBinding.VOID,
-					null,
-					null,
-					this.binding);
-			this.packageRepresentationInvariantsMethod.scope = new MethodScope(this.scope, this.packageRepresentationInvariantsMethod, false);
-			ArrayList<Statement> body = new ArrayList<>();
-			for (Expression invariant : packageRepresentationInvariants)
-				body.add(new AssertStatement(invariant, invariant.sourceStart));
-			this.packageRepresentationInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
-			this.packageRepresentationInvariantsMethod.analyseCode(this.scope, parentContext, flowInfo.copy());
-		}
-	}
+	if (this.classInvariantsMethod != null)
+		this.classInvariantsMethod.analyseCode(this.scope, parentContext, flowInfo.copy());
+	if (this.packageInvariantsMethod != null)
+		this.packageInvariantsMethod.analyseCode(this.scope, parentContext, flowInfo.copy());
 	// enable enum support ?
 	if (this.binding.isEnum() && !this.binding.isAnonymousType()) {
 		this.enumValuesSyntheticfield = this.binding.addSyntheticFieldForEnumValues();
+	}
+}
+
+private void addSyntheticsForInvariants() {
+	ArrayList<Expression> classRepresentationInvariants = null;
+	ArrayList<Expression> classAbstractStateInvariants = null;
+	ArrayList<Expression> packageRepresentationInvariants = null;
+	ArrayList<Expression> packageAbstractStateInvariants = null;
+	
+	if (this.invariants != null)
+		if ((this.modifiers & ClassFileConstants.AccPublic) == 0) {
+			classAbstractStateInvariants = new ArrayList<>();
+			classAbstractStateInvariants.addAll(Arrays.asList(this.invariants));
+		} else {
+			packageAbstractStateInvariants = new ArrayList<>();
+			packageAbstractStateInvariants.addAll(Arrays.asList(this.invariants));
+		}
+	if (this.fields != null)
+		for (FieldDeclaration field : this.fields)
+			if ((field.modifiers & ClassFileConstants.AccStatic) == 0 && field.invariants != null) {
+				if ((field.modifiers & ClassFileConstants.AccPrivate) != 0) {
+					if (classRepresentationInvariants == null)
+						classRepresentationInvariants = new ArrayList<>();
+					classRepresentationInvariants.addAll(Arrays.asList(field.invariants));
+				} else if ((field.modifiers & (ClassFileConstants.AccProtected | ClassFileConstants.AccPublic)) == 0) {
+					if (packageRepresentationInvariants == null)
+						packageRepresentationInvariants = new ArrayList<>();
+					packageRepresentationInvariants.addAll(Arrays.asList(field.invariants));
+				}
+			}
+	if (this.methods != null)
+		for (AbstractMethodDeclaration method : this.methods)
+			if ((method.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate | ClassFileConstants.AccProtected | ClassFileConstants.AccPublic)) == 0 && method.formalSpecification != null && method.formalSpecification.invariants != null) {
+				if (packageRepresentationInvariants == null)
+					packageRepresentationInvariants = new ArrayList<>();
+				packageRepresentationInvariants.addAll(Arrays.asList(method.formalSpecification.invariants));
+			}
+	if (classRepresentationInvariants != null || classAbstractStateInvariants != null || packageRepresentationInvariants != null || packageAbstractStateInvariants != null) {
+		this.invariantsCheckingStateField = new SyntheticFieldBinding(
+				"$invariantsCheckingState".toCharArray(), //$NON-NLS-1$
+				TypeBinding.INT,
+				ClassFileConstants.AccPrivate|ClassFileConstants.AccSynthetic,
+				this.binding,
+				Constant.NotAConstant,
+				Integer.MIN_VALUE);
+	}
+	if (classRepresentationInvariants != null || classAbstractStateInvariants != null) {
+		this.classInvariantsMethod = new MethodDeclaration(this.compilationResult);
+		this.classInvariantsMethod.bodyStart = this.declarationSourceStart;
+		if (this.invariants != null)
+			this.classInvariantsMethod.bodyStart = this.invariants[0].sourceStart;
+		this.classInvariantsMethod.bodyEnd = this.declarationSourceEnd;
+		this.classInvariantsMethod.binding = new MethodBinding(
+				ClassFileConstants.AccPublic,
+				"$classInvariants".toCharArray(), //$NON-NLS-1$
+				TypeBinding.VOID,
+				null,
+				null,
+				this.binding);
+		this.classInvariantsMethod.scope = new MethodScope(this.scope, this.classInvariantsMethod, false);
+		ArrayList<Statement> body = new ArrayList<>();
+		if (classRepresentationInvariants != null) {
+			this.classRepresentationInvariantsCount = classRepresentationInvariants.size(); 
+			for (Expression invariant : classRepresentationInvariants)
+				body.add(new AssertStatement(invariant, invariant.sourceStart));
+		}
+		if (classAbstractStateInvariants != null) {
+			for (Expression invariant : classAbstractStateInvariants)
+				body.add(new AssertStatement(invariant, invariant.sourceStart));
+		}
+		this.classInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
+	}
+	if (packageRepresentationInvariants != null || packageAbstractStateInvariants != null) {
+		this.packageInvariantsMethod = new MethodDeclaration(this.compilationResult);
+		this.packageInvariantsMethod.bodyStart = this.declarationSourceStart;
+		if (this.invariants != null)
+			this.packageInvariantsMethod.bodyStart = this.invariants[0].sourceStart;
+		this.packageInvariantsMethod.bodyEnd = this.declarationSourceEnd;
+		this.packageInvariantsMethod.binding = new MethodBinding(
+				ClassFileConstants.AccPublic,
+				"$packageInvariants".toCharArray(), //$NON-NLS-1$
+				TypeBinding.VOID,
+				null,
+				null,
+				this.binding);
+		this.packageInvariantsMethod.scope = new MethodScope(this.scope, this.packageInvariantsMethod, false);
+		ArrayList<Statement> body = new ArrayList<>();
+		if (packageRepresentationInvariants != null) {
+			this.packageRepresentationInvariantsCount = packageRepresentationInvariants.size();
+			for (Expression invariant : packageRepresentationInvariants)
+				body.add(new AssertStatement(invariant, invariant.sourceStart));
+		}
+		if (packageAbstractStateInvariants != null)
+			for (Expression invariant : packageAbstractStateInvariants)
+				body.add(new AssertStatement(invariant, invariant.sourceStart));
+		this.packageInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
 	}
 }
 
@@ -1532,6 +1565,7 @@ public void resolve() {
 				e.resolveTypeExpecting(this.initializerScope, TypeBinding.BOOLEAN);
 				FormalSpecification.check(this.modifiers, this.binding, this.initializerScope, e);
 			}
+		this.addSyntheticsForInvariants();
 		if (needSerialVersion) {
 			//check that the current type doesn't extend javax.rmi.CORBA.Stub
 			TypeBinding javaxRmiCorbaStub = this.scope.getType(TypeConstants.JAVAX_RMI_CORBA_STUB, 4);

@@ -480,13 +480,13 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 			TypeDeclaration enclosingClass = this.scope.enclosingClassScope().referenceContext;
 			boolean invariantChecksInserted = false;
 			if ((this.modifiers & ClassFileConstants.AccPrivate) == 0) {
-				AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classRepresentationInvariantsMethod;
+				AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classInvariantsMethod;
 				if (classRepresentationInvariantsMethod != null) {
 					codeStream.aload_0();
 					codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
 					invariantChecksInserted = true;
 				}
-				AbstractMethodDeclaration packageRepresentationInvariantsMethod = (this.modifiers & (ClassFileConstants.AccPublic | ClassFileConstants.AccProtected)) != 0 ? enclosingClass.packageRepresentationInvariantsMethod : null;
+				AbstractMethodDeclaration packageRepresentationInvariantsMethod = (this.modifiers & (ClassFileConstants.AccPublic | ClassFileConstants.AccProtected)) != 0 ? enclosingClass.packageInvariantsMethod : null;
 				if (packageRepresentationInvariantsMethod != null) {
 					codeStream.aload_0();
 					codeStream.invoke(Opcodes.OPC_invokespecial, packageRepresentationInvariantsMethod.binding, packageRepresentationInvariantsMethod.binding.declaringClass);

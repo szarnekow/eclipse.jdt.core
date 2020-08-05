@@ -69,6 +69,7 @@ public abstract class AbstractMethodDeclaration
 
 	public Javadoc javadoc;
 	public FormalSpecification formalSpecification;
+	public LocalVariableBinding oldInvariantsCheckingStateVariable;
 
 	public int bodyStart;
 	public int bodyEnd = -1;
@@ -355,8 +356,8 @@ public abstract class AbstractMethodDeclaration
 			TypeDeclaration enclosingClass = null;
 			if (!this.binding.isPrivate() && !this.binding.isStatic()) {
 				enclosingClass = this.scope.enclosingClassScope().referenceContext;
-				AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classRepresentationInvariantsMethod;
-				AbstractMethodDeclaration packageRepresentationInvariantsMethod = this.binding.isPublic() || this.binding.isProtected() ? enclosingClass.packageRepresentationInvariantsMethod : null;
+				AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classInvariantsMethod;
+				AbstractMethodDeclaration packageRepresentationInvariantsMethod = this.binding.isPublic() || this.binding.isProtected() ? enclosingClass.packageInvariantsMethod : null;
 				if (classRepresentationInvariantsMethod != null || packageRepresentationInvariantsMethod != null) {
 					int inspectsThisSourceLocation = -1;
 					if (FormalSpecification.isGetterName(this.selector))
@@ -365,15 +366,20 @@ public abstract class AbstractMethodDeclaration
 						inspectsThisSourceLocation = this.formalSpecification.inspectsThisSourceLocation();
 					if (inspectsThisSourceLocation != -1) {
 						int pc = codeStream.position;
+						if (classRepresentationInvariantsMethod != null || packageRepresentationInvariantsMethod != null) {
+							codeStream.aload_0();
+							codeStream.fieldAccess(Opcodes.OPC_getfield, enclosingClass.invariantsCheckingStateField, enclosingClass.binding);
+							codeStream.store(this.oldInvariantsCheckingStateVariable, false);
+							codeStream.addVariable(this.oldInvariantsCheckingStateVariable);
+							invariantChecksInserted = true;
+						}
 						if (classRepresentationInvariantsMethod != null) {
 							codeStream.aload_0();
 							codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
-							invariantChecksInserted = true;
 						}
 						if (packageRepresentationInvariantsMethod != null) {
 							codeStream.aload_0();
 							codeStream.invoke(Opcodes.OPC_invokespecial, packageRepresentationInvariantsMethod.binding, packageRepresentationInvariantsMethod.binding.declaringClass);
-							invariantChecksInserted = true;
 						}
 						codeStream.recordPositionsFrom(pc, inspectsThisSourceLocation);
 					}
@@ -383,7 +389,8 @@ public abstract class AbstractMethodDeclaration
 				this.formalSpecification.generateCode(this.scope, codeStream);
 			if (invariantChecksInserted) {
 				codeStream.aload_0();
-				codeStream.iconst_0();
+				codeStream.load(this.oldInvariantsCheckingStateVariable);
+				codeStream.removeVariable(this.oldInvariantsCheckingStateVariable);
 				codeStream.fieldAccess(Opcodes.OPC_putfield, enclosingClass.invariantsCheckingStateField, enclosingClass.binding);
 			}
 			if (this.statements != null) {
@@ -613,6 +620,17 @@ public abstract class AbstractMethodDeclaration
 			if (sourceLevel < ClassFileConstants.JDK1_8) // otherwise already checked via Argument.createBinding
 				validateNullAnnotations(this.scope.environment().usesNullTypeAnnotations());
 
+			if (this.scope.enclosingClassScope().referenceContext.invariantsCheckingStateField != null) {
+				this.oldInvariantsCheckingStateVariable = new LocalVariableBinding(
+						"$oldInvariantsCheckingState".toCharArray(), //$NON-NLS-1$
+						TypeBinding.INT,
+						ClassFileConstants.AccDefault,
+						false);
+				this.scope.addLocalVariable(this.oldInvariantsCheckingStateVariable);
+				this.oldInvariantsCheckingStateVariable.setConstant(Constant.NotAConstant);
+				this.oldInvariantsCheckingStateVariable.useFlag = LocalVariableBinding.USED;
+			}
+				
 			if (this.formalSpecification != null)
 				this.formalSpecification.resolve();
 			resolveStatements();
