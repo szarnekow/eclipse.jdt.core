@@ -241,9 +241,7 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream) {
 		MethodScope methodScope = currentScope.methodScope();
 		if (methodScope != null && methodScope.referenceContext instanceof AbstractMethodDeclaration) {
 			AbstractMethodDeclaration md = (AbstractMethodDeclaration)methodScope.referenceContext;
-			if (md.formalSpecification != null && md.formalSpecification.postconditions != null) {
-				md.formalSpecification.generatePostconditionCheck(codeStream);
-			}
+			md.generatePostconditionCheck(codeStream, this.sourceStart);
 		}
 	}
 	generateReturnBytecode(codeStream);

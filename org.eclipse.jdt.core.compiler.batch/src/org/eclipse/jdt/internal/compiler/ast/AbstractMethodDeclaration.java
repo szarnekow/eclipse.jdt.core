@@ -410,7 +410,7 @@ public abstract class AbstractMethodDeclaration
 				throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 			}
 			if ((this.bits & ASTNode.NeedFreeReturn) != 0) {
-				this.generatePostconditionCheck(codeStream);
+				this.generatePostconditionCheck(codeStream, this.bodyEnd);
 				codeStream.return_();
 			}
 			// local variable attributes
@@ -428,7 +428,7 @@ public abstract class AbstractMethodDeclaration
 		classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
 	}
 	
-	public void generatePostconditionCheck(CodeStream codeStream) {
+	public void generatePostconditionCheck(CodeStream codeStream, int returnLocation) {
 		TypeDeclaration enclosingClass = this.scope.enclosingClassScope().referenceContext;
 		boolean invariantChecksInserted = false;
 		if ((this.modifiers & ClassFileConstants.AccPrivate) == 0) {
@@ -452,7 +452,7 @@ public abstract class AbstractMethodDeclaration
 						codeStream.invoke(Opcodes.OPC_invokespecial, packageRepresentationInvariantsMethod.binding, packageRepresentationInvariantsMethod.binding.declaringClass);
 						invariantChecksInserted = true;
 					}
-					codeStream.recordPositionsFrom(pc, this.bodyEnd);
+					codeStream.recordPositionsFrom(pc, returnLocation);
 				}
 			}
 		}

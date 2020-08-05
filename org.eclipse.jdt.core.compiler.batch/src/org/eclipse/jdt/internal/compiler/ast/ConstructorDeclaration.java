@@ -477,7 +477,7 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 			throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 		}
 		if ((this.bits & ASTNode.NeedFreeReturn) != 0) {
-			this.generatePostconditionCheck(codeStream);
+			this.generatePostconditionCheck(codeStream, this.bodyEnd);
 			codeStream.return_();
 		}
 		// local variable attributes

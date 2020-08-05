@@ -1237,6 +1237,15 @@ public class s4jie2TestSuite {
 	    		"	at invariants_fail11.$classInvariants(invariants_fail11.java:5)\n" + 
 	    		"	at invariants_fail11.foo(invariants_fail11.java:13)\n" + 
 	    		"	at Main.main(invariants_fail11.java:19)\n");
+	    testCompileAndRun(true, "invariants_fail12", true, "",
+	    		"java.lang.AssertionError\n" + 
+	    		"	at invariants_fail12.$classInvariants(invariants_fail12.java:5)\n" + 
+	    		"	at invariants_fail12.<init>(invariants_fail12.java:13)\n" + 
+	    		"	at Main.main(invariants_fail12.java:31)\n" + 
+	    		"java.lang.AssertionError\n" + 
+	    		"	at invariants_fail12.$classInvariants(invariants_fail12.java:5)\n" + 
+	    		"	at invariants_fail12.foo(invariants_fail12.java:21)\n" + 
+	    		"	at Main.main(invariants_fail12.java:38)\n");
 	    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
