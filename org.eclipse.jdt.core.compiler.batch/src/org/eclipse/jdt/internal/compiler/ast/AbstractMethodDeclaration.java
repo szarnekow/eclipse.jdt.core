@@ -360,7 +360,7 @@ public abstract class AbstractMethodDeclaration
 				AbstractMethodDeclaration packageRepresentationInvariantsMethod = this.binding.isPublic() || this.binding.isProtected() ? enclosingClass.packageInvariantsMethod : null;
 				if (classRepresentationInvariantsMethod != null || packageRepresentationInvariantsMethod != null) {
 					int inspectsThisSourceLocation = -1;
-					if (FormalSpecification.isGetterName(this.selector))
+					if (!hasEffectClauses())
 						inspectsThisSourceLocation = this.bodyStart;
 					else if (this.formalSpecification != null)
 						inspectsThisSourceLocation = this.formalSpecification.inspectsThisSourceLocation();
@@ -428,16 +428,29 @@ public abstract class AbstractMethodDeclaration
 		classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
 	}
 	
+	public boolean hasGetterName() {
+		char[] name = this.selector;
+		if (name.length >= 3 && name[0] == 'g' && name[1] == 'e' && name[2] == 't' && (name.length == 3 || 'A' <= name[3] && name[3] <= 'Z'))
+			return true;
+		if (name.length > 2 && name[0] == 'i' && name[1] == 's' && 'A' <= name[2] && name[2] <= 'Z')
+			return true;
+		return false;
+	}
+	
+	public boolean hasEffectClauses() {
+		return this.formalSpecification != null && this.formalSpecification.hasEffectClauses();
+	}
+	
 	public void generatePostconditionCheck(CodeStream codeStream, int returnLocation) {
 		TypeDeclaration enclosingClass = this.scope.enclosingClassScope().referenceContext;
 		boolean invariantChecksInserted = false;
-		if ((this.modifiers & ClassFileConstants.AccPrivate) == 0) {
+		if ((this.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate)) == 0) {
 			AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classInvariantsMethod;
 			AbstractMethodDeclaration packageRepresentationInvariantsMethod = (this.modifiers & (ClassFileConstants.AccPublic | ClassFileConstants.AccProtected)) != 0 ? enclosingClass.packageInvariantsMethod : null;
 			if (classRepresentationInvariantsMethod != null || packageRepresentationInvariantsMethod != null) {
 				int mutatesThisSourceLocation = -1;
-				if (this instanceof ConstructorDeclaration)
-					mutatesThisSourceLocation = this.sourceEnd;
+				if (!hasEffectClauses() && !hasGetterName())
+					mutatesThisSourceLocation = this.sourceEnd; // If a non-getter method has no effect clauses, it mutates every object, including `this`
 				else if (this.formalSpecification != null)
 					mutatesThisSourceLocation = this.formalSpecification.mutatesThisSourceLocation();
 				if (mutatesThisSourceLocation != -1) {

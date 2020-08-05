@@ -715,12 +715,8 @@ public class FormalSpecification {
 			s.generateCode(scope, codeStream);
 	}
 
-	public static boolean isGetterName(char[] selector) {
-		if (selector.length >= 3 && selector[0] == 'g' && selector[1] == 'e' && selector[2] == 't' && (selector.length == 3 || 'A' <= selector[3] && selector[3] <= 'Z'))
-			return true;
-		if (selector.length > 2 && selector[0] == 'i' && selector[1] == 's' && 'A' <= selector[2] && selector[2] <= 'Z')
-			return true;
-		return false;
+	public boolean hasEffectClauses() {
+		return this.inspectsExpressions != null || this.mutatesExpressions != null || this.mutatesPropertiesExpressions != null || this.createsExpressions != null;
 	}
 	
 	public int mutatesThisSourceLocation() {
