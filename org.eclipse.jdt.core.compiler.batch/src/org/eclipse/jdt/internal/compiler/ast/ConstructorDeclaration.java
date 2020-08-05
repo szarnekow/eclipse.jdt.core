@@ -477,30 +477,7 @@ private void internalGenerateCode(ClassScope classScope, ClassFile classFile) {
 			throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 		}
 		if ((this.bits & ASTNode.NeedFreeReturn) != 0) {
-			TypeDeclaration enclosingClass = this.scope.enclosingClassScope().referenceContext;
-			boolean invariantChecksInserted = false;
-			if ((this.modifiers & ClassFileConstants.AccPrivate) == 0) {
-				AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classInvariantsMethod;
-				if (classRepresentationInvariantsMethod != null) {
-					codeStream.aload_0();
-					codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
-					invariantChecksInserted = true;
-				}
-				AbstractMethodDeclaration packageRepresentationInvariantsMethod = (this.modifiers & (ClassFileConstants.AccPublic | ClassFileConstants.AccProtected)) != 0 ? enclosingClass.packageInvariantsMethod : null;
-				if (packageRepresentationInvariantsMethod != null) {
-					codeStream.aload_0();
-					codeStream.invoke(Opcodes.OPC_invokespecial, packageRepresentationInvariantsMethod.binding, packageRepresentationInvariantsMethod.binding.declaringClass);
-					invariantChecksInserted = true;
-				}
-			}
-			if (this.formalSpecification != null)
-				this.formalSpecification.generatePostconditionCheck(codeStream);
-			if (invariantChecksInserted) {
-				// TODO: Do this only if the object is not @immutable?
-				codeStream.aload_0();
-				codeStream.iconst_0();
-				codeStream.fieldAccess(Opcodes.OPC_putfield, enclosingClass.invariantsCheckingStateField, enclosingClass.binding);
-			}
+			this.generatePostconditionCheck(codeStream);
 			codeStream.return_();
 		}
 		// local variable attributes

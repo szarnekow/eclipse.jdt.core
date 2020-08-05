@@ -410,8 +410,7 @@ public abstract class AbstractMethodDeclaration
 				throw new AbortMethod(this.scope.referenceCompilationUnit().compilationResult, null);
 			}
 			if ((this.bits & ASTNode.NeedFreeReturn) != 0) {
-				if (this.formalSpecification != null)
-					this.formalSpecification.generatePostconditionCheck(codeStream);
+				this.generatePostconditionCheck(codeStream);
 				codeStream.return_();
 			}
 			// local variable attributes
@@ -427,6 +426,44 @@ public abstract class AbstractMethodDeclaration
 			checkArgumentsSize();
 		}
 		classFile.completeMethodInfo(this.binding, methodAttributeOffset, attributeNumber);
+	}
+	
+	public void generatePostconditionCheck(CodeStream codeStream) {
+		TypeDeclaration enclosingClass = this.scope.enclosingClassScope().referenceContext;
+		boolean invariantChecksInserted = false;
+		if ((this.modifiers & ClassFileConstants.AccPrivate) == 0) {
+			AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classInvariantsMethod;
+			AbstractMethodDeclaration packageRepresentationInvariantsMethod = (this.modifiers & (ClassFileConstants.AccPublic | ClassFileConstants.AccProtected)) != 0 ? enclosingClass.packageInvariantsMethod : null;
+			if (classRepresentationInvariantsMethod != null || packageRepresentationInvariantsMethod != null) {
+				int mutatesThisSourceLocation = -1;
+				if (this instanceof ConstructorDeclaration)
+					mutatesThisSourceLocation = this.sourceEnd;
+				else if (this.formalSpecification != null)
+					mutatesThisSourceLocation = this.formalSpecification.mutatesThisSourceLocation();
+				if (mutatesThisSourceLocation != -1) {
+					int pc = codeStream.position;
+					if (classRepresentationInvariantsMethod != null) {
+						codeStream.aload_0();
+						codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
+						invariantChecksInserted = true;
+					}
+					if (packageRepresentationInvariantsMethod != null) {
+						codeStream.aload_0();
+						codeStream.invoke(Opcodes.OPC_invokespecial, packageRepresentationInvariantsMethod.binding, packageRepresentationInvariantsMethod.binding.declaringClass);
+						invariantChecksInserted = true;
+					}
+					codeStream.recordPositionsFrom(pc, this.bodyEnd);
+				}
+			}
+		}
+		if (this.formalSpecification != null)
+			this.formalSpecification.generatePostconditionCheck(codeStream);
+		if (invariantChecksInserted) {
+			// TODO: Do this only if the object is not @immutable?
+			codeStream.aload_0();
+			codeStream.iconst_0();
+			codeStream.fieldAccess(Opcodes.OPC_putfield, enclosingClass.invariantsCheckingStateField, enclosingClass.binding);
+		}
 	}
 
 	public void getAllAnnotationContexts(int targetType, List allAnnotationContexts) {
