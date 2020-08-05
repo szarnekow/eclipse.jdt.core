@@ -1215,6 +1215,13 @@ public class s4jie2TestSuite {
 	    		"	at invariants_fail7.$classRepresentationInvariants(invariants_fail7.java:5)\n" + 
 	    		"	at invariants_fail7.<init>(invariants_fail7.java:1)\n" + 
 	    		"	at Main.main(invariants_fail7.java:18)\n");
+	    testCompileAndRun(true, "invariants_fail8", false, "",
+	    		"Exception in thread \"main\" java.lang.AssertionError: A package representation invariant of an object must not directly or indirectly call a public or protected method that inspects or mutates the object.\n" + 
+	    		"	at invariants_fail8.$packageRepresentationInvariants(invariants_fail8.java:1)\n" + 
+	    		"	at invariants_fail8.getDifference(invariants_fail8.java:10)\n" + 
+	    		"	at invariants_fail8.$packageRepresentationInvariants(invariants_fail8.java:5)\n" + 
+	    		"	at invariants_fail8.<init>(invariants_fail8.java:1)\n" + 
+	    		"	at Main.main(invariants_fail8.java:18)\n");
 	    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

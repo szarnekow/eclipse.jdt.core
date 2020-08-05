@@ -1218,11 +1218,11 @@ public class ClassFile implements TypeConstants, TypeIds {
 			this.codeStream.iconst_1();
 			BranchLabel check = new BranchLabel(this.codeStream);
 			this.codeStream.if_icmpne(check);
-			codeStream.newJavaLangAssertionError();
-			codeStream.dup();
-			codeStream.ldc("A class representation invariant of an object must not directly or indirectly call a nonprivate method that inspects or mutates the object.");
-			codeStream.invokeJavaLangAssertionErrorConstructor(TypeIds.T_JavaLangString);
-			codeStream.athrow();
+			this.codeStream.newJavaLangAssertionError();
+			this.codeStream.dup();
+			this.codeStream.ldc("A class representation invariant of an object must not directly or indirectly call a nonprivate method that inspects or mutates the object."); //$NON-NLS-1$
+			this.codeStream.invokeJavaLangAssertionErrorConstructor(TypeIds.T_JavaLangString);
+			this.codeStream.athrow();
 			
 			check.place();
 			
@@ -1255,8 +1255,39 @@ public class ClassFile implements TypeConstants, TypeIds {
 			generateCodeAttributeHeader();
 			this.codeStream.reset(type.packageRepresentationInvariantsMethod, this);
 			type.packageRepresentationInvariantsMethod.scope.computeLocalVariablePositions(1, this.codeStream);
+			
+			this.codeStream.aload_0();
+			this.codeStream.fieldAccess(Opcodes.OPC_getfield, type.invariantsCheckingStateField, type.binding);
+			this.codeStream.iconst_4();
+			BranchLabel done = new BranchLabel(this.codeStream);
+			this.codeStream.if_icmpge(done);
+			
+			this.codeStream.aload_0();
+			this.codeStream.fieldAccess(Opcodes.OPC_getfield, type.invariantsCheckingStateField, type.binding);
+			this.codeStream.iconst_3();
+			BranchLabel check = new BranchLabel(this.codeStream);
+			this.codeStream.if_icmpne(check);
+			this.codeStream.newJavaLangAssertionError();
+			this.codeStream.dup();
+			this.codeStream.ldc("A package representation invariant of an object must not directly or indirectly call a public or protected method that inspects or mutates the object."); //$NON-NLS-1$
+			this.codeStream.invokeJavaLangAssertionErrorConstructor(TypeIds.T_JavaLangString);
+			this.codeStream.athrow();
+			
+			check.place();
+			
+			this.codeStream.aload_0();
+			this.codeStream.iconst_3();
+			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
+			
 			for (Statement statement : type.packageRepresentationInvariantsMethod.statements)
 				statement.generateCode(type.packageRepresentationInvariantsMethod.scope, this.codeStream);
+			
+			this.codeStream.aload_0();
+			this.codeStream.iconst_4();
+			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
+			
+			done.place();
+			
 			this.codeStream.return_();
 			this.codeStream.exitUserScope(type.packageRepresentationInvariantsMethod.scope);
 			this.codeStream.recordPositionsFrom(0, type.sourceEnd);
