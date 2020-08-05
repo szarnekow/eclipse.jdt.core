@@ -88,6 +88,7 @@ import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.codegen.AnnotationContext;
 import org.eclipse.jdt.internal.compiler.codegen.AnnotationTargetTypeConstants;
 import org.eclipse.jdt.internal.compiler.codegen.AttributeNamesConstants;
+import org.eclipse.jdt.internal.compiler.codegen.BranchLabel;
 import org.eclipse.jdt.internal.compiler.codegen.CodeStream;
 import org.eclipse.jdt.internal.compiler.codegen.ConstantPool;
 import org.eclipse.jdt.internal.compiler.codegen.ExceptionLabel;
@@ -1205,8 +1206,39 @@ public class ClassFile implements TypeConstants, TypeIds {
 			generateCodeAttributeHeader();
 			this.codeStream.reset(type.classRepresentationInvariantsMethod, this);
 			type.classRepresentationInvariantsMethod.scope.computeLocalVariablePositions(1, this.codeStream);
+			
+			this.codeStream.aload_0();
+			this.codeStream.fieldAccess(Opcodes.OPC_getfield, type.invariantsCheckingStateField, type.binding);
+			this.codeStream.iconst_2();
+			BranchLabel done = new BranchLabel(this.codeStream);
+			this.codeStream.if_icmpge(done);
+			
+			this.codeStream.aload_0();
+			this.codeStream.fieldAccess(Opcodes.OPC_getfield, type.invariantsCheckingStateField, type.binding);
+			this.codeStream.iconst_1();
+			BranchLabel check = new BranchLabel(this.codeStream);
+			this.codeStream.if_icmpne(check);
+			codeStream.newJavaLangAssertionError();
+			codeStream.dup();
+			codeStream.ldc("A class representation invariant of an object must not directly or indirectly call a nonprivate method that inspects or mutates the object.");
+			codeStream.invokeJavaLangAssertionErrorConstructor(TypeIds.T_JavaLangString);
+			codeStream.athrow();
+			
+			check.place();
+			
+			this.codeStream.aload_0();
+			this.codeStream.iconst_1();
+			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
+			
 			for (Statement statement : type.classRepresentationInvariantsMethod.statements)
 				statement.generateCode(type.classRepresentationInvariantsMethod.scope, this.codeStream);
+			
+			this.codeStream.aload_0();
+			this.codeStream.iconst_2();
+			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
+			
+			done.place();
+			
 			this.codeStream.return_();
 			this.codeStream.exitUserScope(type.classRepresentationInvariantsMethod.scope);
 			this.codeStream.recordPositionsFrom(0, type.sourceEnd);

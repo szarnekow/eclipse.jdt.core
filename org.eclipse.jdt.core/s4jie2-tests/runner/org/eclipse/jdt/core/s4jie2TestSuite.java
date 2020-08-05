@@ -1208,6 +1208,13 @@ public class s4jie2TestSuite {
 	    		"	at invariants_fail6.bar3(invariants_fail6.java:40)\n" + 
 	    		"	at invariants_fail6.bar4(invariants_fail6.java:49)\n" + 
 	    		"	at Main.main(invariants_fail6.java:85)\n");
+	    testCompileAndRun(true, "invariants_fail7", false, "",
+	    		"Exception in thread \"main\" java.lang.AssertionError: A class representation invariant of an object must not directly or indirectly call a nonprivate method that inspects or mutates the object.\n" + 
+	    		"	at invariants_fail7.$classRepresentationInvariants(invariants_fail7.java:1)\n" + 
+	    		"	at invariants_fail7.getDifference(invariants_fail7.java:10)\n" + 
+	    		"	at invariants_fail7.$classRepresentationInvariants(invariants_fail7.java:5)\n" + 
+	    		"	at invariants_fail7.<init>(invariants_fail7.java:1)\n" + 
+	    		"	at Main.main(invariants_fail7.java:18)\n");
 	    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

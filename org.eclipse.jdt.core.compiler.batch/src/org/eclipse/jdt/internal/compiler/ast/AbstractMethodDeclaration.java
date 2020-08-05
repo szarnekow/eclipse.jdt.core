@@ -351,9 +351,12 @@ public abstract class AbstractMethodDeclaration
 					argBinding.recordInitializationStartPC(0);
 				}
 			}
+			boolean invariantChecksInserted = false;
+			TypeDeclaration enclosingClass = null;
 			if (!this.binding.isPrivate() && !this.binding.isStatic()) {
-				AbstractMethodDeclaration classRepresentationInvariantsMethod = this.scope.enclosingClassScope().referenceContext.classRepresentationInvariantsMethod;
-				AbstractMethodDeclaration packageRepresentationInvariantsMethod = this.binding.isPublic() || this.binding.isProtected() ? this.scope.enclosingClassScope().referenceContext.packageRepresentationInvariantsMethod : null;
+				enclosingClass = this.scope.enclosingClassScope().referenceContext;
+				AbstractMethodDeclaration classRepresentationInvariantsMethod = enclosingClass.classRepresentationInvariantsMethod;
+				AbstractMethodDeclaration packageRepresentationInvariantsMethod = this.binding.isPublic() || this.binding.isProtected() ? enclosingClass.packageRepresentationInvariantsMethod : null;
 				if (classRepresentationInvariantsMethod != null || packageRepresentationInvariantsMethod != null) {
 					int inspectsThisSourceLocation = -1;
 					if (FormalSpecification.isGetterName(this.selector))
@@ -365,10 +368,12 @@ public abstract class AbstractMethodDeclaration
 						if (classRepresentationInvariantsMethod != null) {
 							codeStream.aload_0();
 							codeStream.invoke(Opcodes.OPC_invokespecial, classRepresentationInvariantsMethod.binding, classRepresentationInvariantsMethod.binding.declaringClass);
+							invariantChecksInserted = true;
 						}
 						if (packageRepresentationInvariantsMethod != null) {
 							codeStream.aload_0();
 							codeStream.invoke(Opcodes.OPC_invokespecial, packageRepresentationInvariantsMethod.binding, packageRepresentationInvariantsMethod.binding.declaringClass);
+							invariantChecksInserted = true;
 						}
 						codeStream.recordPositionsFrom(pc, inspectsThisSourceLocation);
 					}
@@ -376,6 +381,11 @@ public abstract class AbstractMethodDeclaration
 			}
 			if (this.formalSpecification != null)
 				this.formalSpecification.generateCode(this.scope, codeStream);
+			if (invariantChecksInserted) {
+				codeStream.aload_0();
+				codeStream.iconst_0();
+				codeStream.fieldAccess(Opcodes.OPC_putfield, enclosingClass.invariantsCheckingStateField, enclosingClass.binding);
+			}
 			if (this.statements != null) {
 				if (this.addPatternAccessorException)
 					codeStream.addPatternCatchExceptionInfo(this.scope, this.recPatCatchVar);

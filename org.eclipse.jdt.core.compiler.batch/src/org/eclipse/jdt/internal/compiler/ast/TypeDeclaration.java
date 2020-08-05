@@ -82,6 +82,7 @@ public class TypeDeclaration extends Statement implements ProblemSeverities, Ref
 	public Javadoc javadoc;
 	
 	public Expression[] invariants;
+	public SyntheticFieldBinding invariantsCheckingStateField;
 	public MethodDeclaration classRepresentationInvariantsMethod;
 	public MethodDeclaration packageRepresentationInvariantsMethod;
 
@@ -985,6 +986,15 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 						packageRepresentationInvariants = new ArrayList<>();
 					packageRepresentationInvariants.addAll(Arrays.asList(method.formalSpecification.invariants));
 				}
+		if (classRepresentationInvariants != null || packageRepresentationInvariants != null) {
+			this.invariantsCheckingStateField = new SyntheticFieldBinding(
+					"$invariantsCheckingState".toCharArray(), //$NON-NLS-1$
+					TypeBinding.INT,
+					ClassFileConstants.AccPrivate|ClassFileConstants.AccSynthetic,
+					this.binding,
+					Constant.NotAConstant,
+					Integer.MIN_VALUE);
+		}
 		if (classRepresentationInvariants != null) {
 			this.classRepresentationInvariantsMethod = new MethodDeclaration(this.compilationResult);
 			this.classRepresentationInvariantsMethod.bodyStart = this.declarationSourceStart;
