@@ -95,10 +95,10 @@ public class s4jie2TestSuite {
 		if (Main.compile(args, new PrintWriter(outWriter), new PrintWriter(errWriter)) != expectedSuccess) {
 			System.err.println("FAIL compiler success: expected: " + expectedSuccess + "; actual: " + !expectedSuccess);
 			System.err.println("=== standard output start ===");
-			System.err.println(outWriter.toString());
+			System.err.println(outWriter.toString().replace(fullPath, "SOURCE_FILE_FULL_PATH"));
 			System.err.println("=== standard output end ===");
 			System.err.println("=== standard error start ===");
-			System.err.println(errWriter.toString());
+			System.err.println(errWriter.toString().replace(fullPath, "SOURCE_FILE_FULL_PATH"));
 			System.err.println("=== standard error end ===");
 			System.exit(1);
 		}
@@ -1251,8 +1251,15 @@ public class s4jie2TestSuite {
 	    		"	at invariants_fail13.$classInvariants(invariants_fail13.java:5)\n" + 
 	    		"	at invariants_fail13.foo(invariants_fail13.java:12)\n" + 
 	    		"	at Main.main(invariants_fail13.java:18)\n");
-	    
-	    
+		testCompile("issue18", false, "",
+				"----------\n" + 
+				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" + 
+				"	private final int y;\n" + 
+				"	                  ^\n" + 
+				"The blank final field y may not have been initialized\n" + 
+				"----------\n" + 
+				"1 problem (1 error)\n");
+			    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
 

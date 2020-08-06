@@ -975,7 +975,7 @@ private void internalAnalyseCode(FlowContext flowContext, FlowInfo flowInfo) {
 	}
 }
 
-private void addSyntheticsForInvariants() {
+private void addAndResolveSyntheticsForInvariants() {
 	ArrayList<Expression> classRepresentationInvariants = null;
 	ArrayList<Expression> classAbstractStateInvariants = null;
 	ArrayList<Expression> packageRepresentationInvariants = null;
@@ -1020,13 +1020,14 @@ private void addSyntheticsForInvariants() {
 	}
 	if (classRepresentationInvariants != null || classAbstractStateInvariants != null) {
 		this.classInvariantsMethod = new MethodDeclaration(this.compilationResult);
+		this.classInvariantsMethod.selector = "$classInvariants".toCharArray(); //$NON-NLS-1$
 		this.classInvariantsMethod.bodyStart = this.declarationSourceStart;
 		if (this.invariants != null)
 			this.classInvariantsMethod.bodyStart = this.invariants[0].sourceStart;
 		this.classInvariantsMethod.bodyEnd = this.declarationSourceEnd;
 		this.classInvariantsMethod.binding = new MethodBinding(
 				ClassFileConstants.AccPublic,
-				"$classInvariants".toCharArray(), //$NON-NLS-1$
+				this.classInvariantsMethod.selector, //$NON-NLS-1$
 				TypeBinding.VOID,
 				null,
 				null,
@@ -1043,16 +1044,24 @@ private void addSyntheticsForInvariants() {
 				body.add(new AssertStatement(invariant, invariant.sourceStart));
 		}
 		this.classInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
+		this.classInvariantsMethod.resolve(this.scope);
+		if (classRepresentationInvariants != null)
+			for (Expression invariant : classRepresentationInvariants)
+				FormalSpecification.check(ClassFileConstants.AccPrivate, this.binding, this.classInvariantsMethod.scope, invariant);
+		if (classAbstractStateInvariants != null)
+			for (Expression invariant : classAbstractStateInvariants)
+				FormalSpecification.check(0, this.binding, this.classInvariantsMethod.scope, invariant);
 	}
 	if (packageRepresentationInvariants != null || packageAbstractStateInvariants != null) {
 		this.packageInvariantsMethod = new MethodDeclaration(this.compilationResult);
+		this.packageInvariantsMethod.selector = "$packageInvariants".toCharArray(); //$NON-NLS-1$
 		this.packageInvariantsMethod.bodyStart = this.declarationSourceStart;
 		if (this.invariants != null)
 			this.packageInvariantsMethod.bodyStart = this.invariants[0].sourceStart;
 		this.packageInvariantsMethod.bodyEnd = this.declarationSourceEnd;
 		this.packageInvariantsMethod.binding = new MethodBinding(
 				ClassFileConstants.AccPublic,
-				"$packageInvariants".toCharArray(), //$NON-NLS-1$
+				this.packageInvariantsMethod.selector,
 				TypeBinding.VOID,
 				null,
 				null,
@@ -1068,6 +1077,13 @@ private void addSyntheticsForInvariants() {
 			for (Expression invariant : packageAbstractStateInvariants)
 				body.add(new AssertStatement(invariant, invariant.sourceStart));
 		this.packageInvariantsMethod.statements = body.toArray(new Statement[body.size()]);
+		this.packageInvariantsMethod.resolve(this.scope);
+		if (packageRepresentationInvariants != null)
+			for (Expression invariant : packageRepresentationInvariants)
+				FormalSpecification.check(0, this.binding, this.packageInvariantsMethod.scope, invariant);
+		if (packageAbstractStateInvariants != null)
+			for (Expression invariant : packageAbstractStateInvariants)
+				FormalSpecification.check(ClassFileConstants.AccPublic, this.binding, this.packageInvariantsMethod.scope, invariant);
 	}
 }
 
@@ -1508,7 +1524,6 @@ public void resolve() {
 			}
 		}
 		if (this.fields != null) {
-			boolean hasInvariants = false;
 			for (int i = 0, count = this.fields.length; i < count; i++) {
 				FieldDeclaration field = this.fields[i];
 				switch(field.getKind()) {
@@ -1546,26 +1561,11 @@ public void resolve() {
 					field.javadoc = this.javadoc;
 				}
 				field.resolve(field.isStatic() ? this.staticInitializerScope : this.initializerScope);
-				if (field.invariants != null)
-					hasInvariants = true;
 			}
-			if (hasInvariants)
-				for (FieldDeclaration field : this.fields)
-					if (field.invariants != null)
-						for (Expression e : field.invariants) {
-							e.resolveTypeExpecting(this.initializerScope, TypeBinding.BOOLEAN);
-							FormalSpecification.check(field.modifiers, this.binding, this.initializerScope, e);
-						}
 		}
 		if (this.maxFieldCount < localMaxFieldCount) {
 			this.maxFieldCount = localMaxFieldCount;
 		}
-		if (this.invariants != null)
-			for (Expression e : this.invariants) {
-				e.resolveTypeExpecting(this.initializerScope, TypeBinding.BOOLEAN);
-				FormalSpecification.check(this.modifiers, this.binding, this.initializerScope, e);
-			}
-		this.addSyntheticsForInvariants();
 		if (needSerialVersion) {
 			//check that the current type doesn't extend javax.rmi.CORBA.Stub
 			TypeBinding javaxRmiCorbaStub = this.scope.getType(TypeConstants.JAVAX_RMI_CORBA_STUB, 4);
@@ -1622,6 +1622,7 @@ public void resolve() {
 		if ((methodsLength + missingAbstractMethodslength) > 0xFFFF) {
 			this.scope.problemReporter().tooManyMethods(this);
 		}
+		this.addAndResolveSyntheticsForInvariants();
 		if (this.methods != null) {
 			for (int i = 0, count = this.methods.length; i < count; i++) {
 				this.methods[i].resolve(this.scope);

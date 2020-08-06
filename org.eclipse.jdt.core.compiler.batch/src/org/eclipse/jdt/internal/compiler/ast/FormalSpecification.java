@@ -191,9 +191,6 @@ public class FormalSpecification {
 		if (this.method.ignoreFurtherInvestigation)
 			return;
 		
-		if (this.invariants != null)
-			for (Expression e : this.invariants)
-				e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
 		if (this.throwsConditions != null)
 			for (Expression e : this.throwsConditions)
 				e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
@@ -376,9 +373,6 @@ public class FormalSpecification {
 		int thisElementModifiers = this.method.binding.modifiers;
 		ReferenceBinding thisClassBinding = this.method.binding.declaringClass;
 		
-		if (this.invariants != null)
-			for (Expression e : this.invariants)
-				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
 		if (this.preconditions != null)
 			for (Expression e : this.preconditions)
 				check(thisElementModifiers, thisClassBinding, this.method.scope, e);
