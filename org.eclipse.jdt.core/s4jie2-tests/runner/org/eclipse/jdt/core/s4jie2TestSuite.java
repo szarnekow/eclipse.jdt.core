@@ -240,12 +240,13 @@ public class s4jie2TestSuite {
 				"No exception was thrown! :-(\n" +
 				"No exception was thrown! :-(\n");
 		testCompileAndRun(true, "GameCharacter_pre", true, "",
-				"java.lang.AssertionError: Precondition does not hold\n" +
-				"	at GameCharacter.takeDamage(GameCharacter_pre.java:20)\n" +
-				"	at Main.main(GameCharacter_pre.java:36)\n" +
-				"java.lang.AssertionError: Precondition does not hold\n" +
-				"	at GameCharacter.<init>(GameCharacter_pre.java:9)\n" +
-				"	at Main.main(GameCharacter_pre.java:44)\n");
+				  "java.lang.AssertionError: Precondition does not hold\n"
+				  + "	at GameCharacter.takeDamage$pre(GameCharacter_pre.java:20)\n"
+				  + "	at GameCharacter.takeDamage(GameCharacter_pre.java:22)\n"
+				  + "	at Main.main(GameCharacter_pre.java:36)\n"
+				  + "java.lang.AssertionError: Precondition does not hold\n"
+				  + "	at GameCharacter.<init>(GameCharacter_pre.java:9)\n"
+				  + "	at Main.main(GameCharacter_pre.java:44)\n");
 		testCompile("GameCharacter_pre_fail", false, "",
 				"----------\n" +
 				"1. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" +
