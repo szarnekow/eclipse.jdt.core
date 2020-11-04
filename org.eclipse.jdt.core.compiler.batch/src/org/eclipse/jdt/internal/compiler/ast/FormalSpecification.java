@@ -31,7 +31,7 @@ public class FormalSpecification {
 	private static final char[] POSTCONDITION_VARIABLE_NAME = " $post".toCharArray(); //$NON-NLS-1$
 	private static final char[] PRECONDITION_METHOD_NAME_SUFFIX = "$pre".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_METHOD_NAME_SUFFIX = "$post".toCharArray(); //$NON-NLS-1$
-	private static final char[] SPECIFICATION_METHOD_NAME_SUFFIX = "$spec".toCharArray();
+	public static final char[] SPECIFICATION_METHOD_NAME_SUFFIX = "$spec".toCharArray();
 	static final char[] OLD_VARIABLE_INNER_SUFFIX = " inner".toCharArray(); //$NON-NLS-1$
 	static final char[] OLD_VARIABLE_EXCEPTION_SUFFIX = " exception".toCharArray(); //$NON-NLS-1$
 	private static final char[] LAMBDA_PARAMETER_NAME = " $result".toCharArray(); //$NON-NLS-1$
@@ -100,7 +100,6 @@ public class FormalSpecification {
 	public Expression[] mutatesPropertiesExpressions;
 	public Expression[] createsExpressions;
 	
-	public MethodBinding specificationMethodBinding;
 	public LambdaExpression preconditionLambda;
 	public Block block;
 	public LocalDeclaration postconditionVariableDeclaration;
@@ -197,7 +196,18 @@ public class FormalSpecification {
 			}
 		}
 	}
+	
+	public void initializeMethodBinding() {
+		
+		if ((this.method.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate | ClassFileConstants.AccFinal)) == 0
+				&& !this.method.binding.declaringClass.isFinal() && (this.preconditions != null || this.postconditions != null)) {
 
+			this.method.binding.hasSpecificationMethod = true;
+		    
+		}
+
+	}
+	
 	public void resolve() {
 		if (this.method.ignoreFurtherInvestigation)
 			return;
@@ -261,25 +271,6 @@ public class FormalSpecification {
 					preconditionLambdaCall.selector = "get".toCharArray(); //$NON-NLS-1$
 				}
 				preconditionLambdaCall.receiver = new CastExpression(this.preconditionLambda, preconditionLambdaType);
-				
-				if ((this.method.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate | ClassFileConstants.AccFinal)) == 0
-						&& !this.method.binding.declaringClass.isFinal() && (this.preconditions != null || this.postconditions != null)) {
-					
-					TypeBinding[] parameterTypes = new TypeBinding[this.method.binding.parameters.length + 1];
-					parameterTypes[0] = this.method.binding.declaringClass;
-					System.arraycopy(this.method.binding.parameters, 0, parameterTypes, 1, this.method.binding.parameters.length);
-					this.specificationMethodBinding = new MethodBinding(
-							(this.method.modifiers & ~ClassFileConstants.AccAbstract) | ClassFileConstants.AccStatic | ClassFileConstants.AccSynthetic,
-							CharOperation.concat(this.method.selector, SPECIFICATION_METHOD_NAME_SUFFIX),
-							this.method.binding.returnType,
-							parameterTypes,
-							null,
-							this.method.binding.declaringClass);
-				    if (this.specificationMethodBinding.declaringClass.isInterface())
-			    		this.specificationMethodBinding.modifiers |= ClassFileConstants.AccPublic;
-				    this.method.binding.specificationMethodBinding = this.specificationMethodBinding;
-				    
-				}
 			}
 
 			ArrayList<Statement> statementsForBlock = new ArrayList<>();

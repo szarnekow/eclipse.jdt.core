@@ -1199,8 +1199,8 @@ public class ClassFile implements TypeConstants, TypeIds {
 		TypeDeclaration type = this.referenceBinding.scope.referenceContext;
 		if (type.methods != null) {
 			for (AbstractMethodDeclaration method : type.methods) {
-				if (!method.ignoreFurtherInvestigation && method.formalSpecification != null && method.formalSpecification.specificationMethodBinding != null) {
-					MethodBinding methodBinding = method.formalSpecification.specificationMethodBinding;
+				if (!method.ignoreFurtherInvestigation && method.formalSpecification != null && method.binding.hasSpecificationMethod) {
+					MethodBinding methodBinding = method.binding.getSpecificationMethodBinding();
 					this.codeStream.wideMode = false;
 					generateMethodInfoHeader(methodBinding);
 					int methodAttributeOffset = this.contentsOffset;

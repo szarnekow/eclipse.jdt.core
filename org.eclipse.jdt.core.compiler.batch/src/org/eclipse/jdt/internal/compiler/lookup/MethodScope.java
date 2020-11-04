@@ -405,6 +405,9 @@ MethodBinding createMethod(AbstractMethodDeclaration method) {
 		method.binding =
 			new MethodBinding(modifiers, method.selector, null, null, null, declaringClass);
 		checkAndSetModifiersForMethod(method.binding);
+		
+		if (method.formalSpecification != null)
+			method.formalSpecification.initializeMethodBinding();
 	}
 	this.isStatic = method.binding.isStatic();
 

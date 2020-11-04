@@ -43,6 +43,7 @@ import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.eclipse.jdt.internal.compiler.ast.FormalSpecification;
 import org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.RecordComponent;
@@ -76,6 +77,7 @@ public class MethodBinding extends Binding {
 	/** Store parameter names from MethodParameters attribute (incl. applicable default). */
 	public char[][] parameterNames = Binding.NO_PARAMETER_NAMES;
 	
+	public boolean hasSpecificationMethod;
 	public MethodBinding specificationMethodBinding;
 
 protected MethodBinding() {
@@ -108,6 +110,21 @@ public MethodBinding(MethodBinding initialMethodBinding, ReferenceBinding declar
 	this.thrownExceptions = initialMethodBinding.thrownExceptions;
 	this.declaringClass = declaringClass;
 	declaringClass.storeAnnotationHolder(this, initialMethodBinding.declaringClass.retrieveAnnotationHolder(initialMethodBinding, true));
+}
+public MethodBinding getSpecificationMethodBinding() {
+	if (this.specificationMethodBinding == null) {
+		TypeBinding[] parameterTypes = new TypeBinding[this.parameters.length + 1];
+		parameterTypes[0] = this.declaringClass;
+		System.arraycopy(this.parameters, 0, parameterTypes, 1, this.parameters.length);
+		this.specificationMethodBinding = new MethodBinding(
+				(this.modifiers & ~ClassFileConstants.AccAbstract) | ClassFileConstants.AccStatic | ClassFileConstants.AccSynthetic,
+				CharOperation.concat(this.selector, FormalSpecification.SPECIFICATION_METHOD_NAME_SUFFIX),
+				this.returnType,
+				parameterTypes,
+				null,
+				this.declaringClass);
+	}
+	return this.specificationMethodBinding;
 }
 /* Answer true if the argument types & the receiver's parameters have the same erasure
 */
