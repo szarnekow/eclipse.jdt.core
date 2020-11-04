@@ -1076,6 +1076,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 		// add all methods (default abstract methods and synthetic)
 
 		addInvariantsMethods();
+		addSpecificationMethods();
 
 		// default abstract methods
 		generateMissingAbstractMethods(this.referenceBinding.scope.referenceType().missingAbstractMethods, this.referenceBinding.scope.referenceCompilationUnit().compilationResult);
@@ -1192,6 +1193,98 @@ public class ClassFile implements TypeConstants, TypeIds {
 					}
 				}
 			} while (restart);
+		}
+	}
+	private void addSpecificationMethods() {
+		TypeDeclaration type = this.referenceBinding.scope.referenceContext;
+		if (type.methods != null) {
+			for (AbstractMethodDeclaration method : type.methods) {
+				if (!method.ignoreFurtherInvestigation && method.formalSpecification != null && method.formalSpecification.getSpecificationMethodBinding() != null) {
+					MethodBinding methodBinding = method.formalSpecification.getSpecificationMethodBinding();
+					this.codeStream.wideMode = false;
+					generateMethodInfoHeader(methodBinding);
+					int methodAttributeOffset = this.contentsOffset;
+					int attributeNumber = generateMethodInfoAttributes(methodBinding);
+					int codeAttributeOffset = this.contentsOffset;
+					generateCodeAttributeHeader();
+					this.codeStream.init(this);
+					
+					{
+						int resolvedPosition = 1;
+						if (method.arguments != null)
+							for (Argument argument : method.arguments) {
+								assert argument.binding.resolvedPosition == 0 || argument.binding.resolvedPosition == resolvedPosition;
+								argument.binding.resolvedPosition = resolvedPosition;
+								if (argument.binding.type.id == TypeIds.T_long || argument.binding.type.id == TypeIds.T_double)
+									resolvedPosition += 2;
+								else
+									resolvedPosition++;
+							}
+						this.codeStream.maxLocals = resolvedPosition;
+					}
+					
+					LambdaExpression preconditionLambda = method.formalSpecification.preconditionLambda;
+					preconditionLambda.performCodeGenerationTimeFixups(type.binding);
+					
+					if (!preconditionLambda.binding.isStatic())
+						this.codeStream.aload_0();
+					for (SyntheticArgumentBinding local : preconditionLambda.outerLocalVariables) {
+						this.codeStream.load(local.actualOuterLocalVariable);
+					}
+					this.codeStream.invoke(preconditionLambda.binding.isStatic() ? Opcodes.OPC_invokestatic : Opcodes.OPC_invokespecial, preconditionLambda.binding, type.binding);
+					
+					this.codeStream.aload_0();
+					if (method.arguments != null)
+						for (Argument argument : method.arguments)
+							this.codeStream.load(argument.binding);
+					this.codeStream.invoke(type.binding.isInterface() ? Opcodes.OPC_invokeinterface : Opcodes.OPC_invokevirtual, method.binding, type.binding);
+					
+					if (method.formalSpecification.postconditions != null) {
+						int returnType = method.binding.returnType.id;
+						if (returnType != TypeIds.T_void) {
+							if (returnType == TypeIds.T_long || returnType == TypeIds.T_double) {
+								this.codeStream.dup2_x1();
+							} else {
+								this.codeStream.dup_x1();
+							}
+							if (method.binding.returnType.isPrimitiveType())
+								this.codeStream.generateBoxingConversion(returnType);
+						}
+						MethodBinding postconditionMethod = method.formalSpecification.postconditionMethodCall.binding.original();
+						TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(method.scope, postconditionMethod, postconditionMethod.declaringClass, false);
+						this.codeStream.invoke(Opcodes.OPC_invokeinterface, postconditionMethod, constantPoolDeclaringClass);
+					}
+					
+					switch (method.binding.returnType.id) {
+						case TypeIds.T_void:
+							this.codeStream.return_();
+							break;
+						case TypeIds.T_boolean:
+						case TypeIds.T_byte:
+						case TypeIds.T_short:
+						case TypeIds.T_char:
+						case TypeIds.T_int:
+							this.codeStream.ireturn();
+							break;
+						case TypeIds.T_long:
+							this.codeStream.lreturn();
+							break;
+						case TypeIds.T_float:
+							this.codeStream.freturn();
+							break;
+						case TypeIds.T_double:
+							this.codeStream.dreturn();
+							break;
+						default:
+							this.codeStream.areturn();
+							break;
+					}
+					
+					this.completeCodeAttribute(codeAttributeOffset, null);
+					attributeNumber++;
+					this.completeMethodInfo(methodBinding, methodAttributeOffset, attributeNumber);
+				}
+			}
 		}
 	}
 	private void addInvariantsMethods() {

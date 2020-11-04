@@ -92,7 +92,7 @@ public class MethodDeclaration extends AbstractMethodDeclaration {
 				return;
 
 			// may be in a non necessary <clinit> for innerclass with static final constant fields
-			if (this.binding.isAbstract() || this.binding.isNative())
+			if (this.binding.isAbstract() && this.formalSpecification == null || this.binding.isNative())
 				return;
 
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=385780

@@ -193,6 +193,23 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 	protected FunctionalExpression original() {
 		return this.original;
 	}
+	
+	public void performCodeGenerationTimeFixups(SourceTypeBinding sourceType) {
+		if (this.shouldCaptureInstance && !this.lateBindReceiver) {
+			this.binding.modifiers &= ~ClassFileConstants.AccStatic;
+		} else {
+			this.binding.modifiers |= ClassFileConstants.AccStatic;
+		}
+		if (!(this.binding instanceof SyntheticMethodBinding)) {
+			this.binding = sourceType.addSyntheticMethod(this);
+			for (int i = 0, length = this.outerLocalVariables == null ? 0 : this.outerLocalVariables.length; i < length; i++) {
+				SyntheticArgumentBinding syntheticArgument = this.outerLocalVariables[i];
+				if (this.shouldCaptureInstance) { // finally block handling results in extra spills, avoid side effect.
+					syntheticArgument.resolvedPosition++;
+				}
+			}
+		}
+	}
 
 	@Override
 	public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired) {

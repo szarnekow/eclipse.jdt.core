@@ -31,6 +31,7 @@ public class FormalSpecification {
 	private static final char[] POSTCONDITION_VARIABLE_NAME = " $post".toCharArray(); //$NON-NLS-1$
 	private static final char[] PRECONDITION_METHOD_NAME_SUFFIX = "$pre".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_METHOD_NAME_SUFFIX = "$post".toCharArray(); //$NON-NLS-1$
+	private static final char[] SPECIFICATION_METHOD_NAME_SUFFIX = "$spec".toCharArray();
 	static final char[] OLD_VARIABLE_INNER_SUFFIX = " inner".toCharArray(); //$NON-NLS-1$
 	static final char[] OLD_VARIABLE_EXCEPTION_SUFFIX = " exception".toCharArray(); //$NON-NLS-1$
 	private static final char[] LAMBDA_PARAMETER_NAME = " $result".toCharArray(); //$NON-NLS-1$
@@ -99,10 +100,40 @@ public class FormalSpecification {
 	public Expression[] mutatesPropertiesExpressions;
 	public Expression[] createsExpressions;
 	
+	public MethodBinding specificationMethodBinding;
+	public LambdaExpression preconditionLambda;
 	public Block block;
 	public LocalDeclaration postconditionVariableDeclaration;
 	public MessageSend postconditionMethodCall;
 	public ArrayList<Statement> statementsForMethodBody;
+
+	public boolean hasSpecificationMethod() {
+		return
+				this.preconditionLambda != null &&
+				(this.method.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate | ClassFileConstants.AccFinal)) == 0 &&
+				!this.method.binding.declaringClass.isFinal();
+	}
+	
+	public MethodBinding getSpecificationMethodBinding() {
+		if (!hasSpecificationMethod())
+			return null;
+		if (this.specificationMethodBinding != null)
+			return this.specificationMethodBinding;
+		TypeBinding[] parameterTypes = new TypeBinding[this.method.binding.parameters.length + 1];
+		parameterTypes[0] = this.method.binding.declaringClass;
+		System.arraycopy(this.method.binding.parameters, 0, parameterTypes, 1, this.method.binding.parameters.length);
+		this.specificationMethodBinding = new MethodBinding(
+				(this.method.modifiers & ~ClassFileConstants.AccAbstract) | ClassFileConstants.AccStatic | ClassFileConstants.AccSynthetic,
+				CharOperation.concat(this.method.selector, SPECIFICATION_METHOD_NAME_SUFFIX),
+				this.method.binding.returnType,
+				parameterTypes,
+				null,
+				this.method.binding.declaringClass);
+	    if (this.specificationMethodBinding.declaringClass.isInterface())
+	    	if (!this.specificationMethodBinding.isPrivate())
+	    		this.specificationMethodBinding.modifiers |= ClassFileConstants.AccPublic;
+		return this.specificationMethodBinding;
+	}
 
 	public FormalSpecification(AbstractMethodDeclaration method) {
 		this.method = method;
@@ -239,24 +270,26 @@ public class FormalSpecification {
 		}
 		
 		{
-			LambdaExpression preconditionLambda = new LambdaExpression(this.method.compilationResult, false);
-			preconditionLambda.allowReferencesToNonEffectivelyFinalOuterLocals = true;
 			int overloadCount = this.method.scope.enclosingClassScope().registerOverload(this.method.selector);
-			preconditionLambda.lambdaMethodSelector =
-					overloadCount == 0 ?
-							CharOperation.concat(this.method.selector, PRECONDITION_METHOD_NAME_SUFFIX)
-					:
-							CharOperation.concat(this.method.selector, ("$" + overloadCount).toCharArray(), PRECONDITION_METHOD_NAME_SUFFIX); //$NON-NLS-1$
 			MessageSend preconditionLambdaCall = new MessageSend();
-			TypeReference preconditionLambdaType;
-			if (this.postconditions == null) {
-				preconditionLambdaType = javaLangRunnable();
-				preconditionLambdaCall.selector = "run".toCharArray(); //$NON-NLS-1$
-			} else {
-				preconditionLambdaType = getJavaUtilSupplierOf(getPostconditionLambdaType(this.method.binding.returnType, this.method instanceof MethodDeclaration ? ((MethodDeclaration)this.method).returnType : null));
-				preconditionLambdaCall.selector = "get".toCharArray(); //$NON-NLS-1$
+			if (!(this.method instanceof ConstructorDeclaration)) {
+				this.preconditionLambda = new LambdaExpression(this.method.compilationResult, false);
+				this.preconditionLambda.allowReferencesToNonEffectivelyFinalOuterLocals = true;
+				this.preconditionLambda.lambdaMethodSelector =
+						overloadCount == 0 ?
+								CharOperation.concat(this.method.selector, PRECONDITION_METHOD_NAME_SUFFIX)
+						:
+								CharOperation.concat(this.method.selector, ("$" + overloadCount).toCharArray(), PRECONDITION_METHOD_NAME_SUFFIX); //$NON-NLS-1$
+				TypeReference preconditionLambdaType;
+				if (this.postconditions == null) {
+					preconditionLambdaType = javaLangRunnable();
+					preconditionLambdaCall.selector = "run".toCharArray(); //$NON-NLS-1$
+				} else {
+					preconditionLambdaType = getJavaUtilSupplierOf(getPostconditionLambdaType(this.method.binding.returnType, this.method instanceof MethodDeclaration ? ((MethodDeclaration)this.method).returnType : null));
+					preconditionLambdaCall.selector = "get".toCharArray(); //$NON-NLS-1$
+				}
+				preconditionLambdaCall.receiver = new CastExpression(this.preconditionLambda, preconditionLambdaType);
 			}
-			preconditionLambdaCall.receiver = new CastExpression(preconditionLambda, preconditionLambdaType);
 
 			ArrayList<Statement> statementsForBlock = new ArrayList<>();
 			HashMap<String, OldExpression.DistinctExpression> oldExpressions = new HashMap<>();
@@ -393,7 +426,8 @@ public class FormalSpecification {
 					this.postconditionMethodCall.arguments = new Expression[] {new NullLiteral(0, 0)};
 				}
 			} else {
-				this.statementsForMethodBody.add(preconditionLambdaCall);
+				if (!(this.method instanceof ConstructorDeclaration))
+					this.statementsForMethodBody.add(preconditionLambdaCall);
 			}
 			this.block = new Block(blockDeclarationsCount);
 			this.block.statements = new Statement[statementsForBlock.size()];
@@ -401,11 +435,11 @@ public class FormalSpecification {
 			this.block.sourceEnd = this.method.bodyEnd;
 			statementsForBlock.toArray(this.block.statements);
 			if (this.method instanceof ConstructorDeclaration) {
-				this.statementsForMethodBody.add(block);
+				this.statementsForMethodBody.add(this.block);
 			} else {
-				preconditionLambda.setBody(this.block);
-				preconditionLambda.sourceStart = this.method.bodyStart;
-				preconditionLambda.sourceEnd = this.method.bodyEnd;
+				this.preconditionLambda.setBody(this.block);
+				this.preconditionLambda.sourceStart = this.method.bodyStart;
+				this.preconditionLambda.sourceEnd = this.method.bodyEnd;
 			}
 
 			for (Statement s : this.statementsForMethodBody)
