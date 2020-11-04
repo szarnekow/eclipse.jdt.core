@@ -75,6 +75,8 @@ public class MethodBinding extends Binding {
 
 	/** Store parameter names from MethodParameters attribute (incl. applicable default). */
 	public char[][] parameterNames = Binding.NO_PARAMETER_NAMES;
+	
+	public MethodBinding specificationMethodBinding;
 
 protected MethodBinding() {
 	// for creating problem or synthetic method

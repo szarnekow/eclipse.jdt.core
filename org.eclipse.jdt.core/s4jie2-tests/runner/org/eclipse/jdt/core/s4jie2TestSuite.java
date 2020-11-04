@@ -242,7 +242,7 @@ public class s4jie2TestSuite {
 		testCompileAndRun(true, "GameCharacter_pre", true, "",
 				  "java.lang.AssertionError: Precondition does not hold\n"
 				  + "	at GameCharacter.takeDamage$pre(GameCharacter_pre.java:20)\n"
-				  + "	at GameCharacter.takeDamage(GameCharacter_pre.java:22)\n"
+				  + "	at GameCharacter.takeDamage$spec(GameCharacter_pre.java)\n"
 				  + "	at Main.main(GameCharacter_pre.java:36)\n"
 				  + "java.lang.AssertionError: Precondition does not hold\n"
 				  + "	at GameCharacter.<init>(GameCharacter_pre.java:9)\n"
@@ -348,22 +348,27 @@ public class s4jie2TestSuite {
 				"java.lang.AssertionError: Postcondition does not hold\n" +
 				"	at GameCharacter.takeDamage$post(GameCharacter_pre_post.java:28)\n" +
 				"	at GameCharacter.takeDamage(GameCharacter_pre_post.java:36)\n" +
+				"	at GameCharacter.takeDamage$spec(GameCharacter_pre_post.java)\n" +
 				"	at Main.main(GameCharacter_pre_post.java:98)\n" +
 				"java.lang.AssertionError: Postcondition does not hold\n" +
 				"	at GameCharacter.setHealth$post(GameCharacter_pre_post.java:13)\n" +
 				"	at GameCharacter.setHealth(GameCharacter_pre_post.java:17)\n" +
+				"	at GameCharacter.setHealth$spec(GameCharacter_pre_post.java)\n" +
 				"	at Main.main(GameCharacter_pre_post.java:105)\n" +
 				"java.lang.AssertionError: Postcondition does not hold\n" +
 				"	at GameCharacter.simpleReturnTest$post(GameCharacter_pre_post.java:54)\n" +
 				"	at GameCharacter.simpleReturnTest(GameCharacter_pre_post.java:58)\n" +
+				"	at GameCharacter.simpleReturnTest$spec(GameCharacter_pre_post.java)\n" +
 				"	at Main.main(GameCharacter_pre_post.java:112)\n" +
 				"java.lang.AssertionError: Postcondition does not hold\n" +
 				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:62)\n" +
 				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:67)\n" +
+				"	at GameCharacter.returnInsideIfTest$spec(GameCharacter_pre_post.java)\n" +
 				"	at Main.main(GameCharacter_pre_post.java:119)\n" +
 				"java.lang.AssertionError: Postcondition does not hold\n" +
 				"	at GameCharacter.returnInsideIfTest$post(GameCharacter_pre_post.java:62)\n" +
 				"	at GameCharacter.returnInsideIfTest(GameCharacter_pre_post.java:70)\n" +
+				"	at GameCharacter.returnInsideIfTest$spec(GameCharacter_pre_post.java)\n" +
 				"	at Main.main(GameCharacter_pre_post.java:126)\n" +
 				"java.lang.AssertionError: Postcondition does not hold\n" +
 				"	at Main.booleanResult$post(GameCharacter_pre_post.java:211)\n" +
@@ -651,7 +656,19 @@ public class s4jie2TestSuite {
 	    		"----------\n" +
 	    		"12 problems (12 errors)\n");
 	    testCompileAndRun(true, "effect_clauses_success", true, "", "");
-	    testCompileAndRun(true, "abstract_methods", true, "Success!\n", "");
+	    testCompileAndRun(true, "abstract_methods", true, "Success!\n",
+	    		  "java.lang.AssertionError: Precondition does not hold\n"
+	    		+ "	at Foo.foo$pre(abstract_methods.java:6)\n"
+	    		+ "	at Foo.foo$spec(abstract_methods.java)\n"
+	    		+ "	at Main.main(abstract_methods.java:62)\n"
+	    		+ "java.lang.AssertionError: Postcondition does not hold\n"
+	    		+ "	at Foo.foo$post(abstract_methods.java:7)\n"
+	    		+ "	at Foo.foo$spec(abstract_methods.java)\n"
+	    		+ "	at Main.main(abstract_methods.java:69)\n"
+	    		+ "java.lang.AssertionError: Postcondition does not hold\n"
+	    		+ "	at Foo.foo$post(abstract_methods.java:8)\n"
+	    		+ "	at Foo.foo$spec(abstract_methods.java)\n"
+	    		+ "	at Main.main(abstract_methods.java:76)\n");
 	    testCompileAndRun(true, "old_exception", true, "Success\nSuccess\n", "");
 	    testCompile("issue16", false, "", "----------\n" +
 	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" +
