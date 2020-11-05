@@ -53,6 +53,9 @@ public interface AttributeNamesConstants {
 	// jep181
 	final char[] NestHost = "NestHost".toCharArray(); //$NON-NLS-1$
 	final char[] NestMembers = "NestMembers".toCharArray(); //$NON-NLS-1$
+	
+	final char[] Fsc4jHasSpecMethod = "fsc4j.HasSpecMethod".toCharArray(); //$NON-NLS-1$
+	
 	// jep 359 records
 	final char[] RecordClass = "Record".toCharArray(); //$NON-NLS-1$
 	final char[] PermittedSubclasses = "PermittedSubclasses".toCharArray(); //$NON-NLS-1$

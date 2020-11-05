@@ -40,7 +40,8 @@ public class MethodInfo extends ClassFileStruct implements IBinaryMethod, Compar
 	protected long tagBits;
 	protected volatile char[][] argumentNames;
 	protected long version;
-
+	public boolean hasSpecificationMethod;
+	
 public static MethodInfo createMethod(byte classFileBytes[], int offsets[], int offset, long version) {
 	MethodInfo methodInfo = new MethodInfo(classFileBytes, offsets, offset, version);
 	int attributesCount = methodInfo.u2At(6);
@@ -120,6 +121,11 @@ public static MethodInfo createMethod(byte classFileBytes[], int offsets[], int 
 							System.arraycopy(methodTypeAnnotations, 0, newAnnotations, length, methodTypeAnnotations.length);
 							typeAnnotations = newAnnotations;
 						}
+					}
+					break;
+				case 'f':
+					if (CharOperation.equals(attributeName, AttributeNamesConstants.Fsc4jHasSpecMethod)) {
+						methodInfo.hasSpecificationMethod = true;
 					}
 					break;
 			}

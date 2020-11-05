@@ -2679,6 +2679,8 @@ public class ClassFile implements TypeConstants, TypeIds {
 											(node) -> size > 0,
 											() -> allTypeAnnotationContexts);
 		}
+		if (binding.hasSpecificationMethod)
+			attributesNumber += generateHasSpecMethodAttribute();
 		if ((this.produceAttributes & ClassFileConstants.ATTR_METHOD_PARAMETERS) != 0 ||
 				binding.isConstructor() &&  binding.declaringClass.isRecord()) {
 			attributesNumber += generateMethodParameters(binding);
@@ -2686,6 +2688,22 @@ public class ClassFile implements TypeConstants, TypeIds {
 		// update the number of attributes
 		this.contents[methodAttributeOffset++] = (byte) (attributesNumber >> 8);
 		this.contents[methodAttributeOffset] = (byte) attributesNumber;
+	}
+	
+	private int generateHasSpecMethodAttribute() {
+ 		int attributeLength = 0;
+		if (this.contentsOffset + 6 + attributeLength >= this.contents.length) {
+			resizeContents(6 + attributeLength);
+		}
+		int attributeNameIndex = this.constantPool.literalIndex(AttributeNamesConstants.Fsc4jHasSpecMethod);
+		this.contents[this.contentsOffset++] = (byte) (attributeNameIndex >> 8);
+		this.contents[this.contentsOffset++] = (byte) attributeNameIndex;
+		this.contents[this.contentsOffset++] = (byte) (attributeLength >> 24);
+		this.contents[this.contentsOffset++] = (byte) (attributeLength >> 16);
+		this.contents[this.contentsOffset++] = (byte) (attributeLength >> 8);
+		this.contents[this.contentsOffset++] = (byte) attributeLength;
+
+		return 1;
 	}
 
 	private void dumpLocations(int[] locations) {

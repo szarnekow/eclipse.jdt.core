@@ -30,6 +30,7 @@ MethodInfoWithAnnotations(MethodInfo methodInfo, AnnotationInfo[] annotations) {
 	this.signature = methodInfo.signature;
 	this.signatureUtf8Offset = methodInfo.signatureUtf8Offset;
 	this.tagBits = methodInfo.tagBits;
+	this.hasSpecificationMethod = methodInfo.hasSpecificationMethod;
 }
 @Override
 public IBinaryAnnotation[] getAnnotations() {
