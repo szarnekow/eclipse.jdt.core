@@ -1298,6 +1298,16 @@ public class s4jie2TestSuite {
 				"The blank final field y may not have been initialized\n" + 
 				"----------\n" + 
 				"1 problem (1 error)\n");
+		testCompileAndRun(true, "issue23", false, "",
+				  "Exception in thread \"main\" java.lang.AssertionError: Precondition does not hold\n"
+				  + "	at Foo.foo$pre(issue23.java:2)\n"
+				  + "	at Foo.foo$spec(issue23.java)\n"
+				  + "	at Main.main(issue23.java:8)\n");
+		testCompileAndRun(true, "issue23bis", false, "",
+				  "Exception in thread \"main\" java.lang.AssertionError: Precondition does not hold\n"
+				+ "	at Foo.foo$pre(issue23bis.java:2)\n"
+				+ "	at Foo.foo$spec(issue23bis.java)\n"
+				+ "	at Main.main(issue23bis.java:8)\n");
 			    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}

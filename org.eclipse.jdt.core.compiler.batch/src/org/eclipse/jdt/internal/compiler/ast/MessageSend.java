@@ -557,7 +557,10 @@ public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean
 				(!currentScope.enclosingSourceType().isNestmateOf(this.binding.declaringClass) && codegenBinding.isPrivate())){
 			codeStream.invoke(Opcodes.OPC_invokespecial, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
 		} else if (codegenBinding.hasSpecificationMethod) {
-			codeStream.invoke(Opcodes.OPC_invokestatic, codegenBinding.getSpecificationMethodBinding(), constantPoolDeclaringClass, this.typeArguments);
+			// Static interface methods are not inherited, so qualify call by declaring class rather than receiver type
+			// https://github.com/fsc4j/fsc4j/issues/23
+			MethodBinding specificationMethodBinding = codegenBinding.getSpecificationMethodBinding();
+			codeStream.invoke(Opcodes.OPC_invokestatic, specificationMethodBinding, specificationMethodBinding.declaringClass, this.typeArguments);
 		} else if (constantPoolDeclaringClass.isInterface()) { // interface or annotation type
 			codeStream.invoke(Opcodes.OPC_invokeinterface, codegenBinding, constantPoolDeclaringClass, this.typeArguments);
 		} else {
