@@ -832,7 +832,7 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 		root = 0;
 		for (i = Parser.asi(next_state); Parser.asr[i] != 0; i++) {
 			symbol = Parser.asr[i];
-			if (symbol != EOFT_SYMBOL && symbol != ERROR_SYMBOL) {
+			if (symbol != EOFT_SYMBOL && symbol != ERROR_SYMBOL && symbol != TerminalTokens.TokenNameJAVADOC_FORMAL_PART_START) {
 				if (root == 0) {
 					this.list[symbol] = symbol;
 				} else {
@@ -846,7 +846,7 @@ public class DiagnoseParser implements ParserBasicInformation, TerminalTokens, C
 		if (stck[stack_top] != next_state) {
 			for (i = Parser.asi(stck[stack_top]); Parser.asr[i] != 0; i++) {
 				symbol = Parser.asr[i];
-				if (symbol != EOFT_SYMBOL && symbol != ERROR_SYMBOL && this.list[symbol] == 0) {
+				if (symbol != EOFT_SYMBOL && symbol != ERROR_SYMBOL && symbol != TerminalTokens.TokenNameJAVADOC_FORMAL_PART_START && this.list[symbol] == 0) {
 					if (root == 0) {
 						this.list[symbol] = symbol;
 					} else {

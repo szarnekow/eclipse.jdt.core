@@ -1308,6 +1308,14 @@ public class s4jie2TestSuite {
 				+ "	at Foo.foo$pre(issue23bis.java:2)\n"
 				+ "	at Foo.foo$spec(issue23bis.java)\n"
 				+ "	at Main.main(issue23bis.java:8)\n");
+		testCompile("issue32", false, "",
+				"----------\n"
+				+ "1. ERROR in SOURCE_FILE_FULL_PATH (at line 3)\n"
+				+ "	[5,]\n"
+				+ "	^^^^\n"
+				+ "Syntax error on tokens, delete these tokens\n"
+				+ "----------\n"
+				+ "1 problem (1 error)\n");
 			    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
