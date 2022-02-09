@@ -1380,10 +1380,11 @@ public class ClassFile implements TypeConstants, TypeIds {
 			this.codeStream.aload_0();
 			this.codeStream.iconst_4();
 			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
-
-			for (int i = type.packageRepresentationInvariantsCount; i < type.packageInvariantsMethod.statements.length; i++)
-				type.packageInvariantsMethod.statements[i].generateCode(type.packageInvariantsMethod.scope, this.codeStream);
-
+			
+			if ((type.modifiers & ClassFileConstants.AccAbstract) == 0) // For now, do not check the abstract state invariants of an abstract class. See https://github.com/fsc4j/fsc4j/issues/28
+				for (int i = type.packageRepresentationInvariantsCount; i < type.packageInvariantsMethod.statements.length; i++)
+					type.packageInvariantsMethod.statements[i].generateCode(type.packageInvariantsMethod.scope, this.codeStream);
+			
 			done.place();
 
 			this.codeStream.return_();
