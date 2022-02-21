@@ -504,7 +504,8 @@ public class TypeDeclaration extends AbstractTypeDeclaration {
 			}
 			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
 				acceptChild(visitor, getJavadoc());
-				acceptChildren(visitor, this.formalSpecificationClauses);
+				if (visitor.visitFSC4JNodes)
+					acceptChildren(visitor, this.formalSpecificationClauses);
 				acceptChildren(visitor, this.modifiers);
 				acceptChild(visitor, getName());
 				acceptChildren(visitor, this.typeParameters);

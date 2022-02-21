@@ -138,6 +138,7 @@ public class CommentsPreparator extends ASTVisitor {
 		this.sourceLevel = sourceLevel;
 		this.formatDisableTag = options.disabling_tag != null ? new String(options.disabling_tag) : null;
 		this.formatEnableTag = options.enabling_tag != null ? new String(options.enabling_tag) : null;
+		this.visitFSC4JNodes = false;
 	}
 
 	@Override

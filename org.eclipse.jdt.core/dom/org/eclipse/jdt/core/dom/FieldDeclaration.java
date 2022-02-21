@@ -280,7 +280,8 @@ public class FieldDeclaration extends BodyDeclaration {
 		if (visitChildren) {
 			// visit children in normal left to right reading order
 			acceptChild(visitor, getJavadoc());
-			acceptChildren(visitor, this.formalSpecificationClauses);
+			if (visitor.visitFSC4JNodes)
+				acceptChildren(visitor, this.formalSpecificationClauses);
 			if (this.ast.apiLevel >= AST.JLS3_INTERNAL) {
 				acceptChildren(visitor, this.modifiers);
 			}

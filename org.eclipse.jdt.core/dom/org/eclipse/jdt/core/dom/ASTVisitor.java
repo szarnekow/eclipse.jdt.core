@@ -111,6 +111,8 @@ public abstract class ASTVisitor {
 	 * @since 3.0
 	 */
 	private final boolean visitDocTags;
+	
+	public boolean visitFSC4JNodes = true;
 
 	/**
 	 * Creates a new AST visitor instance.

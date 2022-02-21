@@ -255,6 +255,7 @@ public class WrapPreparator extends ASTVisitor {
 		this.kind = kind;
 
 		this.aligner = new Aligner(this.tm, this.options);
+		this.visitFSC4JNodes = false;
 	}
 
 	@Override

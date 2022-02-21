@@ -153,6 +153,7 @@ public class SpacePreparator extends ASTVisitor {
 	public SpacePreparator(TokenManager tokenManager, DefaultCodeFormatterOptions options) {
 		this.tm = tokenManager;
 		this.options = options;
+		this.visitFSC4JNodes = false;
 	}
 
 	@Override
