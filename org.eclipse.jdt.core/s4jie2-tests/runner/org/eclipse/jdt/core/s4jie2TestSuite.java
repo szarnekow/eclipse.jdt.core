@@ -1159,90 +1159,90 @@ public class s4jie2TestSuite {
 	    		+ "[       267 tests successful      ]\n"
 	    		+ "[         0 tests failed          ]", "");
 	    testCompileAndRun(true, "invariants_fail", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"Exception in thread \"main\" java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail.$classInvariants(invariants_fail.java:5)\n" + 
 	    		"	at invariants_fail.<init>(invariants_fail.java:1)\n" + 
 	    		"	at Main.main(invariants_fail.java:14)\n");
 	    testCompileAndRun(true, "invariants_fail2", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"Exception in thread \"main\" java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail2.$classInvariants(invariants_fail2.java:5)\n" + 
 	    		"	at invariants_fail2.getDifference(invariants_fail2.java:10)\n" + 
 	    		"	at invariants_fail2.<init>(invariants_fail2.java:16)\n" + 
 	    		"	at Main.main(invariants_fail2.java:24)\n");
 	    testCompileAndRun(true, "invariants_fail3", true, "",
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail3.$classInvariants(invariants_fail3.java:5)\n" + 
 	    		"	at invariants_fail3.foo(invariants_fail3.java:12)\n" + 
 	    		"	at invariants_fail3.bar1(invariants_fail3.java:19)\n" + 
 	    		"	at Main.main(invariants_fail3.java:45)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail3.$classInvariants(invariants_fail3.java:5)\n" + 
 	    		"	at invariants_fail3.bar1(invariants_fail3.java:16)\n" + 
 	    		"	at invariants_fail3.bar2(invariants_fail3.java:25)\n" + 
 	    		"	at Main.main(invariants_fail3.java:52)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail3.$classInvariants(invariants_fail3.java:5)\n" + 
 	    		"	at invariants_fail3.bar2(invariants_fail3.java:22)\n" + 
 	    		"	at invariants_fail3.bar3(invariants_fail3.java:31)\n" + 
 	    		"	at Main.main(invariants_fail3.java:59)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail3.$classInvariants(invariants_fail3.java:5)\n" + 
 	    		"	at invariants_fail3.bar3(invariants_fail3.java:28)\n" + 
 	    		"	at invariants_fail3.bar4(invariants_fail3.java:37)\n" + 
 	    		"	at Main.main(invariants_fail3.java:66)\n");
 	    testCompileAndRun(true, "invariants_fail4", true, "",
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail4.$packageInvariants(invariants_fail4.java:5)\n" + 
 	    		"	at invariants_fail4.getDifference(invariants_fail4.java:12)\n" + 
 	    		"	at invariants_fail4.foo(invariants_fail4.java:21)\n" + 
 	    		"	at Main.main(invariants_fail4.java:54)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail4.$packageInvariants(invariants_fail4.java:5)\n" + 
 	    		"	at invariants_fail4.foo(invariants_fail4.java:17)\n" + 
 	    		"	at invariants_fail4.bar1(invariants_fail4.java:28)\n" + 
 	    		"	at Main.main(invariants_fail4.java:61)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail4.$packageInvariants(invariants_fail4.java:5)\n" + 
 	    		"	at invariants_fail4.bar1(invariants_fail4.java:24)\n" + 
 	    		"	at invariants_fail4.bar2(invariants_fail4.java:34)\n" + 
 	    		"	at Main.main(invariants_fail4.java:68)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail4.$packageInvariants(invariants_fail4.java:5)\n" + 
 	    		"	at invariants_fail4.bar2(invariants_fail4.java:31)\n" + 
 	    		"	at invariants_fail4.bar3(invariants_fail4.java:40)\n" + 
 	    		"	at Main.main(invariants_fail4.java:75)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail4.$packageInvariants(invariants_fail4.java:5)\n" + 
 	    		"	at invariants_fail4.bar3(invariants_fail4.java:37)\n" + 
 	    		"	at invariants_fail4.bar4(invariants_fail4.java:46)\n" + 
 	    		"	at Main.main(invariants_fail4.java:82)\n");
 	    testCompileAndRun(true, "invariants_fail5", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"Exception in thread \"main\" java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail5.$packageInvariants(invariants_fail5.java:5)\n" + 
 	    		"	at invariants_fail5.<init>(invariants_fail5.java:1)\n" + 
 	    		"	at Main.main(invariants_fail5.java:14)\n");
 	    testCompileAndRun(true, "invariants_fail6", true, "",
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail6.$packageInvariants(invariants_fail6.java:7)\n" + 
 	    		"	at invariants_fail6.getDifference(invariants_fail6.java:13)\n" + 
 	    		"	at invariants_fail6.foo(invariants_fail6.java:24)\n" + 
 	    		"	at Main.main(invariants_fail6.java:57)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail6.$packageInvariants(invariants_fail6.java:7)\n" + 
 	    		"	at invariants_fail6.foo(invariants_fail6.java:20)\n" + 
 	    		"	at invariants_fail6.bar1(invariants_fail6.java:31)\n" + 
 	    		"	at Main.main(invariants_fail6.java:64)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail6.$packageInvariants(invariants_fail6.java:7)\n" + 
 	    		"	at invariants_fail6.bar1(invariants_fail6.java:27)\n" + 
 	    		"	at invariants_fail6.bar2(invariants_fail6.java:37)\n" + 
 	    		"	at Main.main(invariants_fail6.java:71)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail6.$packageInvariants(invariants_fail6.java:7)\n" + 
 	    		"	at invariants_fail6.bar2(invariants_fail6.java:34)\n" + 
 	    		"	at invariants_fail6.bar3(invariants_fail6.java:43)\n" + 
 	    		"	at Main.main(invariants_fail6.java:78)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail6.$packageInvariants(invariants_fail6.java:7)\n" + 
 	    		"	at invariants_fail6.bar3(invariants_fail6.java:40)\n" + 
 	    		"	at invariants_fail6.bar4(invariants_fail6.java:49)\n" + 
@@ -1262,31 +1262,31 @@ public class s4jie2TestSuite {
 	    		"	at invariants_fail8.<init>(invariants_fail8.java:1)\n" + 
 	    		"	at Main.main(invariants_fail8.java:18)\n");
 	    testCompileAndRun(true, "invariants_fail9", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"Exception in thread \"main\" java.lang.AssertionError: Abstract state invariant does not hold\n" + 
 	    		"	at invariants_fail9.$packageInvariants(invariants_fail9.java:2)\n" + 
 	    		"	at invariants_fail9.<init>(invariants_fail9.java:4)\n" + 
 	    		"	at Main.main(invariants_fail9.java:18)\n");
 	    testCompileAndRun(true, "invariants_fail10", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"Exception in thread \"main\" java.lang.AssertionError: Abstract state invariant does not hold\n" + 
 	    		"	at invariants_fail10.$classInvariants(invariants_fail10.java:2)\n" + 
 	    		"	at invariants_fail10.<init>(invariants_fail10.java:4)\n" + 
 	    		"	at Main.main(invariants_fail10.java:18)\n");
 	    testCompileAndRun(true, "invariants_fail11", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"Exception in thread \"main\" java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail11.$classInvariants(invariants_fail11.java:5)\n" + 
 	    		"	at invariants_fail11.foo(invariants_fail11.java:13)\n" + 
 	    		"	at Main.main(invariants_fail11.java:19)\n");
 	    testCompileAndRun(true, "invariants_fail12", true, "",
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail12.$classInvariants(invariants_fail12.java:5)\n" + 
 	    		"	at invariants_fail12.<init>(invariants_fail12.java:13)\n" + 
 	    		"	at Main.main(invariants_fail12.java:31)\n" + 
-	    		"java.lang.AssertionError\n" + 
+	    		"java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail12.$classInvariants(invariants_fail12.java:5)\n" + 
 	    		"	at invariants_fail12.foo(invariants_fail12.java:21)\n" + 
 	    		"	at Main.main(invariants_fail12.java:38)\n");
 	    testCompileAndRun(true, "invariants_fail13", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n" + 
+	    		"Exception in thread \"main\" java.lang.AssertionError: Representation invariant does not hold\n" + 
 	    		"	at invariants_fail13.$classInvariants(invariants_fail13.java:5)\n" + 
 	    		"	at invariants_fail13.foo(invariants_fail13.java:12)\n" + 
 	    		"	at Main.main(invariants_fail13.java:18)\n");
@@ -1338,7 +1338,7 @@ public class s4jie2TestSuite {
 				+ "[         1 tests successful      ]\n"
 				+ "[         0 tests failed          ]", "");
 	    testCompileAndRun(true, "issue34", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n"
+	    		"Exception in thread \"main\" java.lang.AssertionError: Representation invariant does not hold\n"
 	    		+ "	at Main.$classInvariants(issue34.java:4)\n"
 	    		+ "	at Main.getX(issue34.java:8)\n"
 	    		+ "	at Main.foo$post(issue34.java:16)\n"
@@ -1346,7 +1346,7 @@ public class s4jie2TestSuite {
 	    		+ "	at Main.<init>(issue34.java:11)\n"
 	    		+ "	at Main.main(issue34.java:26)\n");
 	    testCompileAndRun(true, "issue34bis", false, "",
-	    		"Exception in thread \"main\" java.lang.AssertionError\n"
+	    		"Exception in thread \"main\" java.lang.AssertionError: Representation invariant does not hold\n"
 	    		+ "	at Main.$classInvariants(issue34bis.java:4)\n"
 	    		+ "	at Main.getX(issue34bis.java:8)\n"
 	    		+ "	at Main.foo$pre(issue34bis.java:16)\n"
