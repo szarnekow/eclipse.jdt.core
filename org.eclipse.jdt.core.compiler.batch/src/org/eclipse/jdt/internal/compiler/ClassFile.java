@@ -1322,9 +1322,14 @@ public class ClassFile implements TypeConstants, TypeIds {
 			this.codeStream.iconst_1();
 			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
 
+			ExceptionLabel exceptionLabel = new ExceptionLabel(this.codeStream, null);
+			exceptionLabel.placeStart();
+			
 			for (int i = 0; i < type.classRepresentationInvariantsCount; i++)
 				type.classInvariantsMethod.statements[i].generateCode(type.classInvariantsMethod.scope, this.codeStream);
-
+			
+			exceptionLabel.placeEnd();
+			
 			this.codeStream.aload_0();
 			this.codeStream.iconst_2();
 			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
@@ -1335,6 +1340,14 @@ public class ClassFile implements TypeConstants, TypeIds {
 			done.place();
 
 			this.codeStream.return_();
+			
+			this.codeStream.pushExceptionOnStack(this.referenceBinding.scope.getJavaLangThrowable());
+			exceptionLabel.place();
+			this.codeStream.aload_0();
+			this.codeStream.iconst_0();
+			this.codeStream.fieldAccess(Opcodes.OPC_putfield, type.invariantsCheckingStateField, type.binding);
+			this.codeStream.athrow();
+			
 			this.codeStream.exitUserScope(type.classInvariantsMethod.scope);
 			this.codeStream.recordPositionsFrom(0, type.sourceEnd);
 			this.completeCodeAttribute(codeAttributeOffset, type.classInvariantsMethod.scope);

@@ -1337,6 +1337,22 @@ public class s4jie2TestSuite {
 				+ "[         0 tests aborted         ]\n"
 				+ "[         1 tests successful      ]\n"
 				+ "[         0 tests failed          ]", "");
+	    testCompileAndRun(true, "issue34", false, "",
+	    		"Exception in thread \"main\" java.lang.AssertionError\n"
+	    		+ "	at Main.$classInvariants(issue34.java:4)\n"
+	    		+ "	at Main.getX(issue34.java:8)\n"
+	    		+ "	at Main.foo$post(issue34.java:16)\n"
+	    		+ "	at Main.foo(issue34.java:23)\n"
+	    		+ "	at Main.<init>(issue34.java:11)\n"
+	    		+ "	at Main.main(issue34.java:26)\n");
+	    testCompileAndRun(true, "issue34bis", false, "",
+	    		"Exception in thread \"main\" java.lang.AssertionError\n"
+	    		+ "	at Main.$classInvariants(issue34bis.java:4)\n"
+	    		+ "	at Main.getX(issue34bis.java:8)\n"
+	    		+ "	at Main.foo$pre(issue34bis.java:16)\n"
+	    		+ "	at Main.foo(issue34bis.java:22)\n"
+	    		+ "	at Main.<init>(issue34bis.java:11)\n"
+	    		+ "	at Main.main(issue34bis.java:26)\n");
 			    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
