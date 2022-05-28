@@ -219,7 +219,8 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			this.binding.modifiers |= ClassFileConstants.AccStatic;
 		}
 		SourceTypeBinding sourceType = currentScope.enclosingSourceType();
-		if (this.lateBindReceiver && this.shouldCaptureInstance) {
+		boolean firstSpill = !(this.binding instanceof SyntheticMethodBinding);
+		if (this.lateBindReceiver && this.shouldCaptureInstance && firstSpill) {
 			if (this.binding.parameters == null)
 				this.binding.parameters = new TypeBinding[1];
 			else {
@@ -228,7 +229,6 @@ public class LambdaExpression extends FunctionalExpression implements IPolyExpre
 			}
 			this.binding.parameters[0] = sourceType;
 		}
-		boolean firstSpill = !(this.binding instanceof SyntheticMethodBinding);
 		this.binding = sourceType.addSyntheticMethod(this);
 		int pc = codeStream.position;
 		StringBuilder signature = new StringBuilder();

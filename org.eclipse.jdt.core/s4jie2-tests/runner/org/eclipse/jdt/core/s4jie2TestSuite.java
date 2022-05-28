@@ -1353,6 +1353,7 @@ public class s4jie2TestSuite {
 	    		+ "	at Main.foo(issue34bis.java:22)\n"
 	    		+ "	at Main.<init>(issue34bis.java:11)\n"
 	    		+ "	at Main.main(issue34bis.java:26)\n");
+		testCompileAndRun(true, "issue35", true, "", "");
 			    
 		System.out.println("s4jie2TestSuite: All tests passed.");
 	}
