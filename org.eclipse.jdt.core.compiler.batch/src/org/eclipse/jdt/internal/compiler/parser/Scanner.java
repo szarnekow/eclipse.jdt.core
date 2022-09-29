@@ -27,7 +27,10 @@ import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
 import org.eclipse.jdt.internal.compiler.ast.FormalSpecificationClause;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.impl.JavaFeature;
@@ -2370,9 +2373,11 @@ protected int scanForTextBlock() throws InvalidInputException {
 public int javadocFormalPartTagStart;
 public int javadocFormalPartTagEnd;
 public FormalSpecificationClause.Tag javadocFormalPartTag;
+public TypeReference javadocFormalPartTagArgument;
 private int skipToNextJavadocFormalLine(boolean insideFormalPart) {
 	char[] src = this.source;
 	String lastTagSeen = null;
+	TypeReference lastTagArgumentSeen = null; // tag argument = exception type name in @throws or @may_throw clause
 
 	// Loop over the lines of the Javadoc comment. When this method is called, we are at the start of a line.
 lineLoop:
@@ -2404,8 +2409,45 @@ lineLoop:
 						this.currentPosition++;
 					this.javadocFormalPartTagEnd = this.currentPosition - 1;
 					lastTagSeen = String.copyValueOf(src, tagNameStart, this.currentPosition - tagNameStart);
+					lastTagArgumentSeen = null;
+					if (lastTagSeen.equals("throws") || lastTagSeen.equals("may_throw")) { //$NON-NLS-1$ //$NON-NLS-2$
+					whitespaceLoop:
+						for (;;) {
+							switch (src[this.currentPosition]) {
+								case ' ':
+								case '\t':
+									this.currentPosition++;
+									break;
+								default:
+									break whitespaceLoop;
+							}
+						}
+						ArrayList<char[]> components = new ArrayList<>();
+						ArrayList<Long> positions = new ArrayList<>();
+						while (Character.isJavaIdentifierStart(src[this.currentPosition])) {
+							int componentStart = this.currentPosition;
+							this.currentPosition++;
+							while (Character.isJavaIdentifierPart(src[this.currentPosition]))
+								this.currentPosition++;
+							components.add(Arrays.copyOfRange(src, componentStart, this.currentPosition));
+							positions.add(((long)componentStart << 32) | (this.currentPosition - 1));
+							if (src[this.currentPosition] != '.')
+								break;
+							this.currentPosition++;
+						}
+						if (!components.isEmpty()) {
+							if (components.size() == 1)
+								lastTagArgumentSeen = new SingleTypeReference(components.get(0), positions.get(0));
+							else {
+								long[] positionsArray = new long[positions.size()];
+								for (int i = 0; i < positions.size(); i++)
+									positionsArray[i] = positions.get(i);
+								lastTagArgumentSeen = new QualifiedTypeReference(components.toArray(new char[components.size()][]), positionsArray);
+							}
+						}
+					}
 					
-					// Eat text; support "@throws IllegalArgumentException | x < 0" or "@mutates nothing |"
+					// Eat text; support "@throws IllegalArgumentException blah | x < 0" or "@mutates nothing |"
 					for (;;) {
 						switch (src[this.currentPosition]) {
 							case '*':
@@ -2443,8 +2485,8 @@ lineLoop:
 				switch (lastTagSeen) {
 					case "invar": this.javadocFormalPartTag = FormalSpecificationClause.Tag.INVAR; break; //$NON-NLS-1$
 					case "pre": this.javadocFormalPartTag = FormalSpecificationClause.Tag.PRE; break; //$NON-NLS-1$
-					case "throws": this.javadocFormalPartTag = FormalSpecificationClause.Tag.THROWS; break; //$NON-NLS-1$
-					case "may_throw": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MAY_THROW; break; //$NON-NLS-1$
+					case "throws": this.javadocFormalPartTag = FormalSpecificationClause.Tag.THROWS; this.javadocFormalPartTagArgument = lastTagArgumentSeen; break; //$NON-NLS-1$
+					case "may_throw": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MAY_THROW; this.javadocFormalPartTagArgument = lastTagArgumentSeen; break; //$NON-NLS-1$
 					case "post": this.javadocFormalPartTag = FormalSpecificationClause.Tag.POST; break; //$NON-NLS-1$
 					case "inspects": this.javadocFormalPartTag = FormalSpecificationClause.Tag.INSPECTS; break; //$NON-NLS-1$
 					case "mutates": this.javadocFormalPartTag = FormalSpecificationClause.Tag.MUTATES; break; //$NON-NLS-1$

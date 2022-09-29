@@ -482,31 +482,44 @@ public class s4jie2TestSuite {
 	    		"----------\n" +
 	    		"2 problems (2 errors)\n");
 	    testCompile("throws_may_throw_resolve_error", false, "",
-	    		"----------\n" +
-	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n" +
-	    		"	* @throws IllegalArgumentException | 10000 <= y\n" +
-	    		"	                                              ^\n" +
-	    		"y cannot be resolved to a variable\n" +
-	    		"----------\n" +
-	    		"2. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n" +
-	    		"	*    | 10000 <= z\n" +
-	    		"	                ^\n" +
-	    		"The field Foo.z is not visible\n" +
-	    		"----------\n" +
-	    		"3. ERROR in SOURCE_FILE_FULL_PATH (at line 14)\n" +
-	    		"	*    | 5000 <= y\n" +
-	    		"	               ^\n" +
-	    		"y cannot be resolved to a variable\n" +
-	    		"----------\n" +
-	    		"4. ERROR in SOURCE_FILE_FULL_PATH (at line 15)\n" +
-	    		"	* @may_throw IllegalArgumentException | 5000 <= z \n" +
-	    		"	                                                ^\n" +
-	    		"The field Foo.z is not visible\n" +
-	    		"----------\n" +
-	    		"4 problems (4 errors)\n");
+	    		"----------\n"
+	    		+ "1. ERROR in SOURCE_FILE_FULL_PATH (at line 8)\n"
+	    		+ "	* @throws IllegalArgumentException | 10000 <= y\n"
+	    		+ "	                                              ^\n"
+	    		+ "y cannot be resolved to a variable\n"
+	    		+ "----------\n"
+	    		+ "2. ERROR in SOURCE_FILE_FULL_PATH (at line 10)\n"
+	    		+ "	*    | 10000 <= z\n"
+	    		+ "	                ^\n"
+	    		+ "The field Foo.z is not visible\n"
+	    		+ "----------\n"
+	    		+ "3. ERROR in SOURCE_FILE_FULL_PATH (at line 11)\n"
+	    		+ "	* @throws IlegalArgumentExeption | true\n"
+	    		+ "	          ^^^^^^^^^^^^^^^^^^^^^^\n"
+	    		+ "IlegalArgumentExeption cannot be resolved to a type\n"
+	    		+ "----------\n"
+	    		+ "4. ERROR in SOURCE_FILE_FULL_PATH (at line 15)\n"
+	    		+ "	*    | 5000 <= y\n"
+	    		+ "	               ^\n"
+	    		+ "y cannot be resolved to a variable\n"
+	    		+ "----------\n"
+	    		+ "5. ERROR in SOURCE_FILE_FULL_PATH (at line 16)\n"
+	    		+ "	* @may_throw IllegalArgumentException | 5000 <= z \n"
+	    		+ "	                                                ^\n"
+	    		+ "The field Foo.z is not visible\n"
+	    		+ "----------\n"
+	    		+ "5 problems (5 errors)\n");
 	    testCompileAndRun(true, "throws_may_throw_success", true,
 	    		"Caught the IAE\n" +
-	    		"Caught the IAE\n", "");
+	    		"Caught the IAE\n",
+	    		"java.lang.AssertionError: @throws condition holds but specified exception type not thrown\n"
+	    		+ "	at Main.foo$post(throws_may_throw_success.java:4)\n"
+	    		+ "	at Main.foo(throws_may_throw_success.java:13)\n"
+	    		+ "	at Main.main(throws_may_throw_success.java:33)\n"
+	    		+ "java.lang.AssertionError: @throws condition holds but specified exception type not thrown\n"
+	    		+ "	at Main.foo$post(throws_may_throw_success.java:5)\n"
+	    		+ "	at Main.foo(throws_may_throw_success.java:13)\n"
+	    		+ "	at Main.main(throws_may_throw_success.java:42)\n");
 	    testCompile("invariants_syntax_error", false, "",
 	    		"----------\n" +
 	    		"1. ERROR in SOURCE_FILE_FULL_PATH (at line 2)\n" +

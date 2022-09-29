@@ -8,6 +8,7 @@ class Foo {
 	 * @throws IllegalArgumentException | 10000 <= y
 	 * @throws IllegalArgumentException
 	 *    | 10000 <= z
+	 * @throws IlegalArgumentExeption | true
 	 * @may_throw IllegalArgumentException
 	 *    | 5000 <= x
 	 * @may_throw IllegalArgumentException

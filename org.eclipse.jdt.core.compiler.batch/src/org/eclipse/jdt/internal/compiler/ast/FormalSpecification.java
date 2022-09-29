@@ -28,6 +28,7 @@ public class FormalSpecification {
 
 	private static final char[] preconditionAssertionMessage = "Precondition does not hold".toCharArray(); //$NON-NLS-1$
 	private static final char[] postconditionAssertionMessage = "Postcondition does not hold".toCharArray(); //$NON-NLS-1$
+	private static final char[] throwsAssertionMessage = "@throws condition holds but specified exception type not thrown".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_VARIABLE_NAME = " $post".toCharArray(); //$NON-NLS-1$
 	private static final char[] PRECONDITION_METHOD_NAME_SUFFIX = "$pre".toCharArray(); //$NON-NLS-1$
 	private static final char[] POSTCONDITION_METHOD_NAME_SUFFIX = "$post".toCharArray(); //$NON-NLS-1$
@@ -35,7 +36,9 @@ public class FormalSpecification {
 	static final char[] OLD_VARIABLE_INNER_SUFFIX = " inner".toCharArray(); //$NON-NLS-1$
 	static final char[] OLD_VARIABLE_EXCEPTION_SUFFIX = " exception".toCharArray(); //$NON-NLS-1$
 	private static final char[] LAMBDA_PARAMETER_NAME = " $result".toCharArray(); //$NON-NLS-1$
+	private static final char[] LAMBDA_PARAMETER2_NAME = " $exception".toCharArray(); //$NON-NLS-1$
 	private static final char[] RESULT_NAME = "result".toCharArray(); //$NON-NLS-1$
+	private static final char[] THROWS_CLAUSES_FAILED_COUNT_VARIABLE_NAME = "$throwsClausesFailedCount".toCharArray(); //$NON-NLS-1$
 	
 	private static QualifiedTypeReference getTypeReference(String name) {
 		String[] components = name.split("\\."); //$NON-NLS-1$
@@ -46,10 +49,18 @@ public class FormalSpecification {
 		return new QualifiedTypeReference(sources, poss);
 	}
 	
+	private static IntLiteral createIntLiteral(int value, int sourceStart, int sourceEnd) {
+		char[] literalChars = String.valueOf(value).toCharArray();
+		return new IntLiteral(literalChars, literalChars, sourceStart, sourceEnd);
+	}
+	
 	private static QualifiedTypeReference javaLangObject() { return getTypeReference("java.lang.Object"); } //$NON-NLS-1$
 	private static QualifiedTypeReference javaLangThrowable() { return getTypeReference("java.lang.Throwable"); } //$NON-NLS-1$
+	private static QualifiedTypeReference javaLangRuntimeException() { return getTypeReference("java.lang.RuntimeException"); } //$NON-NLS-1$
+	private static QualifiedTypeReference javaLangAssertionError() { return getTypeReference("java.lang.AssertionError"); } //$NON-NLS-1$
 	private static QualifiedTypeReference javaLangRunnable() { return getTypeReference("java.lang.Runnable"); } //$NON-NLS-1$
 	private static QualifiedTypeReference javaUtilFunctionConsumer() { return getTypeReference("java.util.function.Consumer"); } //$NON-NLS-1$
+	private static QualifiedTypeReference javaUtilFunctionBiConsumer() { return getTypeReference("java.util.function.BiConsumer"); } //$NON-NLS-1$
 	private static QualifiedTypeReference javaUtilFunctionSupplier() { return getTypeReference("java.util.function.Supplier"); } //$NON-NLS-1$
 
 	private static TypeReference getBoxedType(TypeBinding binding, TypeReference reference) {
@@ -71,6 +82,12 @@ public class FormalSpecification {
 		QualifiedTypeReference javaUtilFunctionConsumer = javaUtilFunctionConsumer();
 		return new ParameterizedQualifiedTypeReference(javaUtilFunctionConsumer.tokens, typeArguments, 0, javaUtilFunctionConsumer.sourcePositions);
 	}
+	
+	private static QualifiedTypeReference getJavaUtilBiConsumerOf(TypeReference typeArgument1, TypeReference typeArgument2) {
+		TypeReference[][] typeArguments = new TypeReference[][] { null, null, null, {typeArgument1, typeArgument2}};
+		QualifiedTypeReference javaUtilFunctionBiConsumer = javaUtilFunctionBiConsumer();
+		return new ParameterizedQualifiedTypeReference(javaUtilFunctionBiConsumer.tokens, typeArguments, 0, javaUtilFunctionBiConsumer.sourcePositions);
+	}
 
 	private static QualifiedTypeReference getJavaUtilSupplierOf(TypeReference typeArgument) {
 		TypeReference[][] typeArguments = new TypeReference[][] { null, null, null, {typeArgument}};
@@ -80,17 +97,19 @@ public class FormalSpecification {
 
 	private static QualifiedTypeReference getPostconditionLambdaType(TypeBinding returnTypeBinding, TypeReference returnType) {
 		if (returnType == null) // constructor
-			return getJavaUtilConsumerOf(javaLangObject());
+			return getJavaUtilBiConsumerOf(javaLangObject(), javaLangRuntimeException());
 		switch (returnTypeBinding.id) {
-			case TypeIds.T_void: return javaLangRunnable();
-			default: return getJavaUtilConsumerOf(getBoxedType(returnTypeBinding, returnType));
+			case TypeIds.T_void: return getJavaUtilConsumerOf(javaLangRuntimeException());
+			default: return getJavaUtilBiConsumerOf(getBoxedType(returnTypeBinding, returnType), javaLangRuntimeException());
 		}
 	}
 
 	public final AbstractMethodDeclaration method;
 	public Expression[] invariants; // Package representation invariants are specified in the Javadoc comments for the default access getters.
 	public Expression[] preconditions;
+	public TypeReference[] throwsExceptionTypeNames;
 	public Expression[] throwsConditions;
+	public TypeReference[] mayThrowExceptionTypeNames;
 	public Expression[] mayThrowConditions;
 	public Expression[] postconditions;
 	
@@ -200,7 +219,7 @@ public class FormalSpecification {
 	public void initializeMethodBinding() {
 		
 		if ((this.method.modifiers & (ClassFileConstants.AccStatic | ClassFileConstants.AccPrivate | ClassFileConstants.AccFinal)) == 0
-				&& !this.method.binding.declaringClass.isFinal() && (this.preconditions != null || this.postconditions != null)) {
+				&& !this.method.binding.declaringClass.isFinal() && (this.preconditions != null || this.postconditions != null || this.throwsConditions != null)) {
 
 			this.method.binding.hasSpecificationMethod = true;
 		    
@@ -212,9 +231,6 @@ public class FormalSpecification {
 		if (this.method.ignoreFurtherInvestigation)
 			return;
 		
-		if (this.throwsConditions != null)
-			for (Expression e : this.throwsConditions)
-				e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
 		if (this.mayThrowConditions != null)
 			for (Expression e : this.mayThrowConditions)
 				e.resolveTypeExpecting(this.method.scope, TypeBinding.BOOLEAN);
@@ -263,7 +279,7 @@ public class FormalSpecification {
 						:
 								CharOperation.concat(this.method.selector, ("$" + overloadCount).toCharArray(), PRECONDITION_METHOD_NAME_SUFFIX); //$NON-NLS-1$
 				TypeReference preconditionLambdaType;
-				if (this.postconditions == null) {
+				if (this.postconditions == null && this.throwsConditions == null) {
 					preconditionLambdaType = javaLangRunnable();
 					preconditionLambdaCall.selector = "run".toCharArray(); //$NON-NLS-1$
 				} else {
@@ -284,8 +300,28 @@ public class FormalSpecification {
 					statementsForBlock.add(new AssertStatement(new StringLiteral(preconditionAssertionMessage, e.sourceStart, e.sourceEnd, 0), e, e.sourceStart));
 				}
 			}
-			if (this.postconditions != null) {
-				for (int i = 0; i < this.postconditions.length; i++) {
+			if (this.throwsConditions != null) {
+				LocalDeclaration throwsClausesFailedCountVariableDeclaration = new LocalDeclaration(THROWS_CLAUSES_FAILED_COUNT_VARIABLE_NAME, this.method.bodyStart, this.method.bodyStart);
+				throwsClausesFailedCountVariableDeclaration.type = TypeReference.baseTypeReference(TypeIds.T_int, 0);
+				statementsForBlock.add(throwsClausesFailedCountVariableDeclaration);
+				blockDeclarationsCount++;
+				Statement statement = new Assignment(
+						new SingleNameReference(THROWS_CLAUSES_FAILED_COUNT_VARIABLE_NAME, (this.method.bodyStart << 32) | this.method.bodyStart),
+						createIntLiteral(this.throwsConditions.length, this.method.bodyStart, this.method.bodyStart),
+						this.method.bodyStart);
+				for (int i = this.throwsConditions.length - 1; 0 <= i; i--) {
+					Expression e = this.throwsConditions[i];
+					Statement thenStatement = new Assignment(
+									new SingleNameReference(THROWS_CLAUSES_FAILED_COUNT_VARIABLE_NAME, (e.sourceStart << 32) | e.sourceEnd),
+									createIntLiteral(i, e.sourceStart, e.sourceEnd),
+									e.sourceEnd);
+					statement = new IfStatement(e, thenStatement, statement, e.sourceStart, e.sourceEnd);
+				}
+				statementsForBlock.add(statement);
+			}
+			if (this.postconditions != null || this.throwsConditions != null) {
+				int postconditionsLength = this.postconditions == null ? 0 : this.postconditions.length;
+				for (int i = 0; i < postconditionsLength; i++) {
 					this.postconditions[i].traverse(new ASTVisitor() {
 
 						@Override
@@ -352,6 +388,43 @@ public class FormalSpecification {
 				
 				ArrayList<Statement> postconditionBlockStatements = new ArrayList<>();
 				int postconditionBlockDeclarationsCount = 0;
+				
+				if (this.throwsConditions != null) {
+					for (int i = 0; i < this.throwsConditions.length; i++) {
+						Expression e = this.throwsConditions[i];
+						Expression condition1 = new EqualExpression(
+										new SingleNameReference(THROWS_CLAUSES_FAILED_COUNT_VARIABLE_NAME, (e.sourceStart << 32) | e.sourceEnd),
+										createIntLiteral(i, e.sourceStart, e.sourceEnd),
+										OperatorIds.EQUAL_EQUAL);
+						Block thenBlock = new Block(0);
+						Expression condition2 = new InstanceOfExpression(
+								new SingleNameReference(LAMBDA_PARAMETER2_NAME, (this.method.bodyStart << 32) + this.method.bodyStart),
+								this.throwsExceptionTypeNames[i]
+						);
+						AllocationExpression allocation = new AllocationExpression();
+						allocation.type = javaLangAssertionError();
+						allocation.arguments = new Expression[] {
+								new StringLiteral(throwsAssertionMessage, e.sourceStart, e.sourceEnd, 0),
+								new SingleNameReference(LAMBDA_PARAMETER2_NAME, (e.sourceStart << 32) + e.sourceEnd)
+						};
+						allocation.sourceStart = e.sourceStart;
+						allocation.sourceEnd = e.sourceEnd;
+						thenBlock.statements = new Statement[] {
+								new IfStatement(condition2, new ReturnStatement(null, e.sourceStart, e.sourceEnd), e.sourceStart, e.sourceEnd),
+								new ThrowStatement(allocation, e.sourceStart, e.sourceEnd)
+						};
+						postconditionBlockStatements.add(new IfStatement(condition1, thenBlock, e.sourceStart, e.sourceEnd));
+					}
+				}
+
+				{
+					Expression condition = new InstanceOfExpression(
+							new SingleNameReference(LAMBDA_PARAMETER2_NAME, (this.method.bodyStart << 32) + this.method.bodyStart),
+							javaLangRuntimeException());
+					Statement thenStatement = new ReturnStatement(null, this.method.bodyStart, this.method.bodyStart);
+					postconditionBlockStatements.add(new IfStatement(condition, thenStatement, this.method.bodyStart, this.method.bodyStart));
+				}
+				
 				LocalDeclaration resultDeclaration = null;
 				if (this.method instanceof MethodDeclaration) {
 					MethodDeclaration md = (MethodDeclaration)this.method;
@@ -363,14 +436,16 @@ public class FormalSpecification {
 						postconditionBlockDeclarationsCount++;
 					}
 				}
-				for (int i = 0; i < this.postconditions.length; i++) {
+				for (int i = 0; i < postconditionsLength; i++) {
 					Expression e = this.postconditions[i];
 					postconditionBlockStatements.add(new AssertStatement(new StringLiteral(postconditionAssertionMessage, e.sourceStart, e.sourceEnd, 0), e, e.sourceStart));
 				}
 				Block postconditionBlock = new Block(postconditionBlockDeclarationsCount);
 				postconditionBlock.statements = new Statement[postconditionBlockStatements.size()];
 				postconditionBlockStatements.toArray(postconditionBlock.statements);
-				postconditionBlock.sourceStart = this.postconditions[0].sourceStart;
+				postconditionBlock.sourceStart = Math.min(
+						this.postconditions == null ? Integer.MAX_VALUE : this.postconditions[0].sourceStart,
+						this.throwsConditions == null ? Integer.MAX_VALUE : this.throwsConditions[0].sourceStart);
 				postconditionBlock.sourceEnd = this.method.bodyEnd;
 				LambdaExpression postconditionLambda = new LambdaExpression(this.method.compilationResult, false);
 				postconditionLambda.allowReferencesToNonEffectivelyFinalOuterLocals = true;
@@ -382,7 +457,14 @@ public class FormalSpecification {
 						:
 								CharOperation.concat(this.method.selector, ("$" + overloadCount).toCharArray(), POSTCONDITION_METHOD_NAME_SUFFIX); //$NON-NLS-1$
 				if (this.method.binding.returnType.id != TypeIds.T_void || this.method instanceof ConstructorDeclaration)
-					postconditionLambda.setArguments(new Argument[] {new Argument(LAMBDA_PARAMETER_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)});
+					postconditionLambda.setArguments(new Argument[] {
+							new Argument(LAMBDA_PARAMETER_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true),
+							new Argument(LAMBDA_PARAMETER2_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)
+					});
+				else
+					postconditionLambda.setArguments(new Argument[] {
+							new Argument(LAMBDA_PARAMETER2_NAME, (this.method.bodyStart << 32) + this.method.bodyStart, null, 0, true)
+					});
 				postconditionLambda.setBody(postconditionBlock);
 				postconditionLambda.sourceStart = this.method.bodyStart;
 				postconditionLambda.sourceEnd = this.method.bodyEnd;
@@ -401,12 +483,11 @@ public class FormalSpecification {
 
 				this.postconditionMethodCall = new MessageSend();
 				this.postconditionMethodCall.receiver = new SingleNameReference(POSTCONDITION_VARIABLE_NAME, (this.method.bodyStart<< 32) + this.method.bodyStart);
+				this.postconditionMethodCall.selector = "accept".toCharArray(); //$NON-NLS-1$
 				if (this.method.binding.returnType.id == TypeIds.T_void && !(this.method instanceof ConstructorDeclaration))
-					this.postconditionMethodCall.selector = "run".toCharArray(); //$NON-NLS-1$
-				else {
-					this.postconditionMethodCall.selector = "accept".toCharArray(); //$NON-NLS-1$
 					this.postconditionMethodCall.arguments = new Expression[] {new NullLiteral(0, 0)};
-				}
+				else
+					this.postconditionMethodCall.arguments = new Expression[] {new NullLiteral(0, 0), new NullLiteral(0, 0)};
 			} else {
 				if (!(this.method instanceof ConstructorDeclaration))
 					this.statementsForMethodBody.add(preconditionLambdaCall);
@@ -729,7 +810,7 @@ public class FormalSpecification {
 	}
 
 	public void generatePostconditionCheck(CodeStream codeStream) {
-		if (this.postconditions != null) {
+		if (this.postconditions != null || this.throwsConditions != null) {
 			int returnType = this.method.binding.returnType.id;
 			if (returnType == TypeIds.T_void) {
 				codeStream.load(this.postconditionVariableDeclaration.binding);
@@ -749,6 +830,7 @@ public class FormalSpecification {
 				if (this.method.binding.returnType.isPrimitiveType())
 					codeStream.generateBoxingConversion(returnType);
 			}
+			codeStream.aconst_null();
 			MethodBinding method = this.postconditionMethodCall.binding.original();
 			TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(this.method.scope, method, method.declaringClass, false);
 			codeStream.invoke(Opcodes.OPC_invokeinterface, method, constantPoolDeclaringClass);

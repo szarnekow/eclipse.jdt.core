@@ -13,12 +13,14 @@ public class FormalSpecificationClause extends Expression {
 	public int tagStart;
 	public int tagEnd;
 	public Tag tag;
+	public TypeReference tagArgument;
 	public Expression[] expressions;
 
-	public FormalSpecificationClause(int tagStart, int tagEnd, Tag tag, Expression[] expressions) {
+	public FormalSpecificationClause(int tagStart, int tagEnd, Tag tag, TypeReference tagArgument, Expression[] expressions) {
 		this.tagStart = tagStart;
 		this.tagEnd = tagEnd;
 		this.tag = tag;
+		this.tagArgument = tagArgument;
 		this.expressions = expressions;
 		this.sourceStart = this.tagStart;
 		this.sourceEnd = this.tagEnd;

@@ -2,10 +2,8 @@ package drawit.shapegroups2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import drawit.IntPoint;
@@ -135,8 +133,6 @@ public class NonleafShapeGroup extends ShapeGroup {
 	 *    | !LogicalList.distinct(List.of(subgroups))
 	 * @throws IllegalArgumentException if any of the given subgroups already has a parent
 	 *    | Arrays.stream(subgroups).anyMatch(g -> g.getParentGroup() != null)
-	 * @throws IllegalArgumentException if any of the given subgroups is an ancestor of this shape group
-	 *    | !Collections.disjoint(getAncestors(), Set.of(subgroups))
 	 * 
 	 * @post | Objects.equals(getSubgroups(), List.of(subgroups))
 	 * @post | Arrays.stream(subgroups).allMatch(g -> g.getParentGroup() == this)
@@ -158,8 +154,6 @@ public class NonleafShapeGroup extends ShapeGroup {
 			throw new IllegalArgumentException("subgroups has duplicate elements");
 		if (Arrays.stream(subgroups).anyMatch(g -> g.getParentGroup() != null))
 			throw new IllegalArgumentException("some of the given groups already have a parent");
-		if (!Collections.disjoint(getAncestors(), Set.of(subgroups)))
-			throw new IllegalArgumentException("some of the given groups are ancestors of this shape group");
 		
 		ShapeGroup child = firstChild = subgroups[0];
 		for (int i = 1; ; i++) {

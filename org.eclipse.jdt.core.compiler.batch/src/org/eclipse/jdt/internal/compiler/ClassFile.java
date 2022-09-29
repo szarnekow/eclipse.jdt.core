@@ -1239,7 +1239,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 							this.codeStream.load(argument.binding);
 					this.codeStream.invoke(type.binding.isInterface() ? Opcodes.OPC_invokeinterface : Opcodes.OPC_invokevirtual, method.binding, type.binding);
 					
-					if (method.formalSpecification.postconditions != null) {
+					if (method.formalSpecification.postconditionMethodCall != null) {
 						int returnType = method.binding.returnType.id;
 						if (returnType != TypeIds.T_void) {
 							if (returnType == TypeIds.T_long || returnType == TypeIds.T_double) {
@@ -1250,6 +1250,7 @@ public class ClassFile implements TypeConstants, TypeIds {
 							if (method.binding.returnType.isPrimitiveType())
 								this.codeStream.generateBoxingConversion(returnType);
 						}
+						this.codeStream.aconst_null();
 						MethodBinding postconditionMethod = method.formalSpecification.postconditionMethodCall.binding.original();
 						TypeBinding constantPoolDeclaringClass = CodeStream.getConstantPoolDeclaringClass(method.scope, postconditionMethod, postconditionMethod.declaringClass, false);
 						this.codeStream.invoke(Opcodes.OPC_invokeinterface, postconditionMethod, constantPoolDeclaringClass);

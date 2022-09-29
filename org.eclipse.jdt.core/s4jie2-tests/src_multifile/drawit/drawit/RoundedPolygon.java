@@ -161,7 +161,7 @@ public class RoundedPolygon {
 	
 	/**
 	 * @throws IllegalArgumentException | !(0 <= index && index < getVertices().length)
-	 * @throws IllegalArgumentExeption | point == null
+	 * @throws IllegalArgumentException | point == null
 	 * @throws IllegalArgumentException | PointArrays.checkDefinesProperPolygon(PointArrays.update(getVertices(), index, point)) != null
 	 * @mutates | this
 	 * @post | Arrays.equals(getVertices(), PointArrays.update(old(getVertices()), index, point))

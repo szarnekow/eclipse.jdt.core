@@ -4764,6 +4764,7 @@ protected void consumeMethodHeaderExtendedDims() {
 private int javadocFormalPartTagStart;
 private int javadocFormalPartTagEnd;
 private FormalSpecificationClause.Tag javadocFormalPartTag;
+private TypeReference javadocFormalPartTagArgument;
 protected void consumeSpreadExpression() {
 	int endOfEllipsis = this.intStack[this.intPtr--];
 	int startOfEllipsis = endOfEllipsis - 2;
@@ -4773,7 +4774,7 @@ protected void consumeJavadocFormalPart() {
 	Expression[] expressions = new Expression[this.expressionLengthStack[this.expressionLengthPtr--]];
 	this.expressionPtr -= expressions.length;
 	System.arraycopy(this.expressionStack, this.expressionPtr + 1, expressions, 0, expressions.length);
-	pushOnExpressionStack(new FormalSpecificationClause(this.javadocFormalPartTagStart, this.javadocFormalPartTagEnd, this.javadocFormalPartTag, expressions));
+	pushOnExpressionStack(new FormalSpecificationClause(this.javadocFormalPartTagStart, this.javadocFormalPartTagEnd, this.javadocFormalPartTag, this.javadocFormalPartTagArgument, expressions));
 }
 protected void consumeMethodHeaderName(boolean isAnnotationMethod) {
 	// MethodHeaderName ::= Modifiersopt Type 'Identifier' '('
@@ -4921,7 +4922,9 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 			ArrayList<Annotation> annotations = new ArrayList<>();
 			ArrayList<Expression> invariants = new ArrayList<>();
 			ArrayList<Expression> preconditions = new ArrayList<>();
+			ArrayList<TypeReference> throwsExceptionTypeNames = new ArrayList<>();
 			ArrayList<Expression> throwsConditions = new ArrayList<>();
+			ArrayList<TypeReference> mayThrowExceptionTypeNames = new ArrayList<>();
 			ArrayList<Expression> mayThrowConditions = new ArrayList<>();
 			ArrayList<Expression> postconditions = new ArrayList<>();
 			ArrayList<Expression> inspectsExpressions = null;
@@ -4937,8 +4940,8 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 					switch (clause.tag) {
 						case INVAR: clause.addExpression(this, invariants); break;
 						case PRE: clause.addExpression(this, preconditions); break;
-						case THROWS: clause.addExpression(this, throwsConditions); break;
-						case MAY_THROW: clause.addExpression(this, mayThrowConditions); break;
+						case THROWS: clause.addExpression(this, throwsConditions); throwsExceptionTypeNames.add(clause.tagArgument); break;
+						case MAY_THROW: clause.addExpression(this, mayThrowConditions); mayThrowExceptionTypeNames.add(clause.tagArgument); break;
 						case POST: clause.addExpression(this, postconditions); break;
 						case INSPECTS:
 							if (inspectsExpressions == null)
@@ -4977,10 +4980,14 @@ private Annotation[] consumeAnnotations(AbstractMethodDeclaration md) {
 					md.formalSpecification.invariants = invariants.toArray(new Expression[invariants.size()]);
 				if (!preconditions.isEmpty())
 					md.formalSpecification.preconditions = preconditions.toArray(new Expression[preconditions.size()]);
-				if (!throwsConditions.isEmpty())
+				if (!throwsConditions.isEmpty()) {
+					md.formalSpecification.throwsExceptionTypeNames = throwsExceptionTypeNames.toArray(new TypeReference[throwsConditions.size()]);
 					md.formalSpecification.throwsConditions = throwsConditions.toArray(new Expression[throwsConditions.size()]);
-				if (!mayThrowConditions.isEmpty())
+				}
+				if (!mayThrowConditions.isEmpty()) {
+					md.formalSpecification.mayThrowExceptionTypeNames = mayThrowExceptionTypeNames.toArray(new TypeReference[mayThrowConditions.size()]);
 					md.formalSpecification.mayThrowConditions = mayThrowConditions.toArray(new Expression[mayThrowConditions.size()]);
+				}
 				if (!postconditions.isEmpty())
 					md.formalSpecification.postconditions = postconditions.toArray(new Expression[postconditions.size()]);
 				
@@ -10209,6 +10216,7 @@ protected void consumeToken(int type) {
 			this.javadocFormalPartTagStart = this.scanner.javadocFormalPartTagStart;
 			this.javadocFormalPartTagEnd = this.scanner.javadocFormalPartTagEnd;
 			this.javadocFormalPartTag = this.scanner.javadocFormalPartTag;
+			this.javadocFormalPartTagArgument = this.scanner.javadocFormalPartTagArgument;
 			break;
 			//  case TokenNameCOMMA :
 			//  case TokenNameCOLON  :
