@@ -37,6 +37,17 @@ jobs:
       run: |
         mvn clean install --batch-mode -f org.eclipse.jdt.core -DlocalEcjVersion=99.99
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
+    - name: Download JUnit
+      run: |
+        cd org.eclipse.jdt.core
+        mvn dependency:copy -Dartifact=org.junit.platform:junit-platform-console-standalone:1.9.3
+    - name: Build and run FSC4J test suite
+      run: |
+        set -e
+        cd org.eclipse.jdt.core
+        export JUNIT_PATH=`pwd`/target/dependency/junit-platform-console-standalone-1.9.3.jar
+        java -cp ../org.eclipse.jdt.core.compiler.batch/target/classes org.eclipse.jdt.internal.compiler.batch.Main -21 -proc:none -d target/classes s4jie2-tests/runner
+        java -cp ../org.eclipse.jdt.core.compiler.batch/target/classes:target/classes org.eclipse.jdt.core.s4jie2TestSuite
     - name: Upload plugins as artifact
       uses: actions/upload-artifact@v3
       with:
