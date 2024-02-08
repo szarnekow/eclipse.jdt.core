@@ -37,3 +37,10 @@ jobs:
       run: |
         mvn clean install --batch-mode -f org.eclipse.jdt.core -DlocalEcjVersion=99.99
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
+    - name: Upload plugins as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugins
+        path: |
+          org.eclipse.jdt.core.compiler.batch/target/org.eclipse.jdt.core.compiler.batch-3.36.0-SNAPSHOT.jar
+          org.eclipse.jdt.core/target/org.eclipse.jdt.core-3.36.0-SNAPSHOT.jar
