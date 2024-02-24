@@ -5,7 +5,7 @@ concurrency:
 
 on:
   push:
-    branches: '**'
+  pull_request:
 
 jobs:
   build:
@@ -62,5 +62,5 @@ jobs:
       with:
         name: plugins
         path: |
-          org.eclipse.jdt.core.compiler.batch_3.36.0.v$BUILD_QUALIFIER.jar
-          org.eclipse.jdt.core_3.36.0.v$BUILD_QUALIFIER.jar
+          org.eclipse.jdt.core.compiler.batch_3.36.0.v${{ vars.BUILD_QUALIFIER }}.jar
+          org.eclipse.jdt.core_3.36.0.v${{ vars.BUILD_QUALIFIER }}.jar
