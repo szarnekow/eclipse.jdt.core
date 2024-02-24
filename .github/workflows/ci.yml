@@ -29,13 +29,18 @@ jobs:
       uses: stCarolas/setup-maven@07fbbe97d97ef44336b7382563d66743297e442f # v4.5
       with:
         maven-version: 3.9.3
+    - name: Define build qualifier
+      run: |
+        export BUILD_QUALIFIER="`git describe`"
+        echo "BUILD_QUALIFIER=$BUILD_QUALIFIER" >> "$GITHUB_ENV"
     - name: Build org.eclipse.jdt.core.compiler.batch with Maven 🏗️
       run: |
-        mvn clean install -Dtycho.buildqualifier.format="'vfsc4j_"${GITHUB_SHA:0:8}"-'yyyyMMddHHmm" --batch-mode -f org.eclipse.jdt.core.compiler.batch -DlocalEcjVersion=99.99
+        mvn clean install -DforceContextQualifier=v$BUILD_QUALIFIER --batch-mode -f org.eclipse.jdt.core.compiler.batch -DlocalEcjVersion=99.99
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
     - name: Build org.eclipse.jdt.core with Maven 🏗️
       run: |
-        mvn clean install -Dtycho.buildqualifier.format="'vfsc4j_"${GITHUB_SHA:0:8}"-'yyyyMMddHHmm" --batch-mode -f org.eclipse.jdt.core -DlocalEcjVersion=99.99
+        export QUALIFIER=`git describe`
+        mvn clean install -DforceContextQualifier=v$BUILD_QUALIFIER --batch-mode -f org.eclipse.jdt.core -DlocalEcjVersion=99.99
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
     - name: Download JUnit
       run: |
@@ -48,10 +53,14 @@ jobs:
         export JUNIT_PATH=`pwd`/target/dependency/junit-platform-console-standalone-1.9.3.jar
         java -cp ../org.eclipse.jdt.core.compiler.batch/target/classes org.eclipse.jdt.internal.compiler.batch.Main -21 -proc:none -d target/classes s4jie2-tests/runner
         java -cp ../org.eclipse.jdt.core.compiler.batch/target/classes:target/classes org.eclipse.jdt.core.s4jie2TestSuite
+    - name: Rename plugins
+      run: |
+        mv org.eclipse.jdt.core.compiler.batch/target/org.eclipse.jdt.core.compiler.batch-3.36.0-SNAPSHOT.jar org.eclipse.jdt.core.compiler.batch_3.36.0.v$BUILD_QUALIFIER.jar
+        mv org.eclipse.jdt.core/target/org.eclipse.jdt.core-3.36.0-SNAPSHOT.jar org.eclipse.jdt.core_3.36.0.v$BUILD_QUALIFIER.jar
     - name: Upload plugins as artifact
       uses: actions/upload-artifact@v3
       with:
         name: plugins
         path: |
-          org.eclipse.jdt.core.compiler.batch/target/org.eclipse.jdt.core.compiler.batch-3.36.0-SNAPSHOT.jar
-          org.eclipse.jdt.core/target/org.eclipse.jdt.core-3.36.0-SNAPSHOT.jar
+          org.eclipse.jdt.core.compiler.batch_3.36.0.v$BUILD_QUALIFIER.jar
+          org.eclipse.jdt.core_3.36.0.v$BUILD_QUALIFIER.jar
