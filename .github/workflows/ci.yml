@@ -39,7 +39,6 @@ jobs:
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
     - name: Build org.eclipse.jdt.core with Maven 🏗️
       run: |
-        export QUALIFIER=`git describe`
         mvn clean install -DforceContextQualifier=v$BUILD_QUALIFIER --batch-mode -f org.eclipse.jdt.core -DlocalEcjVersion=99.99
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
     - name: Download JUnit
@@ -61,6 +60,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: plugins
+        if-no-files-found: error
         path: |
-          org.eclipse.jdt.core.compiler.batch_3.36.0.v${{ vars.BUILD_QUALIFIER }}.jar
-          org.eclipse.jdt.core_3.36.0.v${{ vars.BUILD_QUALIFIER }}.jar
+          org.eclipse.jdt.core.compiler.batch_3.36.0.v${{ env.BUILD_QUALIFIER }}.jar
+          org.eclipse.jdt.core_3.36.0.v${{ env.BUILD_QUALIFIER }}.jar
