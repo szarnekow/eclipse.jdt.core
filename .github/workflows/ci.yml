@@ -31,11 +31,11 @@ jobs:
         maven-version: 3.9.3
     - name: Build org.eclipse.jdt.core.compiler.batch with Maven 🏗️
       run: |
-        mvn clean install --batch-mode -f org.eclipse.jdt.core.compiler.batch -DlocalEcjVersion=99.99
+        mvn clean install -Dtycho.buildqualifier.format="'vfsc4j_"${GITHUB_SHA:0:8}"-'yyyyMMddHHmm" --batch-mode -f org.eclipse.jdt.core.compiler.batch -DlocalEcjVersion=99.99
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
     - name: Build org.eclipse.jdt.core with Maven 🏗️
       run: |
-        mvn clean install --batch-mode -f org.eclipse.jdt.core -DlocalEcjVersion=99.99
+        mvn clean install -Dtycho.buildqualifier.format="'vfsc4j_"${GITHUB_SHA:0:8}"-'yyyyMMddHHmm" --batch-mode -f org.eclipse.jdt.core -DlocalEcjVersion=99.99
         #mvn -U clean verify --batch-mode --fail-at-end -Ptest-on-javase-20 -Pbree-libs -Papi-check -Djava.io.tmpdir=$WORKSPACE/tmp -Dproject.build.sourceEncoding=UTF-8 -Dtycho.surefire.argLine="--add-modules ALL-SYSTEM -Dcompliance=1.8,11,17,20 -Djdt.performance.asserts=disabled" -Dcbi-ecj-version=99.99
     - name: Download JUnit
       run: |
